@@ -14,6 +14,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
 
 <body>
@@ -102,6 +103,13 @@
                     <circle cx="8" cy="5" r="1" fill="currentColor" />
                 </svg>
                 <span>ComfyUI</span>
+            </button>
+            <button class="nav-item" data-tab="pricing" id="nav-pricing">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2l2.5 5 5.5.8-4 3.9.9 5.3L10 14.5 5.1 17l.9-5.3-4-3.9 5.5-.8L10 2z"
+                        stroke="currentColor" stroke-width="1.5" fill="none" />
+                </svg>
+                <span>Nâng cấp</span>
             </button>
             <button class="nav-item" data-tab="settings" id="nav-settings">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -523,8 +531,7 @@
                     <div class="form-section">
                         <label class="form-label" for="setting-kgen-token">API Token</label>
                         <div class="input-group">
-                            <input type="password" id="setting-kgen-token" class="form-input"
-                                placeholder="kgen_sk_...">
+                            <input type="password" id="setting-kgen-token" class="form-input" placeholder="kgen_sk_...">
                             <button class="btn btn-sm btn-ghost" id="btn-toggle-kgen-token">👁️</button>
                         </div>
                         <p class="form-hint">Lấy token tại <a href="https://www.kgen.ai" target="_blank">kgen.ai</a>
@@ -595,7 +602,58 @@
                         <p class="form-hint">T&#7841;o t&#7841;i <a
                                 href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud
                                 Console</a> &#8594; Credentials &#8594; OAuth 2.0 Client IDs. Th&#234;m
-                            <code>http://localhost:3456</code> v&#224;o Authorized JavaScript origins.</p>
+                            <code>http://localhost:3456</code> v&#224;o Authorized JavaScript origins.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3 class="settings-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 1C5 1 1 5 1 10s4 9 9 9 9-4 9-9-4-9-9-9z" stroke="#3ECF8E" stroke-width="1.5"
+                                fill="none" />
+                            <path d="M10 5v10M5 10h10" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round" />
+                        </svg>
+                        Supabase Backend
+                    </h3>
+                    <div class="form-section">
+                        <label class="form-label" for="setting-supabase-url">Project URL</label>
+                        <input type="text" id="setting-supabase-url" class="form-input"
+                            placeholder="https://xxxxx.supabase.co">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label" for="setting-supabase-anon-key">Anon Key</label>
+                        <input type="text" id="setting-supabase-anon-key" class="form-input"
+                            placeholder="eyJhbGciOiJIUzI1NiIs...">
+                        <p class="form-hint">Lấy tại <a href="https://supabase.com/dashboard" target="_blank">Supabase
+                                Dashboard</a> → Settings → API</p>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3 class="settings-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="2" y="6" width="16" height="10" rx="2" stroke="#635BFF" stroke-width="1.5"
+                                fill="none" />
+                            <path d="M2 10h16" stroke="#635BFF" stroke-width="1.5" />
+                        </svg>
+                        Stripe Payment
+                    </h3>
+                    <div class="form-section">
+                        <label class="form-label" for="setting-stripe-key">Publishable Key</label>
+                        <input type="text" id="setting-stripe-key" class="form-input" placeholder="pk_live_...">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label" for="setting-stripe-pro">Pro Payment Link</label>
+                        <input type="text" id="setting-stripe-pro" class="form-input"
+                            placeholder="https://buy.stripe.com/...">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label" for="setting-stripe-premium">Premium Payment Link</label>
+                        <input type="text" id="setting-stripe-premium" class="form-input"
+                            placeholder="https://buy.stripe.com/...">
+                        <p class="form-hint">Tạo tại <a href="https://dashboard.stripe.com/payment-links"
+                                target="_blank">Stripe Dashboard</a> → Payment Links</p>
                     </div>
                 </div>
 
@@ -603,6 +661,17 @@
                     <button class="btn btn-primary" id="btn-save-settings">💾 Lưu cài đặt</button>
                     <button class="btn btn-ghost" id="btn-reset-settings">🔄 Khôi phục mặc định</button>
                 </div>
+            </div>
+        </section>
+
+        <!-- ===== PRICING TAB ===== -->
+        <section id="tab-pricing" class="tab-content hidden">
+            <header class="tab-header">
+                <h1>Nâng Cấp <span class="header-accent">Pro</span></h1>
+                <p class="tab-subtitle">Mở khóa toàn bộ sức mạnh KGen Studio</p>
+            </header>
+            <div class="pricing-container" id="pricing-container">
+                <!-- Rendered by JS -->
             </div>
         </section>
     </main>
@@ -767,6 +836,7 @@
     <!-- ===== TOAST ===== -->
     <div class="toast-container" id="toast-container"></div>
 
+    <script src="supabase.js"></script>
     <script src="app.js"></script>
 </body>
 

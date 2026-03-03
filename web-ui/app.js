@@ -27,6 +27,11 @@ const APP_STATE = {
         openaiModel: 'gpt-image-1.5',
         comfyuiUrl: 'http://localhost:8188',
         googleClientId: '',
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+        stripePublishableKey: '',
+        stripePriceIdPro: '',
+        stripePriceIdPremium: '',
     },
 };
 
@@ -59,6 +64,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupWorkflowEvents();
     setupSettingsEvents();
     setupModal();
+    setupPricing();
+
+    // Init Supabase if configured
+    if (typeof initSupabase === 'function') initSupabase();
 
     await loadPromptLibrary();
 });
@@ -137,8 +146,15 @@ function switchTab(tabName) {
 
     // Update tab content
     document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.toggle('active', tab.id === `tab-${tabName}`);
+        const isActive = tab.id === `tab-${tabName}`;
+        tab.classList.toggle('active', isActive);
+        tab.classList.remove('hidden'); // Remove hidden so CSS active works
     });
+
+    // Re-render pricing if switching to pricing tab
+    if (tabName === 'pricing' && typeof setupPricing === 'function') {
+        setupPricing();
+    }
 
     // Close sidebar on mobile
     document.getElementById('sidebar').classList.remove('open');
@@ -1031,6 +1047,11 @@ function loadSettings() {
         document.getElementById('setting-openai-model').value = APP_STATE.settings.openaiModel || 'gpt-image-1.5';
         document.getElementById('setting-comfyui-url').value = APP_STATE.settings.comfyuiUrl || 'http://localhost:8188';
         document.getElementById('setting-google-client-id').value = APP_STATE.settings.googleClientId || '';
+        document.getElementById('setting-supabase-url').value = APP_STATE.settings.supabaseUrl || '';
+        document.getElementById('setting-supabase-anon-key').value = APP_STATE.settings.supabaseAnonKey || '';
+        document.getElementById('setting-stripe-key').value = APP_STATE.settings.stripePublishableKey || '';
+        document.getElementById('setting-stripe-pro').value = APP_STATE.settings.stripePriceIdPro || '';
+        document.getElementById('setting-stripe-premium').value = APP_STATE.settings.stripePriceIdPremium || '';
 
         updateProviderStatus();
     } catch (e) {
@@ -1046,6 +1067,11 @@ function saveSettings() {
         openaiModel: document.getElementById('setting-openai-model').value.trim(),
         comfyuiUrl: document.getElementById('setting-comfyui-url').value.trim(),
         googleClientId: document.getElementById('setting-google-client-id').value.trim(),
+        supabaseUrl: document.getElementById('setting-supabase-url').value.trim(),
+        supabaseAnonKey: document.getElementById('setting-supabase-anon-key').value.trim(),
+        stripePublishableKey: document.getElementById('setting-stripe-key').value.trim(),
+        stripePriceIdPro: document.getElementById('setting-stripe-pro').value.trim(),
+        stripePriceIdPremium: document.getElementById('setting-stripe-premium').value.trim(),
     };
 
     localStorage.setItem('kgen_settings', JSON.stringify(APP_STATE.settings));
@@ -1055,6 +1081,11 @@ function saveSettings() {
     if (APP_STATE.settings.googleClientId) {
         googleClientInitialized = false;
         initGoogleSignIn();
+    }
+
+    // Re-init Supabase if configured
+    if (APP_STATE.settings.supabaseUrl && typeof initSupabase === 'function') {
+        initSupabase();
     }
 
     showToast('💾 Cài đặt đã được lưu!', 'success');
@@ -1069,6 +1100,11 @@ function resetSettings() {
         openaiModel: 'gpt-image-1.5',
         comfyuiUrl: 'http://localhost:8188',
         googleClientId: '',
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+        stripePublishableKey: '',
+        stripePriceIdPro: '',
+        stripePriceIdPremium: '',
     };
 
     document.getElementById('setting-kgen-token').value = '';
@@ -1077,6 +1113,11 @@ function resetSettings() {
     document.getElementById('setting-openai-model').value = 'gpt-image-1.5';
     document.getElementById('setting-comfyui-url').value = 'http://localhost:8188';
     document.getElementById('setting-google-client-id').value = '';
+    document.getElementById('setting-supabase-url').value = '';
+    document.getElementById('setting-supabase-anon-key').value = '';
+    document.getElementById('setting-stripe-key').value = '';
+    document.getElementById('setting-stripe-pro').value = '';
+    document.getElementById('setting-stripe-premium').value = '';
 
     updateProviderStatus();
     showToast('🔄 Đã khôi phục cài đặt mặc định', 'info');
@@ -1622,4 +1663,57 @@ function showGoogleSetupPrompt() {
 
     // Auto-remove after 15s
     setTimeout(() => infoDiv.remove(), 15000);
+}
+
+// ============================================================
+// PRICING TAB
+// ============================================================
+
+function setupPricing() {
+    const container = document.getElementById('pricing-container');
+    if (!container || typeof PRICING_TIERS === 'undefined') return;
+
+    const currentTier = APP_STATE.currentUser?.tier || 'free';
+
+    container.innerHTML = `
+        <div class="pricing-grid-inline">
+            ${PRICING_TIERS.map(tier => `
+                <div class="pricing-card-inline ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}">
+                    ${tier.popular ? '<div class="popular-badge-inline">🔥 Phổ biến nhất</div>' : ''}
+                    <div class="tier-header-inline">
+                        <span class="tier-emoji-inline">${tier.emoji}</span>
+                        <h3>${tier.name}</h3>
+                    </div>
+                    <div class="tier-price-inline">
+                        <span class="amount">${tier.price}</span>
+                        <span class="period">${tier.period}</span>
+                    </div>
+                    <ul class="tier-features-inline">
+                        ${tier.features.map(f => `<li>${f}</li>`).join('')}
+                        ${tier.limitations.map(l => `<li class="limit">\u274c ${l}</li>`).join('')}
+                    </ul>
+                    <button class="btn ${tier.buttonClass} tier-btn-inline" 
+                        data-tier="${tier.id}"
+                        ${currentTier === tier.id ? 'disabled' : ''}>
+                        ${currentTier === tier.id ? '\u2713 Đang sử dụng' : tier.buttonText}
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+        <div class="pricing-footer-inline">
+            <p>\ud83d\udcb3 Thanh toán an toàn qua <strong>Stripe</strong> \u2022 Hủy bất cứ lúc nào</p>
+            <p class="sub-note">Hỗ trợ: MoMo, Visa, Mastercard, JCB \u2022 Hoàn tiền 7 ngày</p>
+        </div>
+    `;
+
+    // Attach events
+    container.querySelectorAll('.tier-btn-inline').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tier = btn.dataset.tier;
+            if (tier === 'free') return;
+            if (typeof handleUpgrade === 'function') {
+                handleUpgrade(tier);
+            }
+        });
+    });
 }
