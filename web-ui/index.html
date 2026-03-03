@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeiGen Studio — AI Image Generation Hub</title>
+    <title>KGen Studio — AI Image Generation Hub</title>
     <meta name="description"
-        content="MeiGen Studio: Browse 1,300+ curated AI prompts, generate images with ComfyUI/MeiGen/OpenAI, manage workflows and enhance prompts.">
+        content="KGen Studio: Browse 1,300+ curated AI prompts, generate images with ComfyUI/KGen/OpenAI, manage workflows and enhance prompts.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -34,7 +34,7 @@
                         <circle cx="24" cy="24" r="4" fill="#fff" opacity="0.9" />
                     </svg>
                 </div>
-                <h1 class="splash-title">MeiGen Studio</h1>
+                <h1 class="splash-title">KGen Studio</h1>
             </div>
             <div class="splash-loader">
                 <div class="splash-bar">
@@ -60,7 +60,7 @@
                     <path d="M10 26V14l8-5 8 5v12l-8 5-8-5z" stroke="#fff" stroke-width="1.5" fill="none" />
                     <circle cx="18" cy="18" r="3" fill="#fff" opacity="0.9" />
                 </svg>
-                <span class="logo-text">MeiGen<span class="logo-accent">Studio</span></span>
+                <span class="logo-text">KGen<span class="logo-accent">Studio</span></span>
             </div>
             <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -235,7 +235,7 @@
         <section id="tab-generate" class="tab-content">
             <header class="tab-header">
                 <h1>Tạo Ảnh <span class="header-accent">AI</span></h1>
-                <p class="tab-subtitle">Tạo ảnh AI chất lượng cao với MeiGen, ComfyUI hoặc OpenAI</p>
+                <p class="tab-subtitle">Tạo ảnh AI chất lượng cao với KGen, ComfyUI hoặc OpenAI</p>
             </header>
 
             <div class="generate-layout">
@@ -267,7 +267,7 @@
                                 <label class="form-label" for="gen-provider">Provider</label>
                                 <select id="gen-provider" class="form-select">
                                     <option value="auto">🔄 Tự động</option>
-                                    <option value="meigen">🎨 MeiGen Cloud</option>
+                                    <option value="kgen">🎨 KGen Cloud</option>
                                     <option value="comfyui">🖥️ ComfyUI Local</option>
                                     <option value="openai">🤖 OpenAI</option>
                                 </select>
@@ -518,16 +518,16 @@
                             <path d="M10 2l2.5 5 5.5.8-4 3.9.9 5.3L10 14.5 5.1 17l.9-5.3-4-3.9 5.5-.8L10 2z"
                                 stroke="currentColor" stroke-width="1.5" fill="none" />
                         </svg>
-                        MeiGen Cloud
+                        KGen Cloud
                     </h3>
                     <div class="form-section">
-                        <label class="form-label" for="setting-meigen-token">API Token</label>
+                        <label class="form-label" for="setting-kgen-token">API Token</label>
                         <div class="input-group">
-                            <input type="password" id="setting-meigen-token" class="form-input"
-                                placeholder="meigen_sk_...">
-                            <button class="btn btn-sm btn-ghost" id="btn-toggle-meigen-token">👁️</button>
+                            <input type="password" id="setting-kgen-token" class="form-input"
+                                placeholder="kgen_sk_...">
+                            <button class="btn btn-sm btn-ghost" id="btn-toggle-kgen-token">👁️</button>
                         </div>
-                        <p class="form-hint">Lấy token tại <a href="https://www.meigen.ai" target="_blank">meigen.ai</a>
+                        <p class="form-hint">Lấy token tại <a href="https://www.kgen.ai" target="_blank">kgen.ai</a>
                             → Settings → API Keys</p>
                     </div>
                 </div>

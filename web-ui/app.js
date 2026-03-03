@@ -1,5 +1,5 @@
-/**
- * MeiGen Studio — AI Image Generation Hub
+﻿/**
+ * KGen Studio — AI Image Generation Hub
  * Main Application Logic
  */
 
@@ -21,7 +21,7 @@ const APP_STATE = {
     // Auth
     currentUser: null, // { email, name, createdAt }
     settings: {
-        meigenToken: '',
+        kgenToken: '',
         openaiKey: '',
         openaiBase: 'https://api.openai.com',
         openaiModel: 'gpt-image-1.5',
@@ -509,7 +509,7 @@ function setupGenerateEvents() {
         if (img.src) {
             const a = document.createElement('a');
             a.href = img.src;
-            a.download = `meigen_${Date.now()}.png`;
+            a.download = `kgen_${Date.now()}.png`;
             a.click();
         }
     });
@@ -597,8 +597,8 @@ async function generateImage() {
             result = await generateViaComfyUI(prompt, negativePrompt);
         } else if (provider === 'openai' || (provider === 'auto' && APP_STATE.settings.openaiKey)) {
             result = await generateViaOpenAI(prompt, model, quality, aspectRatio, negativePrompt);
-        } else if (provider === 'meigen' || (provider === 'auto' && APP_STATE.settings.meigenToken)) {
-            result = await generateViaMeiGen(prompt, model, aspectRatio);
+        } else if (provider === 'kgen' || (provider === 'auto' && APP_STATE.settings.kgenToken)) {
+            result = await generateViaKGen(prompt, model, aspectRatio);
         } else {
             throw new Error('Chưa cấu hình provider nào. Vui lòng vào Cài đặt để thêm API key.');
         }
@@ -709,11 +709,11 @@ async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
     return { imageUrl: data.data?.[0]?.url };
 }
 
-async function generateViaMeiGen(prompt, model, aspectRatio) {
-    const token = APP_STATE.settings.meigenToken;
-    if (!token) throw new Error('MeiGen Token chưa được cấu hình');
+async function generateViaKGen(prompt, model, aspectRatio) {
+    const token = APP_STATE.settings.kgenToken;
+    if (!token) throw new Error('KGen Token chưa được cấu hình');
 
-    const response = await fetch('https://www.meigen.ai/api/generate', {
+    const response = await fetch('https://www.kgen.ai/api/generate', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -727,7 +727,7 @@ async function generateViaMeiGen(prompt, model, aspectRatio) {
         }),
     });
 
-    if (!response.ok) throw new Error(`MeiGen error: ${response.status}`);
+    if (!response.ok) throw new Error(`KGen error: ${response.status}`);
 
     const data = await response.json();
     return { imageUrl: data.imageUrl };
@@ -945,9 +945,9 @@ function handleWorkflowFile(file) {
             const name = file.name.replace('.json', '');
 
             // Store in localStorage
-            const workflows = JSON.parse(localStorage.getItem('meigen_workflows') || '{}');
+            const workflows = JSON.parse(localStorage.getItem('kgen_workflows') || '{}');
             workflows[name] = workflow;
-            localStorage.setItem('meigen_workflows', JSON.stringify(workflows));
+            localStorage.setItem('kgen_workflows', JSON.stringify(workflows));
 
             renderWorkflowList();
             showToast(`✅ Đã import workflow "${name}"`, 'success');
@@ -960,7 +960,7 @@ function handleWorkflowFile(file) {
 
 function renderWorkflowList() {
     const container = document.getElementById('workflow-list');
-    const workflows = JSON.parse(localStorage.getItem('meigen_workflows') || '{}');
+    const workflows = JSON.parse(localStorage.getItem('kgen_workflows') || '{}');
     const names = Object.keys(workflows);
 
     if (names.length === 0) {
@@ -995,9 +995,9 @@ function renderWorkflowList() {
 }
 
 function deleteWorkflow(name) {
-    const workflows = JSON.parse(localStorage.getItem('meigen_workflows') || '{}');
+    const workflows = JSON.parse(localStorage.getItem('kgen_workflows') || '{}');
     delete workflows[name];
-    localStorage.setItem('meigen_workflows', JSON.stringify(workflows));
+    localStorage.setItem('kgen_workflows', JSON.stringify(workflows));
     renderWorkflowList();
     showToast(`🗑️ Đã xoá workflow "${name}"`, 'info');
 }
@@ -1013,19 +1013,19 @@ function setupSettingsEvents() {
     document.getElementById('btn-reset-settings').addEventListener('click', resetSettings);
 
     // Toggle token visibility
-    document.getElementById('btn-toggle-meigen-token').addEventListener('click', () => {
-        const input = document.getElementById('setting-meigen-token');
+    document.getElementById('btn-toggle-kgen-token').addEventListener('click', () => {
+        const input = document.getElementById('setting-kgen-token');
         input.type = input.type === 'password' ? 'text' : 'password';
     });
 }
 
 function loadSettings() {
     try {
-        const saved = JSON.parse(localStorage.getItem('meigen_settings') || '{}');
+        const saved = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
         APP_STATE.settings = { ...APP_STATE.settings, ...saved };
 
         // Populate form
-        document.getElementById('setting-meigen-token').value = APP_STATE.settings.meigenToken || '';
+        document.getElementById('setting-kgen-token').value = APP_STATE.settings.kgenToken || '';
         document.getElementById('setting-openai-key').value = APP_STATE.settings.openaiKey || '';
         document.getElementById('setting-openai-base').value = APP_STATE.settings.openaiBase || 'https://api.openai.com';
         document.getElementById('setting-openai-model').value = APP_STATE.settings.openaiModel || 'gpt-image-1.5';
@@ -1040,7 +1040,7 @@ function loadSettings() {
 
 function saveSettings() {
     APP_STATE.settings = {
-        meigenToken: document.getElementById('setting-meigen-token').value.trim(),
+        kgenToken: document.getElementById('setting-kgen-token').value.trim(),
         openaiKey: document.getElementById('setting-openai-key').value.trim(),
         openaiBase: document.getElementById('setting-openai-base').value.trim(),
         openaiModel: document.getElementById('setting-openai-model').value.trim(),
@@ -1048,7 +1048,7 @@ function saveSettings() {
         googleClientId: document.getElementById('setting-google-client-id').value.trim(),
     };
 
-    localStorage.setItem('meigen_settings', JSON.stringify(APP_STATE.settings));
+    localStorage.setItem('kgen_settings', JSON.stringify(APP_STATE.settings));
     updateProviderStatus();
 
     // Re-init Google Sign-In if client ID changed
@@ -1061,9 +1061,9 @@ function saveSettings() {
 }
 
 function resetSettings() {
-    localStorage.removeItem('meigen_settings');
+    localStorage.removeItem('kgen_settings');
     APP_STATE.settings = {
-        meigenToken: '',
+        kgenToken: '',
         openaiKey: '',
         openaiBase: 'https://api.openai.com',
         openaiModel: 'gpt-image-1.5',
@@ -1071,7 +1071,7 @@ function resetSettings() {
         googleClientId: '',
     };
 
-    document.getElementById('setting-meigen-token').value = '';
+    document.getElementById('setting-kgen-token').value = '';
     document.getElementById('setting-openai-key').value = '';
     document.getElementById('setting-openai-base').value = 'https://api.openai.com';
     document.getElementById('setting-openai-model').value = 'gpt-image-1.5';
@@ -1086,7 +1086,7 @@ function updateProviderStatus() {
     const statusEl = document.getElementById('provider-status');
     const providers = [];
 
-    if (APP_STATE.settings.meigenToken) providers.push('MeiGen');
+    if (APP_STATE.settings.kgenToken) providers.push('KGen');
     if (APP_STATE.settings.openaiKey) providers.push('OpenAI');
     if (APP_STATE.settings.comfyuiUrl) providers.push('ComfyUI');
 
@@ -1172,12 +1172,12 @@ function isLoggedIn() {
 
 function setupAuth() {
     // Restore session
-    const session = localStorage.getItem('meigen_session');
+    const session = localStorage.getItem('kgen_session');
     if (session) {
         try {
             APP_STATE.currentUser = JSON.parse(session);
         } catch (e) {
-            localStorage.removeItem('meigen_session');
+            localStorage.removeItem('kgen_session');
         }
     }
 
@@ -1286,7 +1286,7 @@ function handleRegister() {
     }
 
     // Get existing users
-    const users = JSON.parse(localStorage.getItem('meigen_users') || '{}');
+    const users = JSON.parse(localStorage.getItem('kgen_users') || '{}');
 
     if (users[email]) {
         showToast('Email này đã được đăng ký', 'error');
@@ -1303,12 +1303,12 @@ function handleRegister() {
         createdAt: new Date().toISOString(),
     };
 
-    localStorage.setItem('meigen_users', JSON.stringify(users));
+    localStorage.setItem('kgen_users', JSON.stringify(users));
 
     // Auto-login after register
     const user = { email, name, createdAt: users[email].createdAt };
     APP_STATE.currentUser = user;
-    localStorage.setItem('meigen_session', JSON.stringify(user));
+    localStorage.setItem('kgen_session', JSON.stringify(user));
 
     closeAuthModal();
     updateAuthUI();
@@ -1326,7 +1326,7 @@ function handleLogin() {
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('meigen_users') || '{}');
+    const users = JSON.parse(localStorage.getItem('kgen_users') || '{}');
     const user = users[email];
 
     if (!user) {
@@ -1342,7 +1342,7 @@ function handleLogin() {
     // Login success
     const sessionUser = { email: user.email, name: user.name, createdAt: user.createdAt };
     APP_STATE.currentUser = sessionUser;
-    localStorage.setItem('meigen_session', JSON.stringify(sessionUser));
+    localStorage.setItem('kgen_session', JSON.stringify(sessionUser));
 
     closeAuthModal();
     updateAuthUI();
@@ -1353,7 +1353,7 @@ function handleLogin() {
 
 function handleLogout() {
     APP_STATE.currentUser = null;
-    localStorage.removeItem('meigen_session');
+    localStorage.removeItem('kgen_session');
 
     updateAuthUI();
     refreshGalleryForAuth();
@@ -1524,7 +1524,7 @@ function handleGoogleCredentialResponse(response) {
         };
 
         // Save to users list (auto-register)
-        const users = JSON.parse(localStorage.getItem('meigen_users') || '{}');
+        const users = JSON.parse(localStorage.getItem('kgen_users') || '{}');
         if (!users[googleUser.email]) {
             users[googleUser.email] = {
                 name: googleUser.name,
@@ -1534,12 +1534,12 @@ function handleGoogleCredentialResponse(response) {
                 passwordHash: '', // No password for Google users
                 createdAt: googleUser.createdAt,
             };
-            localStorage.setItem('meigen_users', JSON.stringify(users));
+            localStorage.setItem('kgen_users', JSON.stringify(users));
         }
 
         // Login
         APP_STATE.currentUser = googleUser;
-        localStorage.setItem('meigen_session', JSON.stringify(googleUser));
+        localStorage.setItem('kgen_session', JSON.stringify(googleUser));
 
         closeAuthModal();
         updateAuthUI();

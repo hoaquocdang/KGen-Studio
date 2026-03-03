@@ -1,7 +1,7 @@
-# 🎨 MeiGen Studio — AI Image Generation Hub
+﻿# 🎨 KGen Studio — AI Image Generation Hub
 
 <p align="center">
-  <img src="web-ui/favicon.svg" width="80" alt="MeiGen Studio Logo">
+  <img src="web-ui/favicon.svg" width="80" alt="KGen Studio Logo">
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 | 🖼️ **Prompt Gallery** | Browse 1,300+ curated AI prompts with real-world examples |
 | 🔐 **Auth System** | Email/Password + Google Sign-In authentication |
 | 🎭 **Prompt Preview** | Guest users see 10% of prompts, login to unlock full content |
-| 🎨 **Image Generation** | Generate images via MeiGen Cloud, OpenAI, or ComfyUI |
+| 🎨 **Image Generation** | Generate images via KGen Cloud, OpenAI, or ComfyUI |
 | ✍️ **Prompt Enhancer** | AI-powered prompt enhancement with multiple styles |
 | ⚙️ **Workflow Manager** | Import and manage ComfyUI workflows |
 | 🌙 **Premium Dark UI** | Glassmorphism design with smooth animations |
@@ -62,8 +62,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/MeiGen-Studio.git
-cd MeiGen-Studio
+git clone https://github.com/YOUR_USERNAME/KGen-Studio.git
+cd KGen-Studio
 
 # Install dependencies
 npm install
@@ -113,12 +113,12 @@ To enable Google Sign-In:
 - **Authentication**: localStorage + Google Identity Services
 - **Design**: Custom CSS with CSS variables, glassmorphism, gradients
 - **Fonts**: Inter, JetBrains Mono (Google Fonts)
-- **APIs**: MeiGen Cloud, OpenAI, ComfyUI (optional)
+- **APIs**: KGen Cloud, OpenAI, ComfyUI (optional)
 
 ## 📁 Project Structure
 
 ```
-MeiGen-Studio/
+KGen-Studio/
 ├── web-ui/
 │   ├── index.html          # Main HTML structure
 │   ├── styles.css           # Complete design system
@@ -160,5 +160,5 @@ This is a commercial product. Please contact the owner for collaboration inquiri
 ---
 
 <p align="center">
-  Built with ❤️ by MeiGen Studio Team
+  Built with ❤️ by KGen Studio Team
 </p>
