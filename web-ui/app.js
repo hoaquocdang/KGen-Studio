@@ -72,7 +72,7 @@ async function loadPromptLibrary() {
         barFill.style.width = '20%';
         statusText.textContent = 'Đang tải thư viện prompt...';
 
-        const response = await fetch('../data/trending-prompts.json');
+        const response = await fetch('./data/trending-prompts.json');
         barFill.style.width = '60%';
         statusText.textContent = 'Đang xử lý dữ liệu...';
 
