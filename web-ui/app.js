@@ -35,8 +35,8 @@ const APP_STATE = {
     },
 };
 
-// Prompt visibility: guests see this fraction of text
-const GUEST_PROMPT_RATIO = 0.10; // 10%
+// Prompt visibility: everyone sees full prompt
+const GUEST_PROMPT_RATIO = 1.0; // 100% - no restriction
 
 // Category emoji map
 const CATEGORY_EMOJI = {
@@ -321,31 +321,20 @@ function createGalleryCard(item, index) {
     card.style.opacity = '0';
     card.style.animation = 'cardFadeIn 0.4s var(--ease-out) forwards';
 
-    const isGuest = !isLoggedIn();
     const catBadges = item.categories.map(c =>
         `<span class="card-cat">${CATEGORY_EMOJI[c] || '📌'} ${c}</span>`
     ).join('');
 
-    // Guests see truncated preview
-    let promptPreview;
-    if (isGuest) {
-        const visibleLen = Math.max(20, Math.floor(item.prompt.length * GUEST_PROMPT_RATIO));
-        promptPreview = item.prompt.slice(0, visibleLen).replace(/\n/g, ' ') + '•••';
-    } else {
-        promptPreview = item.prompt.length > 120
-            ? item.prompt.slice(0, 120).replace(/\n/g, ' ') + '...'
-            : item.prompt.replace(/\n/g, ' ');
-    }
-
-    const lockBadge = isGuest
-        ? `<div class="card-lock-badge">🔒</div>`
-        : '';
+    // Show prompt preview (truncated for card)
+    const promptPreview = item.prompt.length > 120
+        ? item.prompt.slice(0, 120).replace(/\n/g, ' ') + '...'
+        : item.prompt.replace(/\n/g, ' ');
 
     card.innerHTML = `
         <div class="gallery-card-image">
             <img src="${item.image}" alt="Prompt #${item.rank}" loading="lazy"
                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22400%22/><text fill=%22%2355556a%22 x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2216%22>Image unavailable</text></svg>'">
-            ${lockBadge}
+
             <div class="gallery-card-overlay">
                 <div class="overlay-stats">
                     <span>❤️ ${formatNumber(item.likes)}</span>
@@ -355,7 +344,7 @@ function createGalleryCard(item, index) {
         </div>
         <div class="gallery-card-body">
             <span class="card-rank">#${item.rank} • ${item.model}</span>
-            <p class="card-prompt${isGuest ? ' locked' : ''}">${escapeHtml(promptPreview)}</p>
+            <p class="card-prompt">${escapeHtml(promptPreview)}</p>
             <div class="card-footer">
                 <span class="card-author">by ${escapeHtml(item.author_name)}</span>
                 <div class="card-cats">${catBadges}</div>
@@ -411,11 +400,6 @@ function setupModal() {
     });
 
     document.getElementById('btn-copy-prompt').addEventListener('click', () => {
-        if (!isLoggedIn()) {
-            showToast('🔒 Vui lòng đăng nhập để sao chép prompt', 'error');
-            openAuthModal();
-            return;
-        }
         const promptText = document.getElementById('modal-prompt').dataset.fullPrompt || document.getElementById('modal-prompt').textContent;
         copyToClipboard(promptText);
     });
@@ -447,21 +431,12 @@ function openModal(item) {
     document.getElementById('modal-date').textContent = `📅 ${item.date}`;
     document.getElementById('modal-source-link').href = item.source_url;
 
-    // Store full prompt for auth users
+    // Store full prompt
     promptEl.dataset.fullPrompt = item.prompt;
 
-    // Prompt visibility based on auth state
-    if (isLoggedIn()) {
-        promptEl.textContent = item.prompt;
-        lockOverlay.classList.add('unlocked');
-    } else {
-        // Show only 10% of the prompt
-        const visibleLen = Math.max(30, Math.floor(item.prompt.length * GUEST_PROMPT_RATIO));
-        const visibleText = item.prompt.slice(0, visibleLen);
-        const hiddenText = item.prompt.slice(visibleLen).replace(/./g, '•');
-        promptEl.textContent = visibleText + hiddenText.slice(0, 80) + '\n\n[🔒 Đăng nhập để xem đầy đủ]';
-        lockOverlay.classList.remove('unlocked');
-    }
+    // Show full prompt to everyone
+    promptEl.textContent = item.prompt;
+    lockOverlay.classList.add('unlocked');
 
     // Categories
     const catsContainer = document.getElementById('modal-cats');
@@ -1430,11 +1405,10 @@ function updateAuthUI() {
         // Hide guest banner if exists
         document.getElementById('guest-banner')?.remove();
     } else {
-        loggedOut.classList.remove('hidden');
-        loggedIn.classList.add('hidden');
+        loggedOut?.classList.remove('hidden');
+        loggedIn?.classList.add('hidden');
 
-        // Show guest banner in gallery
-        showGuestBanner();
+        // No guest banner - prompts are fully visible to everyone
     }
 }
 
