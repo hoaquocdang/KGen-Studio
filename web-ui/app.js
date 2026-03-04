@@ -1761,3 +1761,105 @@ function setupPricing() {
         });
     });
 }
+
+// ============================================================
+// USER GUIDE MODAL
+// ============================================================
+
+let guideCurrentSlide = 0;
+const GUIDE_TOTAL_SLIDES = 5;
+
+function setupGuide() {
+    const overlay = document.getElementById('guide-overlay');
+    if (!overlay) return;
+
+    // Open guide from sidebar
+    document.getElementById('btn-open-guide')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openGuide();
+        // Close sidebar on mobile
+        document.getElementById('sidebar')?.classList.remove('open');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        if (sidebarOverlay) sidebarOverlay.remove();
+    });
+
+    // Close
+    document.getElementById('guide-close')?.addEventListener('click', closeGuide);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeGuide();
+    });
+
+    // Prev / Next
+    document.getElementById('guide-prev')?.addEventListener('click', () => {
+        goToGuideSlide(guideCurrentSlide - 1);
+    });
+    document.getElementById('guide-next')?.addEventListener('click', () => {
+        if (guideCurrentSlide === GUIDE_TOTAL_SLIDES - 1) {
+            closeGuide();
+        } else {
+            goToGuideSlide(guideCurrentSlide + 1);
+        }
+    });
+
+    // Dots
+    document.querySelectorAll('.guide-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            goToGuideSlide(parseInt(dot.dataset.dot));
+        });
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+        if (!overlay.classList.contains('active')) return;
+        if (e.key === 'Escape') closeGuide();
+        if (e.key === 'ArrowRight') goToGuideSlide(guideCurrentSlide + 1);
+        if (e.key === 'ArrowLeft') goToGuideSlide(guideCurrentSlide - 1);
+    });
+
+    // Auto-show for first-time visitors
+    if (!localStorage.getItem('kgen_guide_seen')) {
+        setTimeout(() => {
+            openGuide();
+            localStorage.setItem('kgen_guide_seen', 'true');
+        }, 2000);
+    }
+}
+
+function openGuide() {
+    guideCurrentSlide = 0;
+    updateGuideSlide();
+    document.getElementById('guide-overlay')?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeGuide() {
+    document.getElementById('guide-overlay')?.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function goToGuideSlide(index) {
+    if (index < 0 || index >= GUIDE_TOTAL_SLIDES) return;
+    guideCurrentSlide = index;
+    updateGuideSlide();
+}
+
+function updateGuideSlide() {
+    document.querySelectorAll('.guide-slide').forEach(slide => {
+        slide.classList.toggle('active', parseInt(slide.dataset.slide) === guideCurrentSlide);
+    });
+    document.querySelectorAll('.guide-dot').forEach(dot => {
+        dot.classList.toggle('active', parseInt(dot.dataset.dot) === guideCurrentSlide);
+    });
+
+    const prevBtn = document.getElementById('guide-prev');
+    const nextBtn = document.getElementById('guide-next');
+    if (prevBtn) prevBtn.disabled = guideCurrentSlide === 0;
+    if (nextBtn) {
+        nextBtn.textContent = guideCurrentSlide === GUIDE_TOTAL_SLIDES - 1 ? 'Bắt đầu dùng! 🚀' : 'Tiếp →';
+    }
+}
+
+// Init guide when DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    setupGuide();
+});

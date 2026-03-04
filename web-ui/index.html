@@ -154,9 +154,9 @@
         <div class="sidebar-footer">
             <!-- Sidebar Bottom Links -->
             <div class="sidebar-links">
-                <div class="sidebar-section-title">More from us</div>
-                <a href="#" class="sidebar-link">📡 MCP Server</a>
-                <a href="#" class="sidebar-link">🎨 Figma Plugin</a>
+                <div class="sidebar-section-title">Hỗ trợ</div>
+                <a href="#" class="sidebar-link" id="btn-open-guide">📖 Hướng dẫn sử dụng</a>
+                <a href="#" class="sidebar-link" id="btn-open-contact">💬 Liên hệ hỗ trợ</a>
             </div>
             <div class="sidebar-legal">
                 <a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">DMCA</a>
@@ -915,6 +915,166 @@
             <span>More</span>
         </button>
     </nav>
+
+    <!-- ===== USER GUIDE MODAL ===== -->
+    <div class="guide-overlay" id="guide-overlay">
+        <div class="guide-modal" id="guide-modal">
+            <button class="guide-close" id="guide-close" aria-label="Close">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+            </button>
+
+            <div class="guide-slides" id="guide-slides">
+                <!-- Slide 1: Welcome -->
+                <div class="guide-slide active" data-slide="0">
+                    <div class="guide-slide-icon">🎨</div>
+                    <h2>Chào mừng đến KGen Studio!</h2>
+                    <p class="guide-subtitle">Nền tảng AI Prompt & Image Generation #1 Việt Nam</p>
+                    <div class="guide-features">
+                        <div class="guide-feature-item">
+                            <span class="gf-icon">🖼️</span>
+                            <div>
+                                <strong>1,500+ Prompt AI</strong>
+                                <p>Thư viện prompt được tuyển chọn từ cộng đồng</p>
+                            </div>
+                        </div>
+                        <div class="guide-feature-item">
+                            <span class="gf-icon">✨</span>
+                            <div>
+                                <strong>Tạo & Nâng cấp</strong>
+                                <p>Tạo ảnh AI và nâng cấp prompt tự động</p>
+                            </div>
+                        </div>
+                        <div class="guide-feature-item">
+                            <span class="gf-icon">🆓</span>
+                            <div>
+                                <strong>Miễn phí sử dụng</strong>
+                                <p>Duyệt gallery, copy prompt hoàn toàn free</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Gallery -->
+                <div class="guide-slide" data-slide="1">
+                    <div class="guide-slide-icon">🖼️</div>
+                    <h2>Thư Viện Prompt AI</h2>
+                    <p class="guide-subtitle">Duyệt, tìm kiếm và copy prompt dễ dàng</p>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <span class="step-num">1</span>
+                            <p><strong>Tìm kiếm</strong> — Gõ từ khóa để tìm prompt (VD: "cyberpunk girl", "food
+                                photography")</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">2</span>
+                            <p><strong>Lọc danh mục</strong> — Nhấn chip (Product, Girl, 3D...) để lọc theo category</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">3</span>
+                            <p><strong>Xem chi tiết</strong> — Click vào card để xem prompt đầy đủ</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">4</span>
+                            <p><strong>Copy & Dùng</strong> — Nhấn nút Copy rồi paste vào Midjourney, ChatGPT, DALL-E...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: Create -->
+                <div class="guide-slide" data-slide="2">
+                    <div class="guide-slide-icon">🎯</div>
+                    <h2>Tạo Ảnh AI</h2>
+                    <p class="guide-subtitle">Biến ý tưởng thành hình ảnh chỉ trong vài giây</p>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <span class="step-num">1</span>
+                            <p><strong>Nhập prompt</strong> — Mô tả hình ảnh bạn muốn tạo bằng tiếng Anh</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">2</span>
+                            <p><strong>Chọn phong cách</strong> — Realistic, Illustration, Anime, Photography...</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">3</span>
+                            <p><strong>Chọn tỉ lệ</strong> — 1:1 (vuông), 3:4 (portrait), 16:9 (landscape)...</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">4</span>
+                            <p><strong>Tạo ảnh</strong> — Nhấn "Tạo Ảnh" và đợi AI xử lý (~10-30 giây)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Enhance -->
+                <div class="guide-slide" data-slide="3">
+                    <div class="guide-slide-icon">✨</div>
+                    <h2>Nâng Cấp Prompt</h2>
+                    <p class="guide-subtitle">AI sẽ biến ý tưởng đơn giản thành prompt chuyên nghiệp</p>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <span class="step-num">1</span>
+                            <p><strong>Nhập ý tưởng ngắn</strong> — VD: "a cat sitting in a garden"</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">2</span>
+                            <p><strong>Chọn style</strong> — Realistic (thực), Artistic (nghệ thuật), Anime...</p>
+                        </div>
+                        <div class="guide-step">
+                            <span class="step-num">3</span>
+                            <p><strong>Nhấn Nâng Cấp</strong> — Nhận prompt chi tiết với lighting, composition, camera
+                                angles</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5: Tips -->
+                <div class="guide-slide" data-slide="4">
+                    <div class="guide-slide-icon">💡</div>
+                    <h2>Mẹo Sử Dụng</h2>
+                    <p class="guide-subtitle">Tận dụng tối đa KGen Studio</p>
+                    <div class="guide-tips">
+                        <div class="guide-tip">
+                            <span>📱</span>
+                            <p><strong>Dùng trên điện thoại</strong> — App tối ưu cho mobile, dùng bottom nav để chuyển
+                                tab</p>
+                        </div>
+                        <div class="guide-tip">
+                            <span>🔍</span>
+                            <p><strong>Tìm kiếm thông minh</strong> — Dùng từ khóa tiếng Anh cho kết quả tốt nhất</p>
+                        </div>
+                        <div class="guide-tip">
+                            <span>🎲</span>
+                            <p><strong>Ngẫu nhiên</strong> — Nhấn nút "Ngẫu nhiên" để khám phá prompt mới</p>
+                        </div>
+                        <div class="guide-tip">
+                            <span>🔐</span>
+                            <p><strong>Đăng nhập Google</strong> — Mở khóa toàn bộ prompt và lưu favorites</p>
+                        </div>
+                        <div class="guide-tip">
+                            <span>⚡</span>
+                            <p><strong>Copy nhanh</strong> — Click vào card → nhấn Copy → paste vào AI tool</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="guide-nav">
+                <button class="guide-btn guide-btn-prev" id="guide-prev">← Trước</button>
+                <div class="guide-dots" id="guide-dots">
+                    <span class="guide-dot active" data-dot="0"></span>
+                    <span class="guide-dot" data-dot="1"></span>
+                    <span class="guide-dot" data-dot="2"></span>
+                    <span class="guide-dot" data-dot="3"></span>
+                    <span class="guide-dot" data-dot="4"></span>
+                </div>
+                <button class="guide-btn guide-btn-next" id="guide-next">Tiếp →</button>
+            </div>
+        </div>
+    </div>
 
     <script src="supabase.js"></script>
     <script src="app.js"></script>
