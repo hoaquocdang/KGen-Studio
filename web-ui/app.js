@@ -629,7 +629,7 @@ async function generateImage() {
     const provider = document.getElementById('gen-provider').value;
     const model = document.getElementById('gen-model').value.trim();
     const quality = document.getElementById('gen-quality').value;
-    const aspectRatio = document.querySelector('.ar-btn.active')?.dataset.ratio || '1:1';
+    const aspectRatio = document.querySelector('.gen-ar-opt.active')?.dataset.ratio || '3:4';
     const negativePrompt = document.getElementById('gen-negative').value.trim();
 
     // Show loading
@@ -646,16 +646,37 @@ async function generateImage() {
 
     try {
         // Determine endpoint based on provider
+        // Priority: explicit provider > kgen (if token) > openai (if key) > comfyui (if URL explicitly set by user)
         let result;
+        let selectedProvider = provider;
 
-        if (provider === 'comfyui' || (provider === 'auto' && APP_STATE.settings.comfyuiUrl)) {
-            result = await generateViaComfyUI(prompt, negativePrompt);
-        } else if (provider === 'openai' || (provider === 'auto' && APP_STATE.settings.openaiKey)) {
-            result = await generateViaOpenAI(prompt, model, quality, aspectRatio, negativePrompt);
-        } else if (provider === 'kgen' || (provider === 'auto' && APP_STATE.settings.kgenToken)) {
-            result = await generateViaKGen(prompt, model, aspectRatio);
-        } else {
-            throw new Error('Chưa cấu hình provider nào. Vui lòng vào Cài đặt để thêm API key.');
+        if (provider === 'auto') {
+            if (APP_STATE.settings.kgenToken) {
+                selectedProvider = 'kgen';
+            } else if (APP_STATE.settings.openaiKey) {
+                selectedProvider = 'openai';
+            } else if (APP_STATE.settings.comfyuiUrl && APP_STATE.settings._comfyuiManuallySet) {
+                selectedProvider = 'comfyui';
+            } else {
+                // No provider configured — use MeiGen API (meigen.ai)
+                selectedProvider = 'meigen';
+            }
+        }
+
+        switch (selectedProvider) {
+            case 'comfyui':
+                result = await generateViaComfyUI(prompt, negativePrompt);
+                break;
+            case 'openai':
+                result = await generateViaOpenAI(prompt, model, quality, aspectRatio, negativePrompt);
+                break;
+            case 'kgen':
+                result = await generateViaKGen(prompt, model, aspectRatio);
+                break;
+            case 'meigen':
+            default:
+                result = await generateViaMeiGen(prompt, model, aspectRatio);
+                break;
         }
 
         // Show result
@@ -672,48 +693,58 @@ async function generateImage() {
             APP_STATE.generationHistory.unshift({
                 url: result.imageUrl,
                 prompt,
-                provider,
+                provider: selectedProvider,
                 timestamp: new Date().toISOString(),
             });
             renderHistory();
 
             showToast('🎨 Ảnh đã được tạo thành công!', 'success');
         } else {
-            // Simulated result for demo
-            showDemoResult(prompt);
+            throw new Error('Không nhận được ảnh từ server. Vui lòng thử lại.');
         }
     } catch (error) {
         clearInterval(timerInterval);
         document.getElementById('result-loading').classList.add('hidden');
         document.getElementById('result-placeholder').classList.remove('hidden');
 
-        // Show demo with gallery image as demo
-        showDemoResult(prompt);
+        // Show clear error message instead of misleading random gallery image
+        const errorMsg = error.message || 'Lỗi không xác định';
+        showGenerationError(errorMsg);
 
         console.error('Generation error:', error);
     }
 }
 
-function showDemoResult(prompt) {
-    // Use a random prompt library image as demo
-    const randomPrompt = APP_STATE.prompts[Math.floor(Math.random() * APP_STATE.prompts.length)];
-    if (!randomPrompt) return;
+/**
+ * Show a clear error message to the user instead of displaying a random gallery image
+ */
+function showGenerationError(message) {
+    const placeholder = document.getElementById('result-placeholder');
+    placeholder.classList.remove('hidden');
 
-    const img = document.getElementById('result-image');
-    img.src = randomPrompt.image;
+    // Classify error and provide helpful guidance
+    let guidance = '';
+    const lower = message.toLowerCase();
 
-    document.getElementById('result-loading').classList.add('hidden');
-    document.getElementById('result-image-wrap').classList.remove('hidden');
+    if (lower.includes('token') || lower.includes('api key') || lower.includes('cấu hình')) {
+        guidance = '💡 Vui lòng vào Cài đặt (thanh bên) để thêm API token MeiGen hoặc OpenAI key.';
+    } else if (lower.includes('401') || lower.includes('403') || lower.includes('unauthorized')) {
+        guidance = '🔑 API token không hợp lệ hoặc đã hết hạn. Kiểm tra lại trong Cài đặt.';
+    } else if (lower.includes('402') || lower.includes('credit') || lower.includes('insufficient')) {
+        guidance = '💳 Hết credit. Credit miễn phí sẽ được reset mỗi ngày.';
+    } else if (lower.includes('429') || lower.includes('rate')) {
+        guidance = '⏳ Quá nhiều request. Vui lòng đợi vài giây rồi thử lại.';
+    } else if (lower.includes('timeout') || lower.includes('timed out')) {
+        guidance = '⏱️ Request quá hạn. Thử lại — có thể server đang bận.';
+    } else if (lower.includes('network') || lower.includes('fetch') || lower.includes('econnrefused')) {
+        guidance = '🌐 Lỗi kết nối mạng. Kiểm tra internet và thử lại.';
+    } else if (lower.includes('safety') || lower.includes('policy') || lower.includes('flagged')) {
+        guidance = '⚠️ Prompt có thể vi phạm chính sách nội dung. Thử chỉnh sửa prompt.';
+    } else {
+        guidance = '💡 Thử lại hoặc chọn model/provider khác.';
+    }
 
-    APP_STATE.generationHistory.unshift({
-        url: randomPrompt.image,
-        prompt,
-        provider: 'demo',
-        timestamp: new Date().toISOString(),
-    });
-    renderHistory();
-
-    showToast('🎨 Demo — Kết nối provider để tạo ảnh thật!', 'info');
+    showToast(`❌ ${message}\n${guidance}`, 'error', 6000);
 }
 
 async function generateViaComfyUI(prompt, negativePrompt) {
@@ -766,9 +797,9 @@ async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
 
 async function generateViaKGen(prompt, model, aspectRatio) {
     const token = APP_STATE.settings.kgenToken;
-    if (!token) throw new Error('KGen Token chưa được cấu hình');
+    if (!token) throw new Error('KGen Token chưa được cấu hình. Vào Cài đặt để thêm token.');
 
-    const response = await fetch('https://www.kgen.ai/api/generate', {
+    const response = await fetch('https://www.kgen.ai/api/generate/v2', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -778,14 +809,134 @@ async function generateViaKGen(prompt, model, aspectRatio) {
             prompt,
             modelId: model || 'nanobanana-2',
             aspectRatio: aspectRatio || '1:1',
+            resolution: '2K',
             referenceImages: APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages : undefined,
         }),
     });
 
-    if (!response.ok) throw new Error(`KGen error: ${response.status}`);
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `KGen error: ${response.status}`);
+    }
 
     const data = await response.json();
-    return { imageUrl: data.imageUrl };
+    if (!data.success || !data.generationId) {
+        throw new Error(data.error || 'Không nhận được generation ID từ server');
+    }
+
+    // Poll for result
+    return await pollKGenGeneration(data.generationId, token);
+}
+
+/**
+ * Poll KGen generation status until completed, failed, or timeout
+ */
+async function pollKGenGeneration(generationId, token, timeoutMs = 300000) {
+    const startTime = Date.now();
+    const pollInterval = 3000;
+    const timerEl = document.getElementById('gen-timer');
+
+    while (Date.now() - startTime < timeoutMs) {
+        const statusRes = await fetch(`https://www.kgen.ai/api/generate/v2/status/${encodeURIComponent(generationId)}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (!statusRes.ok) {
+            throw new Error(`Lỗi kiểm tra trạng thái: ${statusRes.status}`);
+        }
+
+        const status = await statusRes.json();
+
+        if (status.status === 'completed' && status.imageUrl) {
+            return { imageUrl: status.imageUrl };
+        }
+
+        if (status.status === 'failed') {
+            throw new Error(status.error || 'Generation thất bại trên server');
+        }
+
+        // Update timer with status
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        if (timerEl) timerEl.textContent = `${elapsed}s`;
+
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    throw new Error('Generation quá thời gian chờ (5 phút). Vui lòng thử lại.');
+}
+
+/**
+ * Generate via MeiGen platform API (meigen.ai) — default when no provider configured
+ * This is the primary API used by the MeiGen platform
+ */
+async function generateViaMeiGen(prompt, model, aspectRatio) {
+    // Use MeiGen platform API
+    const baseUrl = 'https://www.meigen.ai';
+
+    const response = await fetch(`${baseUrl}/api/generate/v2`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt,
+            modelId: model || 'nanobanana-2',
+            aspectRatio: aspectRatio || '1:1',
+            resolution: '2K',
+            referenceImages: APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages : undefined,
+        }),
+    });
+
+    if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+            throw new Error('Cần API token để tạo ảnh. Vào Cài đặt → KGen Cloud để thêm token, hoặc đăng ký tại meigen.ai');
+        }
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `MeiGen error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success || !data.generationId) {
+        throw new Error(data.error || 'Không nhận được generation ID');
+    }
+
+    // Poll for result
+    return await pollMeiGenGeneration(data.generationId, baseUrl);
+}
+
+/**
+ * Poll MeiGen generation status until completed or timeout
+ */
+async function pollMeiGenGeneration(generationId, baseUrl, timeoutMs = 300000) {
+    const startTime = Date.now();
+    const pollInterval = 3000;
+    const timerEl = document.getElementById('gen-timer');
+
+    while (Date.now() - startTime < timeoutMs) {
+        const statusRes = await fetch(`${baseUrl}/api/generate/v2/status/${encodeURIComponent(generationId)}`);
+
+        if (!statusRes.ok) {
+            throw new Error(`Lỗi kiểm tra trạng thái: ${statusRes.status}`);
+        }
+
+        const status = await statusRes.json();
+
+        if (status.status === 'completed' && status.imageUrl) {
+            return { imageUrl: status.imageUrl };
+        }
+
+        if (status.status === 'failed') {
+            throw new Error(status.error || 'Generation thất bại');
+        }
+
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        if (timerEl) timerEl.textContent = `${elapsed}s`;
+
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    throw new Error('Generation quá thời gian chờ. Vui lòng thử lại.');
 }
 
 function renderHistory() {
@@ -1229,7 +1380,7 @@ async function copyToClipboard(text) {
     }
 }
 
-function showToast(message, type = 'info') {
+function showToast(message, type = 'info', duration = 3000) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -1239,7 +1390,7 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, duration);
 }
 
 // ============================================================

@@ -1,59 +1,59 @@
 ﻿/* ========================================================
-   KGen Studio — Design System & Styles
-   Pixora Creative Agency — Warm Terracotta Theme
+   MeiGen Gallery — Design System & Styles
+   Clean Neutral Light Theme — Matching meigen.ai
    ======================================================== */
 
 /* ===== CSS Variables / Design Tokens ===== */
 :root {
-    /* Colors — Warm Light Mode (Pixora Terracotta) */
-    --bg-primary: #FDF6EE;
-    --bg-secondary: #F7EFE5;
-    --bg-tertiary: #EFE6D9;
+    /* Colors — Clean Neutral Light Mode (MeiGen Style) */
+    --bg-primary: #f3f4f6;
+    --bg-secondary: #eef0f3;
+    --bg-tertiary: #e5e7eb;
     --bg-card: #ffffff;
-    --bg-card-hover: #FFF8F0;
+    --bg-card-hover: #f9fafb;
     --bg-elevated: #ffffff;
-    --bg-input: #F5EDE3;
+    --bg-input: #f9fafb;
 
-    --border-color: rgba(139, 90, 43, 0.1);
-    --border-hover: rgba(139, 90, 43, 0.2);
-    --border-focus: rgba(193, 68, 14, 0.5);
+    --border-color: rgba(0, 0, 0, 0.06);
+    --border-hover: rgba(0, 0, 0, 0.12);
+    --border-focus: rgba(17, 24, 39, 0.4);
 
-    --text-primary: #2D1B0E;
-    --text-secondary: #7A6555;
-    --text-tertiary: #A69383;
-    --text-accent: #C1440E;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    --text-accent: #111827;
 
-    /* Accent Palette — Warm Terracotta */
-    --accent-purple: #C1440E;
-    --accent-violet: #D4572A;
-    --accent-indigo: #C1440E;
-    --accent-blue: #D4572A;
-    --accent-cyan: #E8833A;
-    --accent-pink: #D4572A;
-    --accent-rose: #C1440E;
-    --accent-green: #5D8A3C;
-    --accent-amber: #D4882B;
+    /* Accent Palette — Neutral Dark */
+    --accent-purple: #111827;
+    --accent-violet: #1f2937;
+    --accent-indigo: #111827;
+    --accent-blue: #1f2937;
+    --accent-cyan: #374151;
+    --accent-pink: #1f2937;
+    --accent-rose: #111827;
+    --accent-green: #059669;
+    --accent-amber: #d97706;
 
-    /* Terracotta-specific tokens */
-    --terracotta: #C1440E;
-    --terracotta-light: #D4572A;
-    --terracotta-dark: #9E3509;
-    --burnt-sienna: #E8833A;
-    --cream: #FDF6EE;
-    --warm-white: #FFFAF4;
-    --warm-gray: #8B7A6B;
+    /* MeiGen-specific tokens */
+    --terracotta: #111827;
+    --terracotta-light: #1f2937;
+    --terracotta-dark: #030712;
+    --burnt-sienna: #374151;
+    --cream: #f3f4f6;
+    --warm-white: #f9fafb;
+    --warm-gray: #6b7280;
 
-    --gradient-primary: linear-gradient(135deg, #C1440E 0%, #D4572A 100%);
-    --gradient-warm: linear-gradient(135deg, #C1440E 0%, #E8833A 100%);
-    --gradient-cool: linear-gradient(135deg, #D4882B 0%, #C1440E 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(193, 68, 14, 0.05) 0%, rgba(212, 87, 42, 0.03) 100%);
+    --gradient-primary: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    --gradient-warm: linear-gradient(135deg, #111827 0%, #374151 100%);
+    --gradient-cool: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(17, 24, 39, 0.04) 0%, rgba(31, 41, 55, 0.02) 100%);
 
-    /* Shadows — warm tinted */
-    --shadow-sm: 0 1px 3px rgba(45, 27, 14, 0.06);
-    --shadow-md: 0 4px 12px rgba(45, 27, 14, 0.08);
-    --shadow-lg: 0 8px 32px rgba(45, 27, 14, 0.1);
-    --shadow-glow: 0 0 20px rgba(193, 68, 14, 0.08);
-    --shadow-glow-strong: 0 0 40px rgba(193, 68, 14, 0.12);
+    /* Shadows — neutral cool tinted */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.04);
+    --shadow-glow-strong: 0 0 40px rgba(0, 0, 0, 0.08);
 
     /* Typography */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -134,7 +134,7 @@ a:hover {
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: var(--terracotta);
+    background: #111827;
     display: flex;
     align-items: center;
     justify-content: center;
