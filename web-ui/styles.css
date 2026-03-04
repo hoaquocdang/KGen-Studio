@@ -1,49 +1,59 @@
 ﻿/* ========================================================
-   KGen Studio — Design System & Styles (Light Theme)
+   KGen Studio — Design System & Styles
+   Pixora Creative Agency — Warm Terracotta Theme
    ======================================================== */
 
 /* ===== CSS Variables / Design Tokens ===== */
 :root {
-    /* Colors — Light mode */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f8fa;
-    --bg-tertiary: #f0f0f3;
+    /* Colors — Warm Light Mode (Pixora Terracotta) */
+    --bg-primary: #FDF6EE;
+    --bg-secondary: #F7EFE5;
+    --bg-tertiary: #EFE6D9;
     --bg-card: #ffffff;
-    --bg-card-hover: #f5f5f8;
+    --bg-card-hover: #FFF8F0;
     --bg-elevated: #ffffff;
-    --bg-input: #f4f4f7;
+    --bg-input: #F5EDE3;
 
-    --border-color: rgba(0, 0, 0, 0.08);
-    --border-hover: rgba(0, 0, 0, 0.15);
-    --border-focus: rgba(99, 102, 241, 0.5);
+    --border-color: rgba(139, 90, 43, 0.1);
+    --border-hover: rgba(139, 90, 43, 0.2);
+    --border-focus: rgba(193, 68, 14, 0.5);
 
-    --text-primary: #1a1a2e;
-    --text-secondary: #6b7280;
-    --text-tertiary: #9ca3af;
-    --text-accent: #6366f1;
+    --text-primary: #2D1B0E;
+    --text-secondary: #7A6555;
+    --text-tertiary: #A69383;
+    --text-accent: #C1440E;
 
-    /* Accent Palette */
-    --accent-purple: #a855f7;
-    --accent-violet: #8b5cf6;
-    --accent-indigo: #6366f1;
-    --accent-blue: #3b82f6;
-    --accent-cyan: #06b6d4;
-    --accent-pink: #ec4899;
-    --accent-rose: #f43f5e;
-    --accent-green: #10b981;
-    --accent-amber: #f59e0b;
+    /* Accent Palette — Warm Terracotta */
+    --accent-purple: #C1440E;
+    --accent-violet: #D4572A;
+    --accent-indigo: #C1440E;
+    --accent-blue: #D4572A;
+    --accent-cyan: #E8833A;
+    --accent-pink: #D4572A;
+    --accent-rose: #C1440E;
+    --accent-green: #5D8A3C;
+    --accent-amber: #D4882B;
 
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    --gradient-warm: linear-gradient(135deg, #f43f5e 0%, #f59e0b 100%);
-    --gradient-cool: linear-gradient(135deg, #06b6d4 0%, #6366f1 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(139, 92, 246, 0.03) 100%);
+    /* Terracotta-specific tokens */
+    --terracotta: #C1440E;
+    --terracotta-light: #D4572A;
+    --terracotta-dark: #9E3509;
+    --burnt-sienna: #E8833A;
+    --cream: #FDF6EE;
+    --warm-white: #FFFAF4;
+    --warm-gray: #8B7A6B;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.08);
-    --shadow-glow-strong: 0 0 40px rgba(99, 102, 241, 0.12);
+    --gradient-primary: linear-gradient(135deg, #C1440E 0%, #D4572A 100%);
+    --gradient-warm: linear-gradient(135deg, #C1440E 0%, #E8833A 100%);
+    --gradient-cool: linear-gradient(135deg, #D4882B 0%, #C1440E 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(193, 68, 14, 0.05) 0%, rgba(212, 87, 42, 0.03) 100%);
+
+    /* Shadows — warm tinted */
+    --shadow-sm: 0 1px 3px rgba(45, 27, 14, 0.06);
+    --shadow-md: 0 4px 12px rgba(45, 27, 14, 0.08);
+    --shadow-lg: 0 8px 32px rgba(45, 27, 14, 0.1);
+    --shadow-glow: 0 0 20px rgba(193, 68, 14, 0.08);
+    --shadow-glow-strong: 0 0 40px rgba(193, 68, 14, 0.12);
 
     /* Typography */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -83,7 +93,7 @@ html {
 
 body {
     font-family: var(--font-sans);
-    background: #ffffff;
+    background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
@@ -124,7 +134,7 @@ a:hover {
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: var(--bg-primary);
+    background: var(--terracotta);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -160,22 +170,20 @@ a:hover {
     0%,
     100% {
         transform: scale(1);
-        filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.2));
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
     }
 
     50% {
         transform: scale(1.05);
-        filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.35));
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
     }
 }
 
 .splash-title {
     font-size: 2rem;
     font-weight: 800;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
 }
 
 .splash-loader {
@@ -185,7 +193,7 @@ a:hover {
 
 .splash-bar {
     height: 4px;
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 2px;
     overflow: hidden;
     margin-bottom: 12px;
@@ -194,13 +202,13 @@ a:hover {
 .splash-bar-fill {
     height: 100%;
     width: 0%;
-    background: var(--gradient-primary);
+    background: #ffffff;
     border-radius: 2px;
     transition: width 0.3s var(--ease-out);
 }
 
 .splash-status {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 0.85rem;
 }
 
@@ -212,7 +220,7 @@ a:hover {
     left: 0;
     top: 0;
     z-index: 100;
-    background: #ffffff;
+    background: var(--warm-white);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
