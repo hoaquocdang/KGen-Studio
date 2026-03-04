@@ -1863,6 +1863,7 @@ function updateGuideSlide() {
 document.addEventListener('DOMContentLoaded', () => {
     setupGuide();
     setupModelSelector();
+    setupGenControls();
 });
 
 // ============================================================
@@ -1875,7 +1876,7 @@ function setupModelSelector() {
     const dropdown = document.getElementById('model-dropdown');
     const hiddenInput = document.getElementById('gen-model');
     const selName = document.getElementById('model-sel-name');
-    const selCredits = document.getElementById('model-sel-credits');
+    const btnCredits = document.getElementById('gen-btn-credits');
 
     if (!selector || !btn) return;
 
@@ -1889,17 +1890,15 @@ function setupModelSelector() {
     const options = dropdown.querySelectorAll('.model-option');
     options.forEach(opt => {
         opt.addEventListener('click', () => {
-            // Remove active from all
             options.forEach(o => o.classList.remove('active'));
             opt.classList.add('active');
 
-            // Update button display
             const modelName = opt.querySelector('.model-opt-name').textContent;
             const credits = opt.dataset.credits;
             const modelValue = opt.dataset.model;
 
             selName.textContent = modelName;
-            selCredits.textContent = '★ ' + credits;
+            if (btnCredits) btnCredits.textContent = credits;
 
             // Update icon
             const optIcon = opt.querySelector('.model-opt-icon');
@@ -1913,10 +1912,7 @@ function setupModelSelector() {
                 }
             }
 
-            // Update hidden input
             if (hiddenInput) hiddenInput.value = modelValue;
-
-            // Close dropdown
             selector.classList.remove('open');
         });
     });
@@ -1928,10 +1924,149 @@ function setupModelSelector() {
         }
     });
 
-    // Close on Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             selector.classList.remove('open');
         }
     });
 }
+
+// ============================================================
+// GENERATE TAB CONTROLS
+// ============================================================
+
+function setupGenControls() {
+    // --- Count Stepper ---
+    const countDisplay = document.getElementById('gen-count-display');
+    const countInput = document.getElementById('gen-count');
+    const btnMinus = document.getElementById('btn-count-minus');
+    const btnPlus = document.getElementById('btn-count-plus');
+    let count = 1;
+    const maxCount = 4;
+
+    function updateCount() {
+        if (countDisplay) countDisplay.innerHTML = count + '<span class="gen-ctrl-muted">/' + maxCount + '</span>';
+        if (countInput) countInput.value = count;
+        if (btnMinus) btnMinus.disabled = count <= 1;
+        if (btnPlus) btnPlus.disabled = count >= maxCount;
+    }
+
+    if (btnMinus) btnMinus.addEventListener('click', () => { if (count > 1) { count--; updateCount(); } });
+    if (btnPlus) btnPlus.addEventListener('click', () => { if (count < maxCount) { count++; updateCount(); } });
+
+    // --- Aspect Ratio Dropdown ---
+    const arTrigger = document.getElementById('gen-ar-trigger');
+    const arDropdown = document.getElementById('gen-ar-dropdown');
+
+    if (arTrigger && arDropdown) {
+        arTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            arDropdown.classList.toggle('hidden');
+            // Close quality if open
+            const qd = document.getElementById('gen-quality-dropdown');
+            if (qd) qd.classList.add('hidden');
+        });
+
+        arDropdown.querySelectorAll('.gen-ar-opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                arDropdown.querySelectorAll('.gen-ar-opt').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                const ratio = opt.dataset.ratio;
+                arTrigger.querySelector('span').textContent = ratio;
+                arTrigger.dataset.ratio = ratio;
+                arDropdown.classList.add('hidden');
+            });
+        });
+    }
+
+    // --- Quality Dropdown ---
+    const qTrigger = document.getElementById('gen-quality-trigger');
+    const qDropdown = document.getElementById('gen-quality-dropdown');
+    const qLabel = document.getElementById('gen-quality-label');
+    const qInput = document.getElementById('gen-quality');
+
+    if (qTrigger && qDropdown) {
+        qTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            qDropdown.classList.toggle('hidden');
+            // Close AR if open
+            if (arDropdown) arDropdown.classList.add('hidden');
+        });
+
+        qDropdown.querySelectorAll('.gen-q-opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                qDropdown.querySelectorAll('.gen-q-opt').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                if (qLabel) qLabel.textContent = opt.dataset.label;
+                if (qInput) qInput.value = opt.dataset.quality;
+                qDropdown.classList.add('hidden');
+            });
+        });
+    }
+
+    // Close all dropdowns on outside click
+    document.addEventListener('click', (e) => {
+        if (arDropdown && !arDropdown.contains(e.target) && arTrigger && !arTrigger.contains(e.target)) {
+            arDropdown.classList.add('hidden');
+        }
+        if (qDropdown && !qDropdown.contains(e.target) && qTrigger && !qTrigger.contains(e.target)) {
+            qDropdown.classList.add('hidden');
+        }
+    });
+
+    // --- Reference File Upload ---
+    const refCard = document.getElementById('ref-drop-area');
+    const refFileInput = document.getElementById('ref-file-input');
+    const btnAddRefFile = document.getElementById('btn-add-ref-file');
+    const refPreviewList = document.getElementById('ref-preview-list');
+
+    if (btnAddRefFile && refFileInput) {
+        btnAddRefFile.addEventListener('click', (e) => {
+            e.stopPropagation();
+            refFileInput.click();
+        });
+    }
+
+    if (refCard && refFileInput) {
+        refCard.addEventListener('click', () => {
+            refFileInput.click();
+        });
+
+        refFileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (!files.length) return;
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'ref-preview-thumb';
+                    thumb.innerHTML = '<img src="' + ev.target.result + '" alt="ref"><button class="ref-remove-btn" onclick="this.parentElement.remove()">&times;</button>';
+                    if (refPreviewList) refPreviewList.appendChild(thumb);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+
+    // --- Describe Image Card ---
+    const describeCard = document.getElementById('gen-describe-card');
+    if (describeCard) {
+        describeCard.addEventListener('click', () => {
+            // Trigger a file input for image-to-prompt
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/jpeg,image/png,image/webp';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                showToast('Đang phân tích ảnh...', 'info');
+                // For demo, just show that we received the file
+                setTimeout(() => {
+                    showToast('Tính năng Describe Image sẽ tự động tạo prompt từ ảnh', 'info');
+                }, 1500);
+            };
+            input.click();
+        });
+    }
+}
+
