@@ -1862,4 +1862,76 @@ function updateGuideSlide() {
 // Init guide when DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     setupGuide();
+    setupModelSelector();
 });
+
+// ============================================================
+// MODEL SELECTOR DROPDOWN
+// ============================================================
+
+function setupModelSelector() {
+    const selector = document.getElementById('model-selector');
+    const btn = document.getElementById('model-selector-btn');
+    const dropdown = document.getElementById('model-dropdown');
+    const hiddenInput = document.getElementById('gen-model');
+    const selName = document.getElementById('model-sel-name');
+    const selCredits = document.getElementById('model-sel-credits');
+
+    if (!selector || !btn) return;
+
+    // Toggle dropdown
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selector.classList.toggle('open');
+    });
+
+    // Select model option
+    const options = dropdown.querySelectorAll('.model-option');
+    options.forEach(opt => {
+        opt.addEventListener('click', () => {
+            // Remove active from all
+            options.forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+
+            // Update button display
+            const modelName = opt.querySelector('.model-opt-name').textContent;
+            const credits = opt.dataset.credits;
+            const modelValue = opt.dataset.model;
+
+            selName.textContent = modelName;
+            selCredits.textContent = '★ ' + credits;
+
+            // Update icon
+            const optIcon = opt.querySelector('.model-opt-icon');
+            const selIcon = btn.querySelector('.model-sel-icon');
+            if (optIcon.classList.contains('emoji')) {
+                selIcon.innerHTML = '<span style="font-size:1.1rem">' + optIcon.textContent + '</span>';
+            } else {
+                const imgSrc = optIcon.querySelector('img');
+                if (imgSrc) {
+                    selIcon.innerHTML = '<img src="' + imgSrc.src + '" width="18" height="18" alt="">';
+                }
+            }
+
+            // Update hidden input
+            if (hiddenInput) hiddenInput.value = modelValue;
+
+            // Close dropdown
+            selector.classList.remove('open');
+        });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!selector.contains(e.target)) {
+            selector.classList.remove('open');
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            selector.classList.remove('open');
+        }
+    });
+}
