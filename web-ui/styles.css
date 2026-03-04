@@ -1,59 +1,59 @@
-ï»¿/* ========================================================
-   MeiGen Gallery â€” Design System & Styles
-   Clean Neutral Light Theme â€” Matching meigen.ai
+/* ========================================================
+   KGen Gallery — Design System & Styles
+   Clean Neutral Light Theme — Matching KGen.ai
    ======================================================== */
 
 /* ===== CSS Variables / Design Tokens ===== */
 :root {
-    /* Colors â€” Clean Neutral Light Mode (MeiGen Style) */
-    --bg-primary: #f3f4f6;
-    --bg-secondary: #eef0f3;
-    --bg-tertiary: #e5e7eb;
+    /* Colors — Clean White Theme (matching KGen.ai) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
     --bg-card: #ffffff;
-    --bg-card-hover: #f9fafb;
+    --bg-card-hover: #fafbfc;
     --bg-elevated: #ffffff;
-    --bg-input: #f9fafb;
+    --bg-input: #f7f8fa;
 
-    --border-color: rgba(0, 0, 0, 0.06);
-    --border-hover: rgba(0, 0, 0, 0.12);
-    --border-focus: rgba(17, 24, 39, 0.4);
+    --border-color: #e5e7eb;
+    --border-hover: #d1d5db;
+    --border-focus: #3b82f6;
 
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --text-tertiary: #9ca3af;
-    --text-accent: #111827;
+    --text-primary: #1a1a2e;
+    --text-secondary: #64748b;
+    --text-tertiary: #94a3b8;
+    --text-accent: #1a1a2e;
 
-    /* Accent Palette â€” Neutral Dark */
-    --accent-purple: #111827;
-    --accent-violet: #1f2937;
-    --accent-indigo: #111827;
-    --accent-blue: #1f2937;
-    --accent-cyan: #374151;
-    --accent-pink: #1f2937;
-    --accent-rose: #111827;
-    --accent-green: #059669;
-    --accent-amber: #d97706;
+    /* Accent Palette — Blue Primary */
+    --accent-purple: #6366f1;
+    --accent-violet: #7c3aed;
+    --accent-indigo: #4f46e5;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-pink: #ec4899;
+    --accent-rose: #f43f5e;
+    --accent-green: #10b981;
+    --accent-amber: #f59e0b;
 
-    /* MeiGen-specific tokens */
-    --terracotta: #111827;
-    --terracotta-light: #1f2937;
-    --terracotta-dark: #030712;
-    --burnt-sienna: #374151;
-    --cream: #f3f4f6;
-    --warm-white: #f9fafb;
-    --warm-gray: #6b7280;
+    /* Brand tokens */
+    --brand-dark: #1a1a2e;
+    --brand-darker: #0f0f1e;
+    --brand-darkest: #0a0a14;
+    --brand-accent: #3b82f6;
+    --cream: #f9fafb;
+    --warm-white: #ffffff;
+    --warm-gray: #64748b;
 
-    --gradient-primary: linear-gradient(135deg, #111827 0%, #1f2937 100%);
-    --gradient-warm: linear-gradient(135deg, #111827 0%, #374151 100%);
-    --gradient-cool: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(17, 24, 39, 0.04) 0%, rgba(31, 41, 55, 0.02) 100%);
+    --gradient-primary: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+    --gradient-warm: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    --gradient-cool: linear-gradient(135deg, #1a1a2e 0%, #1e293b 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(99, 102, 241, 0.02) 100%);
 
-    /* Shadows â€” neutral cool tinted */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
-    --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.04);
-    --shadow-glow-strong: 0 0 40px rgba(0, 0, 0, 0.08);
+    /* Shadows — clean and subtle */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 2px 8px rgba(59, 130, 246, 0.08);
+    --shadow-glow-strong: 0 4px 20px rgba(59, 130, 246, 0.15);
 
     /* Typography */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -309,8 +309,8 @@ a:hover {
 }
 
 .nav-item.active {
-    background: rgba(99, 102, 241, 0.06);
-    color: var(--accent-indigo);
+    background: rgba(59, 130, 246, 0.06);
+    color: var(--accent-blue);
     font-weight: 600;
 }
 
@@ -322,7 +322,7 @@ a:hover {
     transform: translateY(-50%);
     width: 3px;
     height: 20px;
-    background: var(--gradient-primary);
+    background: var(--accent-blue);
     border-radius: 0 3px 3px 0;
 }
 
@@ -337,8 +337,8 @@ a:hover {
 }
 
 .nav-item.active .nav-badge {
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--accent-indigo);
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
 }
 
 .sidebar-footer {
@@ -555,8 +555,8 @@ a:hover {
 
 .search-box input:focus {
     outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .search-box input::placeholder {
@@ -600,9 +600,10 @@ a:hover {
 }
 
 .chip.active {
-    background: var(--gradient-glass);
-    border-color: rgba(168, 85, 247, 0.3);
-    color: var(--accent-purple);
+    background: rgba(59, 130, 246, 0.06);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    font-weight: 600;
 }
 
 .sort-bar {
@@ -636,7 +637,7 @@ a:hover {
 .gallery-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     cursor: pointer;
     transition: all var(--duration-normal) var(--ease-out);
@@ -648,8 +649,9 @@ a:hover {
 }
 
 .gallery-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: transparent;
 }
 
 .gallery-card-image {
@@ -703,8 +705,8 @@ a:hover {
     gap: 4px;
     font-size: 0.72rem;
     font-weight: 600;
-    color: var(--accent-indigo);
-    background: rgba(99, 102, 241, 0.08);
+    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.08);
     padding: 3px 8px;
     border-radius: 6px;
     margin-bottom: 6px;
@@ -1368,7 +1370,7 @@ a:hover {
     text-align: right;
 }
 
-/* Generate Button (MeiGen style) */
+/* Generate Button (KGen style) */
 .gen-generate-btn {
     display: flex;
     align-items: center;
@@ -2806,7 +2808,7 @@ a:hover {
 }
 
 /* ============================================================
-   ===== MOBILE RESPONSIVE â€” 768px and below =====
+   ===== MOBILE RESPONSIVE — 768px and below =====
    ============================================================ */
 @media (max-width: 768px) {
 
@@ -2958,7 +2960,7 @@ a:hover {
         font-size: 0.78rem;
     }
 
-    /* ----- SEARCH & FILTER (compact, MeiGen style) ----- */
+    /* ----- SEARCH & FILTER (compact, KGen style) ----- */
     .search-filter-bar {
         gap: 8px;
         margin-bottom: 14px;
@@ -2975,7 +2977,7 @@ a:hover {
         left: 12px;
     }
 
-    /* Filter chips â€” horizontal scroll, smaller */
+    /* Filter chips — horizontal scroll, smaller */
     .filter-chips {
         display: flex;
         gap: 6px;
@@ -2998,7 +3000,7 @@ a:hover {
         white-space: nowrap;
     }
 
-    /* Sort bar â€” simpler */
+    /* Sort bar — simpler */
     .sort-bar {
         display: none;
         /* hide on mobile for cleaner look */
@@ -3035,7 +3037,7 @@ a:hover {
 
     .card-prompt {
         display: none;
-        /* hide prompt text on mobile â€” image only like MeiGen */
+        /* hide prompt text on mobile — image only like KGen */
     }
 
     .card-footer {

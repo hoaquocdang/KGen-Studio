@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — KGen Gallery</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0f172a; --bg-card: #1e293b; --bg-input: #0f172a;
+            --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.15);
+            --text: #f1f5f9; --text-2: #94a3b8; --text-3: #64748b;
+            --blue: #3b82f6; --blue-hover: #2563eb; --green: #10b981;
+            --red: #ef4444; --amber: #f59e0b; --purple: #8b5cf6;
+            --radius: 12px; --font: 'Inter', -apple-system, sans-serif;
+        }
+        html { font-size: 15px; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+        /* ===== LOGIN ===== */
+        .login-overlay { position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+        .login-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; width: 400px; max-width: 90vw; text-align: center; }
+        .login-card .logo { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+        .login-card .logo span { color: var(--blue); }
+        .login-card .subtitle { color: var(--text-2); font-size: 0.9rem; margin-bottom: 32px; }
+        .login-card input { width: 100%; padding: 14px 18px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--font); font-size: 1rem; margin-bottom: 16px; outline: none; transition: border 0.2s; }
+        .login-card input:focus { border-color: var(--blue); }
+        .login-card .btn-login { width: 100%; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .login-card .btn-login:hover { background: var(--blue-hover); }
+        .login-error { color: var(--red); font-size: 0.85rem; margin-top: 8px; display: none; }
+
+        /* ===== LAYOUT ===== */
+        .admin-layout { display: none; }
+        .admin-layout.visible { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 24px 16px; position: fixed; top: 0; left: 0; height: 100vh; display: flex; flex-direction: column; }
+        .admin-main { margin-left: 260px; flex: 1; padding: 32px 40px; max-width: 900px; }
+
+        /* Sidebar */
+        .admin-logo { display: flex; align-items: center; gap: 12px; padding: 8px 12px; margin-bottom: 32px; }
+        .admin-logo .icon { width: 40px; height: 40px; background: var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .admin-logo .name { font-weight: 700; font-size: 1.05rem; }
+        .admin-logo .tag { font-size: 0.7rem; color: var(--text-3); font-weight: 500; }
+
+        .admin-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .admin-nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; background: none; color: var(--text-2); font-family: var(--font); font-size: 0.9rem; font-weight: 500; cursor: pointer; border-radius: 10px; transition: all 0.15s; text-align: left; width: 100%; }
+        .admin-nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+        .admin-nav-item.active { background: rgba(59,130,246,0.1); color: var(--blue); font-weight: 600; }
+        .admin-nav-item .icon { font-size: 1.1rem; width: 24px; text-align: center; }
+        .admin-logout { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+
+        /* ===== CARDS ===== */
+        .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+        .section-sub { color: var(--text-2); font-size: 0.9rem; margin-bottom: 28px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
+        .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .card-title .badge { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .badge-green { background: rgba(16,185,129,0.1); color: var(--green); }
+        .badge-amber { background: rgba(245,158,11,0.1); color: var(--amber); }
+        .badge-red { background: rgba(239,68,68,0.1); color: var(--red); }
+
+        /* ===== FORMS ===== */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-input { width: 100%; padding: 12px 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.92rem; outline: none; transition: border 0.2s; }
+        .form-input:focus { border-color: var(--blue); }
+        .form-hint { font-size: 0.78rem; color: var(--text-3); margin-top: 6px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .input-with-btn { display: flex; gap: 8px; }
+        .input-with-btn .form-input { flex: 1; }
+
+        /* ===== BUTTONS ===== */
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 10px; font-family: var(--font); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .btn-blue { background: var(--blue); color: #fff; }
+        .btn-blue:hover { background: var(--blue-hover); }
+        .btn-green { background: var(--green); color: #fff; }
+        .btn-green:hover { background: #059669; }
+        .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+        .btn-red { background: rgba(239,68,68,0.1); color: var(--red); }
+        .btn-red:hover { background: rgba(239,68,68,0.2); }
+        .btn-lg { padding: 14px 28px; font-size: 1rem; }
+
+        /* ===== STATS ===== */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+        .stat-card .label { font-size: 0.78rem; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; }
+        .stat-card .sub { font-size: 0.78rem; color: var(--text-2); margin-top: 4px; }
+
+        /* ===== PLAN CARDS ===== */
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .plan-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 14px; padding: 24px; position: relative; }
+        .plan-card.featured { border-color: var(--blue); background: rgba(59,130,246,0.05); }
+        .plan-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+        .plan-price { font-size: 1.6rem; font-weight: 800; color: var(--blue); margin-bottom: 8px; }
+        .plan-limit { font-size: 0.85rem; color: var(--text-2); }
+        .plan-edit { position: absolute; top: 16px; right: 16px; }
+
+        /* ===== CODE BLOCK ===== */
+        .code-block { background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #c9d1d9; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow-y: auto; line-height: 1.6; }
+
+        /* ===== STATUS ===== */
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .status-dot.online { background: var(--green); box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+        .status-dot.offline { background: var(--red); }
+
+        /* ===== TOAST ===== */
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; font-size: 0.9rem; z-index: 9999; animation: slideUp 0.3s; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== SECTION VISIBILITY ===== */
+        .admin-section { display: none; }
+        .admin-section.visible { display: block; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .admin-sidebar { display: none; }
+            .admin-main { margin-left: 0; padding: 20px; }
+            .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+        <div class="logo">Mei<span>Gen</span></div>
+        <div class="subtitle">Admin Panel — Quản trị hệ thống</div>
+        <form id="login-form" onsubmit="return handleAdminLogin(event)">
+            <input type="password" id="admin-password" placeholder="Nhập mật khẩu admin..." autofocus>
+            <button type="submit" class="btn-login">🔐 Đăng nhập</button>
+        </form>
+        <div class="login-error" id="login-error">Mật khẩu không đúng</div>
+        <p style="margin-top:24px;font-size:0.78rem;color:var(--text-3)">Mật khẩu mặc định: admin2026</p>
+    </div>
+</div>
+
+<!-- ===== ADMIN LAYOUT ===== -->
+<div class="admin-layout" id="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="admin-logo">
+            <div class="icon">⚙️</div>
+            <div>
+                <div class="name">Admin Panel</div>
+                <div class="tag">KGen Gallery</div>
+            </div>
+        </div>
+        <nav class="admin-nav">
+            <button class="admin-nav-item active" data-section="dashboard" onclick="switchSection('dashboard')">
+                <span class="icon">📊</span> Dashboard
+            </button>
+            <button class="admin-nav-item" data-section="api-keys" onclick="switchSection('api-keys')">
+                <span class="icon">🔑</span> API Keys
+            </button>
+            <button class="admin-nav-item" data-section="plans" onclick="switchSection('plans')">
+                <span class="icon">💎</span> Gói dịch vụ
+            </button>
+            <button class="admin-nav-item" data-section="users" onclick="switchSection('users')">
+                <span class="icon">👥</span> Người dùng
+            </button>
+            <button class="admin-nav-item" data-section="export" onclick="switchSection('export')">
+                <span class="icon">📦</span> Xuất Config
+            </button>
+        </nav>
+        <div class="admin-logout">
+            <button class="admin-nav-item" onclick="adminLogout()" style="color:var(--red)">
+                <span class="icon">🚪</span> Đăng xuất
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+        <!-- ===== DASHBOARD ===== -->
+        <section class="admin-section visible" id="section-dashboard">
+            <h1 class="section-title">Dashboard</h1>
+            <p class="section-sub">Tổng quan hệ thống KGen Gallery</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Tổng người dùng</div>
+                    <div class="value" id="stat-users">0</div>
+                    <div class="sub">Đã đăng ký</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Ảnh đã tạo</div>
+                    <div class="value" id="stat-images">0</div>
+                    <div class="sub">Tổng cộng</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">API Status</div>
+                    <div class="value" id="stat-api-status">—</div>
+                    <div class="sub" id="stat-api-detail">Chưa cấu hình</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Config Version</div>
+                    <div class="value" id="stat-version">—</div>
+                    <div class="sub" id="stat-updated">Chưa xuất</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">⚡ Bắt đầu nhanh</div>
+                <ol style="padding-left:20px;color:var(--text-2);line-height:2;font-size:0.9rem">
+                    <li>Vào <strong style="color:var(--text)">API Keys</strong> → Nhập KGen Token hoặc OpenAI Key</li>
+                    <li>Vào <strong style="color:var(--text)">Gói dịch vụ</strong> → Cấu hình giới hạn ảnh & giá</li>
+                    <li>Vào <strong style="color:var(--text)">Xuất Config</strong> → Tải file <code style="background:var(--bg-input);padding:2px 8px;border-radius:4px">site-config.js</code></li>
+                    <li>Upload file lên hosting thay thế file cũ</li>
+                    <li>Done! Người dùng có thể gen ảnh ngay 🎉</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- ===== API KEYS ===== -->
+        <section class="admin-section" id="section-api-keys">
+            <h1 class="section-title">🔑 API Keys</h1>
+            <p class="section-sub">Cấu hình API keys để người dùng có thể tạo ảnh AI</p>
+
+            <div class="card">
+                <div class="card-title">
+                    KGen / KGen Cloud
+                    <span class="badge badge-green" id="KGen-status">Chưa cấu hình</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API Token</label>
+                    <div class="input-with-btn">
+                        <input type="password" class="form-input" id="cfg-KGen-token" placeholder="kgen_sk_...">
+                        <button class="btn btn-ghost" onclick="toggleVisibility('cfg-KGen-token')">👁️</button>
+                    </div>
+                    <div class="form-hint">Lấy token tại <a href="https://KGen.ai" target="_blank" style="color:var(--blue)">KGen.ai</a> → Settings → API Keys</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    OpenAI Compatible
+                    <span class="badge badge-green" id="openai-status">Chưa cấu hình</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API Key</label>
+                    <div class="input-with-btn">
+                        <input type="password" class="form-input" id="cfg-openai-key" placeholder="sk-...">
+                        <button class="btn btn-ghost" onclick="toggleVisibility('cfg-openai-key')">👁️</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Base URL</label>
+                        <input type="text" class="form-input" id="cfg-openai-base" placeholder="https://api.openai.com" value="https://api.openai.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Model</label>
+                        <input type="text" class="form-input" id="cfg-openai-model" placeholder="gpt-image-1.5" value="gpt-image-1.5">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-blue btn-lg" onclick="saveAPIKeys()" style="width:100%">💾 Lưu API Keys</button>
+        </section>
+
+        <!-- ===== PLANS ===== -->
+        <section class="admin-section" id="section-plans">
+            <h1 class="section-title">💎 Gói dịch vụ</h1>
+            <p class="section-sub">Cấu hình giới hạn ảnh và giá cho từng gói</p>
+
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <div class="plan-name">🆓 Free</div>
+                    <div class="plan-price">Miễn phí</div>
+                    <div class="form-group" style="margin-top:12px">
+                        <label class="form-label">Giới hạn ảnh</label>
+                        <input type="number" class="form-input" id="cfg-plan-free-limit" value="10" min="1">
+                    </div>
+                </div>
+
+                <div class="plan-card featured">
+                    <div class="plan-name">⭐ Pro</div>
+                    <div class="form-group" style="margin-top:8px">
+                        <label class="form-label">Giá (VNĐ)</label>
+                        <input type="number" class="form-input" id="cfg-plan-pro-price" value="39000" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Giới hạn ảnh</label>
+                        <input type="number" class="form-input" id="cfg-plan-pro-limit" value="1000" min="1">
+                    </div>
+                </div>
+
+                <div class="plan-card">
+                    <div class="plan-name">💎 Premium</div>
+                    <div class="form-group" style="margin-top:8px">
+                        <label class="form-label">Giá (VNĐ)</label>
+                        <input type="number" class="form-input" id="cfg-plan-premium-price" value="199000" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Giới hạn ảnh</label>
+                        <input type="number" class="form-input" id="cfg-plan-premium-limit" value="99999" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-blue btn-lg" onclick="savePlans()" style="width:100%;margin-top:24px">💾 Lưu cấu hình gói</button>
+        </section>
+
+        <!-- ===== USERS ===== -->
+        <section class="admin-section" id="section-users">
+            <h1 class="section-title">👥 Người dùng</h1>
+            <p class="section-sub">Quản lý người dùng đã đăng ký và lượt sử dụng</p>
+
+            <div class="card">
+                <div class="card-title">Danh sách người dùng</div>
+                <div id="users-list" style="color:var(--text-2);font-size:0.9rem">
+                    <p>Đang tải...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔧 Nâng cấp gói cho người dùng</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="upgrade-email" placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gói</label>
+                        <select class="form-input" id="upgrade-plan">
+                            <option value="free">Free (10 ảnh)</option>
+                            <option value="pro">Pro (1.000 ảnh)</option>
+                            <option value="premium">Premium (Không giới hạn)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-green" onclick="upgradeUser()">⬆️ Nâng cấp</button>
+            </div>
+        </section>
+
+        <!-- ===== EXPORT ===== -->
+        <section class="admin-section" id="section-export">
+            <h1 class="section-title">📦 Xuất Config</h1>
+            <p class="section-sub">Tạo file <code style="background:var(--bg-input);padding:2px 8px;border-radius:6px">site-config.js</code> để upload lên hosting</p>
+
+            <div class="card">
+                <div class="card-title">Bước 1: Xem trước Config</div>
+                <div class="code-block" id="config-preview">// Nhấn "Tạo Config" để xem trước...</div>
+            </div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-blue btn-lg" onclick="generateConfig()">🔄 Tạo Config</button>
+                <button class="btn btn-green btn-lg" onclick="downloadConfig()">💾 Tải file site-config.js</button>
+                <button class="btn btn-ghost btn-lg" onclick="copyConfig()">📋 Copy code</button>
+            </div>
+
+            <div class="card" style="margin-top:24px">
+                <div class="card-title">Bước 2: Upload lên Hosting</div>
+                <ol style="padding-left:20px;color:var(--text-2);line-height:2;font-size:0.9rem">
+                    <li>Tải file <strong style="color:var(--text)">site-config.js</strong> ở trên</li>
+                    <li>Đăng nhập <strong style="color:var(--text)">cPanel / File Manager</strong></li>
+                    <li>Vào thư mục <code style="background:var(--bg-input);padding:2px 8px;border-radius:4px">public_html</code></li>
+                    <li>Upload và <strong style="color:var(--amber)">thay thế (overwrite)</strong> file <code style="background:var(--bg-input);padding:2px 8px;border-radius:4px">site-config.js</code> cũ</li>
+                    <li>Done! Truy cập website để kiểm tra ✅</li>
+                </ol>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+// ============================================================
+// ADMIN LOGIC
+// ============================================================
+
+const ADMIN_STORAGE_KEY = 'KGen_admin_config';
+const DEFAULT_PASSWORD = 'admin2026';
+
+let adminConfig = {
+    api: { KGenToken: '', openaiKey: '', openaiBase: 'https://api.openai.com', openaiModel: 'gpt-image-1.5' },
+    plans: {
+        free: { name: 'Miễn phí', imageLimit: 10, price: 0, priceDisplay: 'Miễn phí' },
+        pro: { name: 'Pro', imageLimit: 1000, price: 39000, priceDisplay: '39.000đ' },
+        premium: { name: 'Premium', imageLimit: 99999, price: 199000, priceDisplay: '199.000đ' },
+    },
+    admin: { passwordHash: '', siteName: 'KGen Gallery' },
+    version: '1.0.0',
+    lastUpdated: '',
+};
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+    loadAdminConfig();
+    // Check if already logged in this session
+    if (sessionStorage.getItem('admin_logged_in')) {
+        showAdminPanel();
+    }
+});
+
+// ===== AUTH =====
+async function hashPassword(pw) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleAdminLogin(e) {
+    e.preventDefault();
+    const pw = document.getElementById('admin-password').value;
+    const hash = await hashPassword(pw);
+    const storedHash = adminConfig.admin?.passwordHash;
+
+    // Accept default password or stored hash
+    if (pw === DEFAULT_PASSWORD || (storedHash && hash === storedHash)) {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        showAdminPanel();
+        showToast('✅ Đăng nhập thành công!', 'success');
+    } else {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-password').focus();
+    }
+}
+
+function adminLogout() {
+    sessionStorage.removeItem('admin_logged_in');
+    location.reload();
+}
+
+function showAdminPanel() {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('admin-layout').classList.add('visible');
+    populateFields();
+    updateDashboard();
+    loadUsersList();
+}
+
+// ===== CONFIG MANAGEMENT =====
+function loadAdminConfig() {
+    try {
+        const saved = localStorage.getItem(ADMIN_STORAGE_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            adminConfig = { ...adminConfig, ...parsed };
+        }
+    } catch (e) { console.error('Failed to load admin config:', e); }
+}
+
+function saveAdminConfig() {
+    adminConfig.lastUpdated = new Date().toISOString();
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminConfig));
+}
+
+function populateFields() {
+    // API Keys
+    document.getElementById('cfg-KGen-token').value = adminConfig.api.KGenToken || '';
+    document.getElementById('cfg-openai-key').value = adminConfig.api.openaiKey || '';
+    document.getElementById('cfg-openai-base').value = adminConfig.api.openaiBase || 'https://api.openai.com';
+    document.getElementById('cfg-openai-model').value = adminConfig.api.openaiModel || 'gpt-image-1.5';
+
+    // Plans
+    document.getElementById('cfg-plan-free-limit').value = adminConfig.plans.free.imageLimit || 10;
+    document.getElementById('cfg-plan-pro-price').value = adminConfig.plans.pro.price || 39000;
+    document.getElementById('cfg-plan-pro-limit').value = adminConfig.plans.pro.imageLimit || 1000;
+    document.getElementById('cfg-plan-premium-price').value = adminConfig.plans.premium.price || 199000;
+    document.getElementById('cfg-plan-premium-limit').value = adminConfig.plans.premium.imageLimit || 99999;
+
+    // Update status badges
+    updateAPIStatus();
+}
+
+function updateAPIStatus() {
+    const KGenBadge = document.getElementById('KGen-status');
+    const openaiBadge = document.getElementById('openai-status');
+
+    if (adminConfig.api.KGenToken) {
+        KGenBadge.textContent = '✅ Đã cấu hình';
+        KGenBadge.className = 'badge badge-green';
+    } else {
+        KGenBadge.textContent = '⚠️ Chưa cấu hình';
+        KGenBadge.className = 'badge badge-amber';
+    }
+
+    if (adminConfig.api.openaiKey) {
+        openaiBadge.textContent = '✅ Đã cấu hình';
+        openaiBadge.className = 'badge badge-green';
+    } else {
+        openaiBadge.textContent = '⚠️ Chưa cấu hình';
+        openaiBadge.className = 'badge badge-amber';
+    }
+}
+
+// ===== SAVE FUNCTIONS =====
+function saveAPIKeys() {
+    adminConfig.api.KGenToken = document.getElementById('cfg-KGen-token').value.trim();
+    adminConfig.api.openaiKey = document.getElementById('cfg-openai-key').value.trim();
+    adminConfig.api.openaiBase = document.getElementById('cfg-openai-base').value.trim() || 'https://api.openai.com';
+    adminConfig.api.openaiModel = document.getElementById('cfg-openai-model').value.trim() || 'gpt-image-1.5';
+    saveAdminConfig();
+    updateAPIStatus();
+    updateDashboard();
+    showToast('✅ API Keys đã được lưu!', 'success');
+}
+
+function savePlans() {
+    const freeLimit = parseInt(document.getElementById('cfg-plan-free-limit').value) || 10;
+    const proPrice = parseInt(document.getElementById('cfg-plan-pro-price').value) || 39000;
+    const proLimit = parseInt(document.getElementById('cfg-plan-pro-limit').value) || 1000;
+    const premPrice = parseInt(document.getElementById('cfg-plan-premium-price').value) || 199000;
+    const premLimit = parseInt(document.getElementById('cfg-plan-premium-limit').value) || 99999;
+
+    adminConfig.plans.free.imageLimit = freeLimit;
+    adminConfig.plans.pro.price = proPrice;
+    adminConfig.plans.pro.priceDisplay = formatVND(proPrice);
+    adminConfig.plans.pro.imageLimit = proLimit;
+    adminConfig.plans.premium.price = premPrice;
+    adminConfig.plans.premium.priceDisplay = formatVND(premPrice);
+    adminConfig.plans.premium.imageLimit = premLimit;
+
+    saveAdminConfig();
+    showToast('✅ Cấu hình gói đã được lưu!', 'success');
+}
+
+function formatVND(n) {
+    return n.toLocaleString('vi-VN') + 'đ';
+}
+
+// ===== DASHBOARD =====
+function updateDashboard() {
+    // Users count
+    const users = JSON.parse(localStorage.getItem('kgen_users') || '{}');
+    document.getElementById('stat-users').textContent = Object.keys(users).length;
+
+    // Total images
+    let total = 0;
+    for (const email of Object.keys(users)) {
+        const usage = JSON.parse(localStorage.getItem(`KGen_quota_${email}`) || '{}');
+        total += usage.used || 0;
+    }
+    document.getElementById('stat-images').textContent = total;
+
+    // API status
+    const hasAPI = adminConfig.api.KGenToken || adminConfig.api.openaiKey;
+    document.getElementById('stat-api-status').innerHTML = hasAPI
+        ? '<span class="status-dot online"></span>Online'
+        : '<span class="status-dot offline"></span>Offline';
+    document.getElementById('stat-api-detail').textContent = hasAPI
+        ? (adminConfig.api.KGenToken ? 'KGen Token' : 'OpenAI Key')
+        : 'Chưa cấu hình API';
+
+    // Version
+    document.getElementById('stat-version').textContent = adminConfig.version || '—';
+    document.getElementById('stat-updated').textContent = adminConfig.lastUpdated
+        ? new Date(adminConfig.lastUpdated).toLocaleString('vi-VN')
+        : 'Chưa xuất';
+}
+
+// ===== USERS =====
+function loadUsersList() {
+    const container = document.getElementById('users-list');
+    const users = JSON.parse(localStorage.getItem('kgen_users') || '{}');
+    const emails = Object.keys(users);
+
+    if (emails.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-3)">Chưa có người dùng nào đăng ký.</p>';
+        return;
+    }
+
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem">';
+    html += '<thead><tr style="border-bottom:1px solid var(--border);text-align:left">';
+    html += '<th style="padding:10px 8px;color:var(--text-3);font-weight:600">Email</th>';
+    html += '<th style="padding:10px 8px;color:var(--text-3);font-weight:600">Tên</th>';
+    html += '<th style="padding:10px 8px;color:var(--text-3);font-weight:600">Gói</th>';
+    html += '<th style="padding:10px 8px;color:var(--text-3);font-weight:600">Đã dùng</th>';
+    html += '<th style="padding:10px 8px;color:var(--text-3);font-weight:600">Giới hạn</th>';
+    html += '</tr></thead><tbody>';
+
+    for (const email of emails) {
+        const user = users[email];
+        const quota = JSON.parse(localStorage.getItem(`KGen_quota_${email}`) || '{}');
+        const plan = quota.plan || 'free';
+        const used = quota.used || 0;
+        const limit = adminConfig.plans[plan]?.imageLimit || 10;
+        const pct = Math.min(100, Math.round((used / limit) * 100));
+        const planBadge = plan === 'pro' ? '<span class="badge badge-green">Pro</span>'
+            : plan === 'premium' ? '<span style="color:var(--purple);font-weight:600">💎 Premium</span>'
+            : '<span style="color:var(--text-3)">Free</span>';
+
+        html += `<tr style="border-bottom:1px solid var(--border)">`;
+        html += `<td style="padding:10px 8px">${email}</td>`;
+        html += `<td style="padding:10px 8px">${user.name || '—'}</td>`;
+        html += `<td style="padding:10px 8px">${planBadge}</td>`;
+        html += `<td style="padding:10px 8px">${used}</td>`;
+        html += `<td style="padding:10px 8px">${limit === 99999 ? '∞' : limit}</td>`;
+        html += `</tr>`;
+    }
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function upgradeUser() {
+    const email = document.getElementById('upgrade-email').value.trim();
+    const plan = document.getElementById('upgrade-plan').value;
+
+    if (!email) {
+        showToast('Vui lòng nhập email', 'error');
+        return;
+    }
+
+    const quota = JSON.parse(localStorage.getItem(`KGen_quota_${email}`) || '{}');
+    quota.plan = plan;
+    if (!quota.used) quota.used = 0;
+    localStorage.setItem(`KGen_quota_${email}`, JSON.stringify(quota));
+
+    showToast(`✅ Đã nâng cấp ${email} lên gói ${plan.toUpperCase()}`, 'success');
+    loadUsersList();
+    document.getElementById('upgrade-email').value = '';
+}
+
+// ===== EXPORT CONFIG =====
+function generateConfig() {
+    const config = {
+        api: { ...adminConfig.api },
+        plans: { ...adminConfig.plans },
+        admin: { ...adminConfig.admin },
+        version: adminConfig.version,
+        lastUpdated: new Date().toISOString(),
+    };
+
+    const code = `/**
+ * KGen Gallery — Site Configuration
+ * Generated: ${new Date().toLocaleString('vi-VN')}
+ * DO NOT share this file publicly.
+ */
+window.SITE_CONFIG = ${JSON.stringify(config, null, 4)};`;
+
+    document.getElementById('config-preview').textContent = code;
+    showToast('✅ Config đã được tạo!', 'success');
+}
+
+function downloadConfig() {
+    generateConfig();
+    const code = document.getElementById('config-preview').textContent;
+    const blob = new Blob([code], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'site-config.js';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('💾 Đã tải file site-config.js!', 'success');
+}
+
+function copyConfig() {
+    generateConfig();
+    const code = document.getElementById('config-preview').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('📋 Đã copy config!', 'success');
+    });
+}
+
+// ===== NAVIGATION =====
+function switchSection(name) {
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+
+    document.getElementById(`section-${name}`).classList.add('visible');
+    document.querySelector(`[data-section="${name}"]`).classList.add('active');
+
+    if (name === 'users') loadUsersList();
+    if (name === 'dashboard') updateDashboard();
+}
+
+// ===== UTILITIES =====
+function toggleVisibility(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function showToast(msg, type = 'success') {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+</body>
+</html>

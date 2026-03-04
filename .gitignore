@@ -27,3 +27,4 @@ build/
 npm-debug.log*
 
 .vercel
+*.zip

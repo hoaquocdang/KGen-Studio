@@ -1,9 +1,12 @@
 {
     "version": 2,
+    "buildCommand": "",
+    "outputDirectory": "web-ui",
+    "framework": null,
     "rewrites": [
         {
             "source": "/(.*)",
-            "destination": "/web-ui/$1"
+            "destination": "/$1"
         }
     ]
 }
