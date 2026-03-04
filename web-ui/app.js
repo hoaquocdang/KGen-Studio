@@ -1517,8 +1517,14 @@ function refreshGalleryForAuth() {
 let googleClientInitialized = false;
 
 function getGoogleClientId() {
-    // Check settings first, then fallback to env
-    return APP_STATE.settings.googleClientId || '';
+    // ============================================================
+    // 🔑 GOOGLE OAUTH CLIENT ID — Paste your Client ID here!
+    // Get it from: https://console.cloud.google.com/apis/credentials
+    // ============================================================
+    const GOOGLE_CLIENT_ID = '148696901444-8i6gftfcefcj3e81sntn51atfm4t6lbn.apps.googleusercontent.com';
+    // ============================================================
+
+    return GOOGLE_CLIENT_ID || APP_STATE.settings.googleClientId || '';
 }
 
 function initGoogleSignIn() {
