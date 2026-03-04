@@ -18,6 +18,34 @@
 </head>
 
 <body>
+    <!-- ===== MOBILE HEADER ===== -->
+    <header class="mobile-header" id="mobile-header">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+        </button>
+        <div class="mobile-logo">
+            <svg viewBox="0 0 28 28" fill="none" class="mobile-logo-icon">
+                <defs>
+                    <linearGradient id="mob-grad" x1="0" y1="0" x2="28" y2="28">
+                        <stop offset="0%" stop-color="#a855f7" />
+                        <stop offset="100%" stop-color="#6366f1" />
+                    </linearGradient>
+                </defs>
+                <rect width="28" height="28" rx="7" fill="url(#mob-grad)" />
+                <path d="M8 20V11l6-4 6 4v9l-6 4-6-4z" stroke="#fff" stroke-width="1.2" fill="none" />
+                <circle cx="14" cy="14" r="2.5" fill="#fff" opacity="0.9" />
+            </svg>
+            <span>KGen <span
+                    style="background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Gallery</span></span>
+        </div>
+        <div class="mobile-header-actions">
+            <button class="mobile-credits-btn" id="mobile-credits-btn">
+                <span>✨</span> Free Credits Daily
+            </button>
+        </div>
+    </header>
     <!-- ===== LOADING SPLASH ===== -->
     <div id="splash-screen" class="splash">
         <div class="splash-content">
@@ -844,6 +872,49 @@
 
     <!-- ===== TOAST ===== -->
     <div class="toast-container" id="toast-container"></div>
+
+    <!-- ===== MOBILE BOTTOM NAV ===== -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button class="bottom-nav-item active" data-tab="gallery" id="bnav-home">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M3 8.5L11 3l8 5.5V18a1 1 0 01-1 1H4a1 1 0 01-1-1V8.5z" stroke="currentColor" stroke-width="1.5"
+                    fill="none" />
+                <path d="M8 19V12h6v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" data-action="search" id="bnav-search">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.5" />
+                <path d="M14.5 14.5l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <span>Search</span>
+        </button>
+        <button class="bottom-nav-item bottom-nav-create" data-tab="generate" id="bnav-create">
+            <div class="create-btn-inner">
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <path d="M11 5v12M5 11h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </div>
+            <span>Create</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="enhance" id="bnav-enhance">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M11 2l2.8 5.6 6.2.9-4.5 4.4 1.1 6.1L11 16l-5.6 3 1.1-6.1-4.5-4.4 6.2-.9L11 2z"
+                    stroke="currentColor" stroke-width="1.5" fill="none" />
+            </svg>
+            <span>Enhance</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="workflow" id="bnav-comfyui">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <circle cx="11" cy="11" r="3" stroke="currentColor" stroke-width="1.5" />
+                <path
+                    d="M11 2v2.5M11 17.5V20M2 11h2.5M17.5 11H20M4.9 4.9l1.8 1.8M15.3 15.3l1.8 1.8M17.1 4.9l-1.8 1.8M6.7 15.3l-1.8 1.8"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <span>More</span>
+        </button>
+    </nav>
 
     <script src="supabase.js"></script>
     <script src="app.js"></script>
