@@ -1864,7 +1864,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupGuide();
     setupModelSelector();
     setupGenControls();
+    setupBanner();
 });
+
+function setupBanner() {
+    const banner = document.getElementById('gen-banner');
+    const closeBtn = document.getElementById('gen-banner-close');
+    if (closeBtn && banner) {
+        closeBtn.addEventListener('click', () => {
+            banner.classList.add('hidden');
+        });
+    }
+}
 
 // ============================================================
 // MODEL SELECTOR DROPDOWN

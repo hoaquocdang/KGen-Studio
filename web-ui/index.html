@@ -298,8 +298,8 @@
                                         stroke-linejoin="round" />
                                 </svg>
                                 <div class="gen-card-text">
-                                    <span class="gen-card-title">Describe Image</span>
-                                    <span class="gen-card-sub">Drop image to generate a prompt</span>
+                                    <span class="gen-card-title">Mô tả ảnh</span>
+                                    <span class="gen-card-sub">Kéo thả ảnh để tạo prompt</span>
                                 </div>
                             </div>
                             <div class="gen-card-thumbs">
@@ -333,8 +333,8 @@
                                         stroke-linejoin="round" />
                                 </svg>
                                 <div class="gen-card-text">
-                                    <span class="gen-card-title">Drop or upload reference</span>
-                                    <span class="gen-card-sub">optional</span>
+                                    <span class="gen-card-title">Kéo thả hoặc tải ảnh tham chiếu</span>
+                                    <span class="gen-card-sub">tuỳ chọn</span>
                                 </div>
                             </div>
                             <button class="gen-add-btn" id="btn-add-ref-file" type="button">
@@ -357,20 +357,26 @@
                         <div class="gen-prompt-card">
                             <div class="gen-prompt-header">
                                 <label class="gen-prompt-label" for="gen-prompt">Prompt</label>
-                                <button class="gen-translate-btn" id="btn-enhance-from-gen" title="Nâng cấp prompt">
-                                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <button class="gen-translate-btn" id="btn-enhance-from-gen"
+                                    title="Nâng cấp prompt bằng AI">
+                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
                                         <path
                                             d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
-                                            fill="currentColor" />
-                                        <path
-                                            d="M4.65 14.76L4.82 14.21C4.84 14.13 4.92 14.08 5 14.08C5.08 14.08 5.16 14.13 5.18 14.21L5.35 14.76C5.57 15.46 6.12 16.01 6.82 16.23L7.37 16.4C7.45 16.42 7.5 16.49 7.5 16.58C7.5 16.66 7.45 16.73 7.37 16.76L6.82 16.92C6.12 17.14 5.57 17.69 5.35 18.39L5.18 18.94C5.16 19.02 5.08 19.08 5 19.08C4.92 19.08 4.84 19.02 4.82 18.94L4.65 18.39C4.44 17.69 3.88 17.14 3.18 16.92L2.63 16.76C2.55 16.73 2.5 16.66 2.5 16.58C2.5 16.49 2.55 16.42 2.63 16.4L3.18 16.23C3.88 16.01 4.44 15.46 4.65 14.76Z"
                                             fill="currentColor" />
                                     </svg>
                                 </button>
                             </div>
                             <textarea id="gen-prompt" class="gen-prompt-textarea" rows="5"
-                                placeholder="Drag a card to apply a prompt, or type your own"></textarea>
+                                placeholder="Kéo thẻ ảnh để áp dụng prompt, hoặc tự gõ"></textarea>
                             <div class="gen-prompt-footer">
+                                <span class="gen-prompt-enhance-hint" id="btn-enhance-hint">
+                                    <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
+                                        <path
+                                            d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
+                                            fill="currentColor" />
+                                    </svg>
+                                    Nâng cấp &nbsp; ⌘ + ↵
+                                </span>
                                 <span class="char-count" id="prompt-char-count">0 ký tự</span>
                             </div>
                         </div>
@@ -380,24 +386,25 @@
                             <!-- Image Count -->
                             <div class="gen-ctrl gen-count-ctrl">
                                 <button class="gen-ctrl-btn" id="btn-count-minus" type="button" disabled>
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                        <path d="M3 6h6" stroke="currentColor" stroke-width="1.5"
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M4 7h6" stroke="currentColor" stroke-width="1.5"
                                             stroke-linecap="round" />
                                     </svg>
                                 </button>
                                 <span class="gen-ctrl-value" id="gen-count-display">1<span
                                         class="gen-ctrl-muted">/4</span></span>
-                                <button class="gen-ctrl-btn" id="btn-count-plus" type="button">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                        <path d="M6 3v6M3 6h6" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" />
+                                <button class="gen-ctrl-btn gen-lock-btn" type="button" title="Khoá số lượng">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                        <path d="M7 11V7a5 5 0 0110 0v4" />
                                     </svg>
                                 </button>
                                 <input type="hidden" id="gen-count" value="1">
                             </div>
                             <!-- Aspect Ratio -->
                             <div class="gen-ctrl gen-ar-ctrl" id="aspect-picker">
-                                <button class="gen-ctrl-btn gen-ar-trigger active" data-ratio="3:4" id="gen-ar-trigger"
+                                <button class="gen-ctrl-btn gen-ar-trigger" data-ratio="3:4" id="gen-ar-trigger"
                                     type="button">
                                     <div class="ar-preview-mini"
                                         style="width:9px;height:12px;border:1.5px solid currentColor;border-radius:1.5px">
@@ -405,12 +412,12 @@
                                     <span>3:4</span>
                                 </button>
                                 <div class="gen-ar-dropdown hidden" id="gen-ar-dropdown">
-                                    <button class="gen-ar-opt active" data-ratio="1:1">
+                                    <button class="gen-ar-opt" data-ratio="1:1">
                                         <div class="ar-preview-mini"
                                             style="width:12px;height:12px;border:1.5px solid currentColor;border-radius:1.5px">
                                         </div> 1:1
                                     </button>
-                                    <button class="gen-ar-opt" data-ratio="3:4">
+                                    <button class="gen-ar-opt active" data-ratio="3:4">
                                         <div class="ar-preview-mini"
                                             style="width:9px;height:12px;border:1.5px solid currentColor;border-radius:1.5px">
                                         </div> 3:4
@@ -452,11 +459,28 @@
                             </div>
                         </div>
 
-                        <!-- 5. Provider hidden (auto) -->
+                        <!-- 5. FAQ Link -->
+                        <div class="gen-faq-row">
+                            <span class="gen-faq-icon">❓</span>
+                            <span class="gen-faq-label">FAQ</span>
+                            <a href="#" class="gen-faq-link">Các model khác nhau thế nào? <svg width="10" height="10"
+                                    viewBox="0 0 10 10" fill="none">
+                                    <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg></a>
+                        </div>
+
+                        <!-- 6. Notification Banner -->
+                        <div class="gen-banner" id="gen-banner">
+                            <span>Nanobanana 2 / Seedream 5.0 có sẵn 👇</span>
+                            <button class="gen-banner-close" id="gen-banner-close" type="button">&times;</button>
+                        </div>
+
+                        <!-- Provider hidden (auto) -->
                         <input type="hidden" id="gen-provider" value="auto">
                         <input type="hidden" id="gen-negative" value="">
 
-                        <!-- 6. Model Selector (bottom) -->
+                        <!-- 7. Model Selector -->
                         <div class="gen-model-area">
                             <div class="model-selector" id="model-selector">
                                 <button class="model-selector-btn" id="model-selector-btn" type="button">
@@ -465,6 +489,7 @@
                                             alt="" width="18" height="18">
                                     </span>
                                     <span class="model-sel-name" id="model-sel-name">Nanobanana Pro</span>
+                                    <span class="model-sel-dot"></span>
                                     <svg class="model-sel-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
                                         <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5"
                                             stroke-linecap="round" stroke-linejoin="round" />
@@ -476,6 +501,7 @@
                                             <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690b6.svg"
                                                 alt="" class="model-opt-icon">
                                             <span class="model-opt-name">Nanobanana 2</span>
+                                            <span class="model-opt-dot"></span>
                                             <span class="model-badge new">New</span>
                                             <span class="model-opt-credits">5</span>
                                         </div>
@@ -488,6 +514,7 @@
                                         <div class="model-option" data-model="seedream-5" data-credits="5">
                                             <span class="model-opt-icon emoji">🌱</span>
                                             <span class="model-opt-name">Seedream 5.0 Lite</span>
+                                            <span class="model-opt-dot"></span>
                                             <span class="model-badge new">New</span>
                                             <span class="model-opt-credits">5</span>
                                         </div>
@@ -517,10 +544,10 @@
                             </div>
                         </div>
 
-                        <!-- 7. Generate Button -->
+                        <!-- 8. Generate Button -->
                         <button class="gen-generate-btn" id="btn-generate" type="button">
                             <span class="gen-btn-text">Generate</span>
-                            <svg class="gen-btn-sparkle" width="18" height="18" viewBox="0 0 20 20" fill="none">
+                            <svg class="gen-btn-sparkle" width="16" height="16" viewBox="0 0 20 20" fill="none">
                                 <path
                                     d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
                                     fill="currentColor" />
