@@ -12,13 +12,19 @@ window.SITE_CONFIG = {
     // API KEYS — Set these from the Admin Panel
     // ============================================================
     api: {
-        // KGen / KGen API Token (primary)
+        // Google Gemini API Key (for Nanobanana Pro / Nanobanana 2)
+        geminiApiKey: '',
+
+        // OpenRouter API Key (for GPT Image 1, DALL-E 3, Flux, SDXL, etc.)
+        openrouterApiKey: '',
+
+        // KGen / MeiGen API Token (legacy)
         KGenToken: '',
 
-        // OpenAI Compatible API
+        // OpenAI Compatible API (direct, not through OpenRouter)
         openaiKey: '',
         openaiBase: 'https://api.openai.com',
-        openaiModel: 'gpt-image-1.5',
+        openaiModel: 'gpt-image-1',
     },
 
     // ============================================================
@@ -30,21 +36,21 @@ window.SITE_CONFIG = {
             imageLimit: 10,
             price: 0,
             priceDisplay: 'Miễn phí',
-            description: 'Dùng thử với 10 ảnh miễn phí',
+            description: 'Dùng thử với 10 ảnh — thêm API key để tiếp tục',
         },
         pro: {
             name: 'Pro',
             imageLimit: 1000,
             price: 39000,
-            priceDisplay: '39.000đ',
-            description: '1.000 ảnh — Phù hợp cho nhà sáng tạo',
+            priceDisplay: '39.000đ/tháng',
+            description: '1.000 token / tháng — Cho nhà sáng tạo',
         },
         premium: {
             name: 'Premium',
-            imageLimit: 99999,
+            imageLimit: 5000,
             price: 199000,
-            priceDisplay: '199.000đ',
-            description: 'Không giới hạn — Cho chuyên gia',
+            priceDisplay: '199.000đ/tháng',
+            description: '5.000 token / tháng — Cho chuyên gia',
         },
     },
 

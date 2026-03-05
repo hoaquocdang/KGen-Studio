@@ -1,5 +1,5 @@
 /**
- * KGen Studio � AI Image Generation Hub
+ * KGen Studio � AI Image Generation Hub
  * Main Application Logic
  */
 
@@ -21,10 +21,12 @@ const APP_STATE = {
     // Auth
     currentUser: null, // { email, name, createdAt }
     settings: {
+        geminiApiKey: '',
+        openrouterApiKey: '',
         kgenToken: '',
         openaiKey: '',
         openaiBase: 'https://api.openai.com',
-        openaiModel: 'gpt-image-1.5',
+        openaiModel: 'gpt-image-1',
         comfyuiUrl: 'http://localhost:8188',
         googleClientId: '',
         supabaseUrl: '',
@@ -40,14 +42,14 @@ const GUEST_PROMPT_RATIO = 1.0; // 100% - no restriction
 
 // Category emoji map
 const CATEGORY_EMOJI = {
-    '3D': '??',
-    'App': '??',
-    'Food': '??',
-    'Girl': '??',
-    'JSON': '??',
-    'Other': '?',
-    'Photograph': '??',
-    'Product': '???'
+    '3D': '🎮',
+    'App': '📱',
+    'Food': '🍔',
+    'Girl': '👧',
+    'JSON': '📋',
+    'Other': '🔮',
+    'Photograph': '📸',
+    'Product': '📦'
 };
 
 // ============================================================
@@ -60,10 +62,12 @@ function getSiteConfig() {
 
 function getAdminAPIKey(type) {
     const cfg = getSiteConfig();
+    if (type === 'gemini') return cfg.api?.geminiApiKey || '';
+    if (type === 'openrouter') return cfg.api?.openrouterApiKey || '';
     if (type === 'KGen') return cfg.api?.KGenToken || '';
     if (type === 'openai') return cfg.api?.openaiKey || '';
     if (type === 'openaiBase') return cfg.api?.openaiBase || 'https://api.openai.com';
-    if (type === 'openaiModel') return cfg.api?.openaiModel || 'gpt-image-1.5';
+    if (type === 'openaiModel') return cfg.api?.openaiModel || 'gpt-image-1';
     return '';
 }
 
@@ -96,30 +100,61 @@ function getUserImageLimit() {
     }
     // Defaults
     if (plan === 'pro') return 1000;
-    if (plan === 'premium') return 99999;
+    if (plan === 'premium') return 5000;
     return 10;
 }
 
 function getUserImagesUsed() {
     const quota = getUserQuota();
+    // Monthly reset for Pro/Premium
+    const plan = getUserPlan();
+    if (plan !== 'free' && quota.monthStart) {
+        const monthStart = new Date(quota.monthStart);
+        const now = new Date();
+        // If we're in a new month, reset usage
+        if (now.getMonth() !== monthStart.getMonth() || now.getFullYear() !== monthStart.getFullYear()) {
+            quota.used = 0;
+            quota.monthStart = now.toISOString();
+            saveUserQuota(quota);
+            return 0;
+        }
+    }
     return quota.used || 0;
 }
 
+/**
+ * Check if user has configured their own personal API key
+ * If yes, they bypass the admin quota system entirely (using their own credits)
+ */
+function hasPersonalApiKey() {
+    return !!(APP_STATE.settings.geminiApiKey || APP_STATE.settings.openrouterApiKey || APP_STATE.settings.openaiKey);
+}
+
 function canGenerateImage() {
+    // If user has their own API key, always allow (they're paying for their own usage)
+    if (hasPersonalApiKey()) return true;
     return getUserImagesUsed() < getUserImageLimit();
 }
 
 function incrementImageUsage() {
+    // Don't count usage if user has personal API key
+    if (hasPersonalApiKey()) return;
+
     const quota = getUserQuota();
     quota.used = (quota.used || 0) + 1;
     if (!quota.plan) quota.plan = 'free';
+    // Set month start for first usage on paid plans
+    if (quota.plan !== 'free' && !quota.monthStart) {
+        quota.monthStart = new Date().toISOString();
+    }
     saveUserQuota(quota);
 }
 
 function getQuotaDisplay() {
+    if (hasPersonalApiKey()) return 'API key cá nhân';
     const used = getUserImagesUsed();
     const limit = getUserImageLimit();
-    return limit >= 99999 ? `${used} / 8` : `${used} / ${limit}`;
+    return `${used} / ${limit}`;
 }
 
 // ============================================================
@@ -168,11 +203,11 @@ async function loadPromptLibrary() {
 
     try {
         barFill.style.width = '20%';
-        statusText.textContent = '�ang t?i thu vi?n prompt...';
+        statusText.textContent = 'Đang tải thư viện prompt...';
 
         const response = await fetch('./data/trending-prompts.json');
         barFill.style.width = '60%';
-        statusText.textContent = '�ang x? l� d? li?u...';
+        statusText.textContent = 'Đang xử lý dữ liệu...';
 
         if (!response.ok) throw new Error('Failed to load prompts');
 
@@ -180,11 +215,12 @@ async function loadPromptLibrary() {
         APP_STATE.filteredPrompts = [...APP_STATE.prompts];
 
         barFill.style.width = '90%';
-        statusText.textContent = `�� t?i ${APP_STATE.prompts.length.toLocaleString()} prompts!`;
+        statusText.textContent = `Đã tải ${APP_STATE.prompts.length.toLocaleString()} prompts!`;
 
-        document.getElementById('gallery-count').textContent = APP_STATE.prompts.length.toLocaleString();
-        document.getElementById('gallery-subtitle').textContent =
-            `${APP_STATE.prompts.length.toLocaleString()} prompt du?c tuy?n ch?n t? c?ng d?ng s�ng t?o`;
+        const galleryCount = document.getElementById('gallery-count');
+        if (galleryCount) galleryCount.textContent = APP_STATE.prompts.length.toLocaleString();
+        const gallerySub = document.getElementById('gallery-subtitle');
+        if (gallerySub) gallerySub.textContent = `${APP_STATE.prompts.length.toLocaleString()} prompt được tuyển chọn`;
 
         barFill.style.width = '100%';
 
@@ -195,9 +231,9 @@ async function loadPromptLibrary() {
 
         renderGallery(true);
     } catch (error) {
-        statusText.textContent = 'L?i t?i d? li?u � th? l?i...';
+        statusText.textContent = 'Lỗi tải dữ liệu � thử lại...';
         console.error('Failed to load prompts:', error);
-        showToast('Kh�ng th? t?i thu vi?n prompt', 'error');
+        showToast('Không thể tải thư viện prompt', 'error');
 
         setTimeout(() => {
             splash.classList.add('fade-out');
@@ -340,7 +376,7 @@ function setupGalleryEvents() {
         filterAndRender();
     });
 
-    // Category chips
+    // Category chips (hidden, still works)
     document.querySelectorAll('.chip').forEach(chip => {
         chip.addEventListener('click', () => {
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -350,8 +386,33 @@ function setupGalleryEvents() {
         });
     });
 
-    // Sort
-    document.getElementById('sort-select').addEventListener('change', (e) => {
+    // Sidebar tag-items
+    document.querySelectorAll('.tag-item').forEach(tag => {
+        tag.addEventListener('click', () => {
+            document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+            const cat = tag.dataset.category;
+            APP_STATE.currentCategory = cat;
+            // Sync hidden chip filter
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            const matchChip = document.querySelector(`.chip[data-category="${cat}"]`);
+            if (matchChip) matchChip.classList.add('active');
+            filterAndRender();
+        });
+    });
+
+    // Sort tabs
+    document.querySelectorAll('.sort-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            APP_STATE.currentSort = tab.dataset.sort;
+            filterAndRender();
+        });
+    });
+
+    // Sort select (legacy, may not exist)
+    document.getElementById('sort-select')?.addEventListener('change', (e) => {
         APP_STATE.currentSort = e.target.value;
         filterAndRender();
     });
@@ -361,12 +422,31 @@ function setupGalleryEvents() {
         renderGallery(false);
     });
 
-    // Shuffle
-    document.getElementById('btn-shuffle').addEventListener('click', () => {
+    // Shuffle (may not exist in new UI)
+    document.getElementById('btn-shuffle')?.addEventListener('click', () => {
         shuffleArray(APP_STATE.filteredPrompts);
         APP_STATE.displayedCount = 0;
         renderGallery(true);
-        showToast('?? �� x�o tr?n th? t?!', 'info');
+        showToast('Shuffled!', 'info');
+    });
+
+    // Model pills
+    document.querySelectorAll('.model-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.model-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            // Model filtering is decorative for now (all prompts shown)
+        });
+    });
+
+    // Tags toggle
+    document.getElementById('tags-toggle')?.addEventListener('click', () => {
+        const header = document.getElementById('tags-toggle');
+        const list = document.getElementById('sidebar-tags-list');
+        header.classList.toggle('open');
+        if (list) {
+            list.style.display = header.classList.contains('open') ? 'none' : 'block';
+        }
     });
 
     // Reset filters
@@ -375,7 +455,9 @@ function setupGalleryEvents() {
         APP_STATE.searchQuery = '';
         APP_STATE.currentCategory = 'all';
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        document.querySelector('.chip[data-category="all"]').classList.add('active');
+        document.querySelector('.chip[data-category="all"]')?.classList.add('active');
+        document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
+        document.querySelector('.tag-item[data-category="all"]')?.classList.add('active');
         filterAndRender();
     });
 }
@@ -470,38 +552,15 @@ function renderGallery(reset) {
 
 function createGalleryCard(item, index) {
     const card = document.createElement('div');
-    card.className = 'gallery-card';
+    card.className = 'card';
     card.style.opacity = '0';
     card.style.animation = 'cardFadeIn 0.4s var(--ease-out) forwards';
 
-    const catBadges = item.categories.map(c =>
-        `<span class="card-cat">${CATEGORY_EMOJI[c] || '??'} ${c}</span>`
-    ).join('');
-
-    // Show prompt preview (truncated for card)
-    const promptPreview = item.prompt.length > 120
-        ? item.prompt.slice(0, 120).replace(/\n/g, ' ') + '...'
-        : item.prompt.replace(/\n/g, ' ');
-
     card.innerHTML = `
-        <div class="gallery-card-image">
-            <img src="${item.image}" alt="Prompt #${item.rank}" loading="lazy"
-                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22400%22/><text fill=%22%2355556a%22 x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2216%22>Image unavailable</text></svg>'">
-
-            <div class="gallery-card-overlay">
-                <div class="overlay-stats">
-                    <span>?? ${formatNumber(item.likes)}</span>
-                    <span>??? ${formatNumber(item.views)}</span>
-                </div>
-            </div>
-        </div>
-        <div class="gallery-card-body">
-            <span class="card-rank">#${item.rank} � ${item.model}</span>
-            <p class="card-prompt">${escapeHtml(promptPreview)}</p>
-            <div class="card-footer">
-                <span class="card-author">by ${escapeHtml(item.author_name)}</span>
-                <div class="card-cats">${catBadges}</div>
-            </div>
+        <img src="${item.image}" alt="Prompt #${item.rank}" loading="lazy"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22><rect fill=%22%23f5f5f5%22 width=%22400%22 height=%22400%22/><text fill=%22%23bbb%22 x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2214%22>Image unavailable</text></svg>'">
+        <div class="card-overlay">
+            <span class="card-model">${item.model || 'nanobanana'}</span>
         </div>
     `;
 
@@ -540,7 +599,7 @@ function setupModal() {
     // Modal action buttons
     document.getElementById('btn-use-prompt').addEventListener('click', () => {
         if (!isLoggedIn()) {
-            showToast('?? Vui l�ng dang nh?p d? s? d?ng prompt', 'error');
+            showToast('🔒 Vui lòng đăng nhập để sử dụng prompt', 'error');
             openAuthModal();
             return;
         }
@@ -549,7 +608,7 @@ function setupModal() {
         updateCharCount();
         closeModal();
         switchTab('generate');
-        showToast('? Prompt d� du?c chuy?n sang tab T?o ?nh', 'success');
+        showToast('✨ Prompt đã được chuyển sang tab Tạo ảnh', 'success');
     });
 
     document.getElementById('btn-copy-prompt').addEventListener('click', () => {
@@ -580,7 +639,7 @@ function openModal(item) {
     document.getElementById('modal-author').textContent = item.author_name;
     document.getElementById('modal-model').textContent = item.model;
     document.getElementById('modal-likes').textContent = `?? ${formatNumber(item.likes)}`;
-    document.getElementById('modal-views').textContent = `??? ${formatNumber(item.views)}`;
+    document.getElementById('modal-views').textContent = `👁️ ${formatNumber(item.views)}`;
     document.getElementById('modal-date').textContent = `?? ${item.date}`;
     document.getElementById('modal-source-link').href = item.source_url;
 
@@ -594,7 +653,7 @@ function openModal(item) {
     // Categories
     const catsContainer = document.getElementById('modal-cats');
     catsContainer.innerHTML = item.categories.map(c =>
-        `<span class="modal-cat">${CATEGORY_EMOJI[c] || '??'} ${c}</span>`
+        `<span class="modal-cat">${CATEGORY_EMOJI[c] || '📷'} ${c}</span>`
     ).join('');
 
     overlay.classList.remove('hidden');
@@ -635,7 +694,7 @@ function setupGenerateEvents() {
     document.getElementById('btn-enhance-from-gen').addEventListener('click', () => {
         const prompt = document.getElementById('gen-prompt').value;
         if (!prompt.trim()) {
-            showToast('Vui l�ng nh?p prompt tru?c', 'error');
+            showToast('Vui lòng nhập prompt trước', 'error');
             return;
         }
         document.getElementById('enhance-input').value = prompt;
@@ -663,14 +722,14 @@ function setupGenerateEvents() {
         if (img.src) {
             APP_STATE.referenceImages.push(img.src);
             renderRefPreviews();
-            showToast('? �� th�m v�o ?nh tham chi?u', 'success');
+            showToast('✅ Đã thêm vào ảnh tham chiếu', 'success');
         }
     });
 }
 
 function updateCharCount() {
     const textarea = document.getElementById('gen-prompt');
-    document.getElementById('prompt-char-count').textContent = `${textarea.value.length} k� t?`;
+    document.getElementById('prompt-char-count').textContent = `${textarea.value.length} ký tự`;
 }
 
 function addReferenceImage() {
@@ -679,14 +738,14 @@ function addReferenceImage() {
     if (!url) return;
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        showToast('URL ph?i b?t d?u b?ng http:// ho?c https://', 'error');
+        showToast('URL phải bắt đầu bằng http:// hoặc https://', 'error');
         return;
     }
 
     APP_STATE.referenceImages.push(url);
     input.value = '';
     renderRefPreviews();
-    showToast('? �� th�m ?nh tham chi?u', 'success');
+    showToast('✅ Đã thêm ảnh tham chiếu', 'success');
 }
 
 function renderRefPreviews() {
@@ -711,23 +770,21 @@ function renderRefPreviews() {
 async function generateImage() {
     const prompt = document.getElementById('gen-prompt').value.trim();
     if (!prompt) {
-        showToast('Vui l�ng nh?p prompt', 'error');
+        showToast('Vui lòng nhập prompt', 'error');
         return;
     }
 
-    // Check login
-    if (!isLoggedIn()) {
-        showToast('?? Vui l�ng dang nh?p d? t?o ?nh', 'error');
-        openAuthModal();
-        return;
-    }
-
-    // Check quota
+    // Check quota (guests can generate up to free limit)
     if (!canGenerateImage()) {
         const plan = getUserPlan();
         const limit = getUserImageLimit();
-        showToast(`?? B?n d� s? d?ng h?t ${limit} ?nh mi?n ph�. N�ng c?p g�i Pro d? ti?p t?c!`, 'error', 5000);
-        switchTab('pricing');
+        if (plan === 'free') {
+            // Show API key guide modal for free users
+            showApiKeyGuideModal();
+        } else {
+            showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói để tiếp tục!`, 'error', 5000);
+            switchTab('pricing');
+        }
         return;
     }
 
@@ -750,51 +807,59 @@ async function generateImage() {
     }, 1000);
 
     try {
-        // Determine endpoint based on provider
-        // Priority: explicit provider > kgen (if token) > openai (if key) > comfyui (if URL explicitly set by user)
+        // Determine provider based on selected model or auto-detect from API keys
         let result;
         let selectedProvider = provider;
 
-        if (provider === 'auto') {
-            // Priority: user settings > admin config > KGen default
-            const adminKGen = getAdminAPIKey('KGen');
-            const adminOpenai = getAdminAPIKey('openai');
+        // Get provider from model selector (data-provider attribute)
+        const activeModelOpt = document.querySelector('.model-option.active');
+        const modelProvider = activeModelOpt?.dataset.provider || '';
 
-            if (APP_STATE.settings.kgenToken) {
-                selectedProvider = 'kgen';
-            } else if (adminKGen) {
-                selectedProvider = 'kgen';
-                // Use admin key temporarily
-                APP_STATE.settings.kgenToken = adminKGen;
-            } else if (APP_STATE.settings.openaiKey) {
+        if (provider === 'auto') {
+            // Route based on selected model's provider
+            if (modelProvider === 'gemini') {
+                selectedProvider = 'gemini';
+            } else if (modelProvider === 'openrouter') {
+                selectedProvider = 'openrouter';
+            } else if (modelProvider === 'openai') {
                 selectedProvider = 'openai';
-            } else if (adminOpenai) {
-                selectedProvider = 'openai';
-                APP_STATE.settings.openaiKey = adminOpenai;
-                APP_STATE.settings.openaiBase = getAdminAPIKey('openaiBase');
-                APP_STATE.settings.openaiModel = getAdminAPIKey('openaiModel');
-            } else if (APP_STATE.settings.comfyuiUrl && APP_STATE.settings._comfyuiManuallySet) {
+            } else if (modelProvider === 'comfyui') {
                 selectedProvider = 'comfyui';
             } else {
-                // No provider configured � use KGen API (KGen.ai)
-                selectedProvider = 'KGen';
+                // Auto-detect: check which API keys are available
+                const geminiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
+                const openrouterKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
+                const openaiKey = APP_STATE.settings.openaiKey || getAdminAPIKey('openai');
+
+                if (geminiKey) {
+                    selectedProvider = 'gemini';
+                } else if (openrouterKey) {
+                    selectedProvider = 'openrouter';
+                } else if (openaiKey) {
+                    selectedProvider = 'openai';
+                } else if (APP_STATE.settings.comfyuiUrl && APP_STATE.settings._comfyuiManuallySet) {
+                    selectedProvider = 'comfyui';
+                } else {
+                    throw new Error('Chưa cấu hình API key nào. Vào Cài đặt để thêm Gemini API key hoặc OpenRouter API key.');
+                }
             }
         }
 
         switch (selectedProvider) {
-            case 'comfyui':
-                result = await generateViaComfyUI(prompt, negativePrompt);
+            case 'gemini':
+                result = await generateViaGemini(prompt, model, aspectRatio);
+                break;
+            case 'openrouter':
+                result = await generateViaOpenRouter(prompt, model, aspectRatio, negativePrompt);
                 break;
             case 'openai':
                 result = await generateViaOpenAI(prompt, model, quality, aspectRatio, negativePrompt);
                 break;
-            case 'kgen':
-                result = await generateViaKGen(prompt, model, aspectRatio);
+            case 'comfyui':
+                result = await generateViaComfyUI(prompt, negativePrompt);
                 break;
-            case 'KGen':
             default:
-                result = await generateViaKGen(prompt, model, aspectRatio);
-                break;
+                throw new Error(`Provider "${selectedProvider}" chưa được hỗ trợ. Chọn model khác.`);
         }
 
         // Show result
@@ -819,9 +884,9 @@ async function generateImage() {
             });
             renderHistory();
 
-            showToast('?? ?nh d� du?c t?o th�nh c�ng!', 'success');
+            showToast('🎉 Ảnh đã được tạo thành công!', 'success');
         } else {
-            throw new Error('Kh�ng nh?n du?c ?nh t? server. Vui l�ng th? l?i.');
+            throw new Error('Không nhận được ảnh từ server. Vui lòng thử lại.');
         }
     } catch (error) {
         clearInterval(timerInterval);
@@ -829,13 +894,106 @@ async function generateImage() {
         document.getElementById('result-placeholder').classList.remove('hidden');
 
         // Show clear error message instead of misleading random gallery image
-        const errorMsg = error.message || 'L?i kh�ng x�c d?nh';
+        const errorMsg = error.message || 'Lỗi không xác định';
         showGenerationError(errorMsg);
 
         console.error('Generation error:', error);
     }
 }
 
+/**
+ * Show modal with guide on how to add personal API key
+ * Shown when free users exhaust their 10-image quota
+ */
+function showApiKeyGuideModal() {
+    // Remove existing modal if any
+    document.getElementById('api-key-guide-modal')?.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'api-key-guide-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `
+        <div style="background:var(--bg-primary,#fff);border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);padding:32px;">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:2.5rem;margin-bottom:8px;">🔑</div>
+                <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 6px 0;">Hết lượt tạo ảnh miễn phí</h2>
+                <p style="color:var(--text-secondary,#666);font-size:0.9rem;margin:0;">Bạn đã dùng hết 10 ảnh miễn phí. Thêm API key để tiếp tục tạo không giới hạn!</p>
+            </div>
+
+            <div style="background:var(--bg-secondary,#f5f7fa);border-radius:12px;padding:20px;margin-bottom:16px;">
+                <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 12px 0;">🌟 Cách 1: Google Gemini (Miễn phí)</h3>
+                <ol style="margin:0;padding-left:20px;font-size:0.85rem;line-height:1.7;color:var(--text-secondary,#555);">
+                    <li>Truy cập <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent,#4a90d9);font-weight:600;">Google AI Studio</a></li>
+                    <li>Đăng nhập Google → Nhấn <strong>"Get API Key"</strong></li>
+                    <li>Copy API key và dán vào ô bên dưới</li>
+                </ol>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <input type="text" id="guide-gemini-key" placeholder="AIzaSy..." style="flex:1;padding:10px 12px;border:1px solid var(--border-light,#ddd);border-radius:8px;font-size:0.85rem;background:var(--bg-primary,#fff);">
+                    <button onclick="saveGuideKey('gemini')" style="padding:10px 16px;background:var(--accent,#4a90d9);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Lưu</button>
+                </div>
+            </div>
+
+            <div style="background:var(--bg-secondary,#f5f7fa);border-radius:12px;padding:20px;margin-bottom:16px;">
+                <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 12px 0;">🔗 Cách 2: OpenRouter (Nhiều model)</h3>
+                <ol style="margin:0;padding-left:20px;font-size:0.85rem;line-height:1.7;color:var(--text-secondary,#555);">
+                    <li>Truy cập <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent,#4a90d9);font-weight:600;">openrouter.ai/keys</a></li>
+                    <li>Đăng ký → Tạo API key</li>
+                    <li>Copy key và dán vào ô bên dưới</li>
+                </ol>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <input type="text" id="guide-openrouter-key" placeholder="sk-or-v1-..." style="flex:1;padding:10px 12px;border:1px solid var(--border-light,#ddd);border-radius:8px;font-size:0.85rem;background:var(--bg-primary,#fff);">
+                    <button onclick="saveGuideKey('openrouter')" style="padding:10px 16px;background:var(--accent,#4a90d9);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Lưu</button>
+                </div>
+            </div>
+
+            <div style="text-align:center;padding-top:8px;border-top:1px solid var(--border-light,#eee);">
+                <p style="font-size:0.82rem;color:var(--text-secondary,#888);margin:12px 0 8px 0;">Hoặc nâng cấp lên Pro (1.000 token/tháng) hoặc Premium (5.000 token/tháng)</p>
+                <div style="display:flex;gap:8px;justify-content:center;">
+                    <button onclick="document.getElementById('api-key-guide-modal').remove();switchTab('pricing')" style="padding:10px 20px;background:transparent;border:1px solid var(--border-light,#ddd);border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;">Xem gói nâng cấp</button>
+                    <button onclick="document.getElementById('api-key-guide-modal').remove()" style="padding:10px 20px;background:transparent;border:1px solid var(--border-light,#ddd);border-radius:8px;cursor:pointer;font-size:0.85rem;color:var(--text-secondary,#888);">Đóng</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.body.appendChild(modal);
+}
+
+/**
+ * Save API key from the guide modal and close it
+ */
+function saveGuideKey(type) {
+    let key = '';
+    if (type === 'gemini') {
+        key = document.getElementById('guide-gemini-key')?.value.trim();
+        if (!key) { showToast('Vui lòng nhập API key', 'error'); return; }
+        APP_STATE.settings.geminiApiKey = key;
+    } else if (type === 'openrouter') {
+        key = document.getElementById('guide-openrouter-key')?.value.trim();
+        if (!key) { showToast('Vui lòng nhập API key', 'error'); return; }
+        APP_STATE.settings.openrouterApiKey = key;
+    }
+
+    // Save to localStorage
+    localStorage.setItem('kgen_settings', JSON.stringify(APP_STATE.settings));
+
+    // Also update settings form if visible
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    setVal('setting-gemini-key', APP_STATE.settings.geminiApiKey || '');
+    setVal('setting-openrouter-key', APP_STATE.settings.openrouterApiKey || '');
+
+    updateProviderStatus();
+
+    // Close modal
+    document.getElementById('api-key-guide-modal')?.remove();
+    showToast('✅ API key đã được lưu! Bạn có thể tạo ảnh không giới hạn.', 'success', 4000);
+}
+window.saveGuideKey = saveGuideKey;
 /**
  * Show a clear error message to the user instead of displaying a random gallery image
  */
@@ -847,30 +1005,30 @@ function showGenerationError(message) {
     let guidance = '';
     const lower = message.toLowerCase();
 
-    if (lower.includes('token') || lower.includes('api key') || lower.includes('c?u h�nh')) {
-        guidance = '?? Vui l�ng v�o C�i d?t (thanh b�n) d? th�m API token KGen ho?c OpenAI key.';
+    if (lower.includes('token') || lower.includes('api key') || lower.includes('cấu hình')) {
+        guidance = '🔒 Vui lòng vào Cài đặt (thanh bên) để thêm API token MeiGen hoặc OpenAI key.';
     } else if (lower.includes('401') || lower.includes('403') || lower.includes('unauthorized')) {
-        guidance = '?? API token kh�ng h?p l? ho?c d� h?t h?n. Ki?m tra l?i trong C�i d?t.';
+        guidance = '🔑 API token không hợp lệ hoặc đã hết hạn. Kiểm tra lại trong Cài đặt.';
     } else if (lower.includes('402') || lower.includes('credit') || lower.includes('insufficient')) {
-        guidance = '?? H?t credit. Credit mi?n ph� s? du?c reset m?i ng�y.';
+        guidance = '💰 Hết credit. Credit miễn phí sẽ được reset mỗi ngày.';
     } else if (lower.includes('429') || lower.includes('rate')) {
-        guidance = '? Qu� nhi?u request. Vui l�ng d?i v�i gi�y r?i th? l?i.';
+        guidance = '⏳ Quá nhiều request. Vui lòng đợi vài giây rồi thử lại.';
     } else if (lower.includes('timeout') || lower.includes('timed out')) {
-        guidance = '?? Request qu� h?n. Th? l?i � c� th? server dang b?n.';
+        guidance = '⏱️ Request quá lâu. Thử lại � có thể server đang bận.';
     } else if (lower.includes('network') || lower.includes('fetch') || lower.includes('econnrefused')) {
-        guidance = '?? L?i k?t n?i m?ng. Ki?m tra internet v� th? l?i.';
+        guidance = '🌐 Lỗi kết nối mạng. Kiểm tra internet và thử lại.';
     } else if (lower.includes('safety') || lower.includes('policy') || lower.includes('flagged')) {
-        guidance = '?? Prompt c� th? vi ph?m ch�nh s�ch n?i dung. Th? ch?nh s?a prompt.';
+        guidance = '?? Prompt có thể vi phạm chính sách nội dung. Thử chỉnh sửa prompt.';
     } else {
-        guidance = '?? Th? l?i ho?c ch?n model/provider kh�c.';
+        guidance = '?? Thử lại hoặc chọn model/provider khác.';
     }
 
-    showToast(`? ${message}\n${guidance}`, 'error', 6000);
+    showToast(`❌ ${message}\n${guidance}`, 'error', 6000);
 }
 
 async function generateViaComfyUI(prompt, negativePrompt) {
     const url = APP_STATE.settings.comfyuiUrl;
-    if (!url) throw new Error('ComfyUI URL chua du?c c?u h�nh');
+    if (!url) throw new Error('ComfyUI URL chưa được cấu hình');
 
     // Basic ComfyUI API call
     const response = await fetch(`${url}/prompt`, {
@@ -886,10 +1044,10 @@ async function generateViaComfyUI(prompt, negativePrompt) {
 }
 
 async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
-    const apiKey = APP_STATE.settings.openaiKey;
-    if (!apiKey) throw new Error('OpenAI API Key chua du?c c?u h�nh');
+    const apiKey = APP_STATE.settings.openaiKey || getAdminAPIKey('openai');
+    if (!apiKey) throw new Error('OpenAI API Key chưa được cấu hình. Vào Cài đặt để thêm.');
 
-    const baseUrl = APP_STATE.settings.openaiBase || 'https://api.openai.com';
+    const baseUrl = APP_STATE.settings.openaiBase || getAdminAPIKey('openaiBase') || 'https://api.openai.com';
     const sizeMap = { '1:1': '1024x1024', '3:4': '1024x1536', '4:3': '1536x1024', '16:9': '1536x1024', '9:16': '1024x1536' };
 
     const response = await fetch(`${baseUrl}/v1/images/generations`, {
@@ -899,7 +1057,7 @@ async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
             'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-            model: model || APP_STATE.settings.openaiModel || 'gpt-image-1.5',
+            model: model || APP_STATE.settings.openaiModel || getAdminAPIKey('openaiModel') || 'gpt-image-1',
             prompt: negativePrompt ? `${prompt}\n\nAvoid: ${negativePrompt}` : prompt,
             size: sizeMap[size] || '1024x1024',
             quality,
@@ -913,152 +1071,123 @@ async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
     }
 
     const data = await response.json();
-    return { imageUrl: data.data?.[0]?.url };
+    const imageData = data.data?.[0];
+    const imageUrl = imageData?.url || (imageData?.b64_json ? `data:image/png;base64,${imageData.b64_json}` : null);
+    if (!imageUrl) throw new Error('Không nhận được ảnh từ OpenAI API');
+    return { imageUrl };
 }
 
-async function generateViaKGen(prompt, model, aspectRatio) {
-    const token = APP_STATE.settings.kgenToken;
-    if (!token) throw new Error('KGen Token chua du?c c?u h�nh. V�o C�i d?t d? th�m token.');
+/**
+ * Generate image via Google Gemini Imagen API
+ * Model name mapping: nanobanana-pro / nanobanana-2 → actual Gemini model IDs
+ */
+async function generateViaGemini(prompt, model, aspectRatio) {
+    const apiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
+    if (!apiKey) throw new Error('Gemini API Key chưa được cấu hình. Vào Cài đặt để thêm Google Gemini API key.');
 
-    const response = await fetch('https://www.kgen.ai/api/generate/v2', {
+    // Map friendly model names to actual Gemini API model IDs
+    const modelMap = {
+        'nanobanana-pro': 'imagen-3.0-generate-002',
+        'nanobanana-2': 'imagen-3.0-fast-generate-001',
+        'imagen-3.0-generate-002': 'imagen-3.0-generate-002',
+        'imagen-3.0-fast-generate-001': 'imagen-3.0-fast-generate-001',
+    };
+    const modelId = modelMap[model] || model || 'imagen-3.0-generate-002';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImages?key=${apiKey}`;
+
+    // Map aspect ratio format
+    const arMap = { '1:1': '1:1', '3:4': '3:4', '4:3': '4:3', '16:9': '16:9', '9:16': '9:16' };
+    const ar = arMap[aspectRatio] || '1:1';
+
+    const response = await fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             prompt,
-            modelId: model || 'nanobanana-2',
-            aspectRatio: aspectRatio || '1:1',
-            resolution: '2K',
-            referenceImages: APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages : undefined,
+            config: {
+                numberOfImages: 1,
+                aspectRatio: ar,
+                outputOptions: {
+                    mimeType: 'image/png'
+                }
+            }
         }),
     });
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `KGen error: ${response.status}`);
+        const errMsg = err.error?.message || `Gemini Imagen error: ${response.status}`;
+
+        if (response.status === 400 && errMsg.includes('safety')) {
+            throw new Error('Prompt vi phạm chính sách an toàn của Google. Vui lòng chỉnh sửa prompt.');
+        }
+        if (response.status === 403) {
+            throw new Error('API key không có quyền sử dụng Imagen. Hãy bật Generative Language API trong Google Cloud Console.');
+        }
+        if (response.status === 429) {
+            throw new Error('Quá nhiều request. Vui lòng chờ vài giây rồi thử lại.');
+        }
+        throw new Error(errMsg);
     }
 
     const data = await response.json();
-    if (!data.success || !data.generationId) {
-        throw new Error(data.error || 'Kh�ng nh?n du?c generation ID t? server');
+    const imageBytes = data.generatedImages?.[0]?.image?.imageBytes;
+    if (!imageBytes) {
+        throw new Error('Không nhận được ảnh từ Gemini API. Prompt có thể bị lọc bởi bộ lọc an toàn.');
     }
 
-    // Poll for result
-    return await pollKGenGeneration(data.generationId, token);
+    return { imageUrl: `data:image/png;base64,${imageBytes}` };
 }
 
 /**
- * Poll KGen generation status until completed, failed, or timeout
+ * Generate image via OpenRouter API (OpenAI-compatible gateway)
+ * Supports many models: openai/gpt-image-1, openai/dall-e-3, black-forest-labs/flux-1.1-pro, etc.
  */
-async function pollKGenGeneration(generationId, token, timeoutMs = 300000) {
-    const startTime = Date.now();
-    const pollInterval = 3000;
-    const timerEl = document.getElementById('gen-timer');
+async function generateViaOpenRouter(prompt, model, aspectRatio, negativePrompt) {
+    const apiKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
+    if (!apiKey) throw new Error('OpenRouter API Key chưa được cấu hình. Vào Cài đặt để thêm.');
 
-    while (Date.now() - startTime < timeoutMs) {
-        const statusRes = await fetch(`https://www.kgen.ai/api/generate/v2/status/${encodeURIComponent(generationId)}`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-        });
+    const sizeMap = { '1:1': '1024x1024', '3:4': '1024x1536', '4:3': '1536x1024', '16:9': '1536x1024', '9:16': '1024x1536' };
 
-        if (!statusRes.ok) {
-            throw new Error(`L?i ki?m tra tr?ng th�i: ${statusRes.status}`);
-        }
-
-        const status = await statusRes.json();
-
-        if (status.status === 'completed' && status.imageUrl) {
-            return { imageUrl: status.imageUrl };
-        }
-
-        if (status.status === 'failed') {
-            throw new Error(status.error || 'Generation th?t b?i tr�n server');
-        }
-
-        // Update timer with status
-        const elapsed = Math.round((Date.now() - startTime) / 1000);
-        if (timerEl) timerEl.textContent = `${elapsed}s`;
-
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-    }
-
-    throw new Error('Generation qu� th?i gian ch? (5 ph�t). Vui l�ng th? l?i.');
-}
-
-/**
- * Generate via KGen platform API (KGen.ai) � default when no provider configured
- * This is the primary API used by the KGen platform
- */
-async function generateViaKGen(prompt, model, aspectRatio) {
-    // Use KGen platform API
-    const baseUrl = 'https://www.KGen.ai';
-
-    const response = await fetch(`${baseUrl}/api/generate/v2`, {
+    const response = await fetch('https://openrouter.ai/api/v1/images/generations', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': window.location.origin || 'https://kgen.gallery',
+            'X-Title': 'KGen Gallery',
         },
         body: JSON.stringify({
-            prompt,
-            modelId: model || 'nanobanana-2',
-            aspectRatio: aspectRatio || '1:1',
-            resolution: '2K',
-            referenceImages: APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages : undefined,
+            model: model || 'openai/gpt-image-1',
+            prompt: negativePrompt ? `${prompt}\n\nAvoid: ${negativePrompt}` : prompt,
+            size: sizeMap[aspectRatio] || '1024x1024',
+            n: 1,
         }),
     });
 
     if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-            throw new Error('C?n API token d? t?o ?nh. V�o C�i d?t ? KGen Cloud d? th�m token, ho?c dang k� t?i KGen.ai');
-        }
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `KGen error: ${response.status}`);
+        const errMsg = err.error?.message || `OpenRouter error: ${response.status}`;
+
+        if (response.status === 401) {
+            throw new Error('OpenRouter API key không hợp lệ. Kiểm tra lại key trong Cài đặt.');
+        }
+        if (response.status === 402) {
+            throw new Error('Hết credit OpenRouter. Nạp thêm tại openrouter.ai/credits.');
+        }
+        if (response.status === 429) {
+            throw new Error('Quá nhiều request. Vui lòng chờ vài giây rồi thử lại.');
+        }
+        throw new Error(errMsg);
     }
 
     const data = await response.json();
-    if (!data.success || !data.generationId) {
-        throw new Error(data.error || 'Kh�ng nh?n du?c generation ID');
-    }
-
-    // Poll for result
-    return await pollKGenGeneration(data.generationId, baseUrl);
+    const imageData = data.data?.[0];
+    const imageUrl = imageData?.url || (imageData?.b64_json ? `data:image/png;base64,${imageData.b64_json}` : null);
+    if (!imageUrl) throw new Error('Không nhận được ảnh từ OpenRouter API');
+    return { imageUrl };
 }
 
-/**
- * Poll KGen generation status until completed or timeout
- */
-async function pollKGenGeneration(generationId, baseUrl, timeoutMs = 300000) {
-    const startTime = Date.now();
-    const pollInterval = 3000;
-    const timerEl = document.getElementById('gen-timer');
-
-    while (Date.now() - startTime < timeoutMs) {
-        const statusRes = await fetch(`${baseUrl}/api/generate/v2/status/${encodeURIComponent(generationId)}`);
-
-        if (!statusRes.ok) {
-            throw new Error(`L?i ki?m tra tr?ng th�i: ${statusRes.status}`);
-        }
-
-        const status = await statusRes.json();
-
-        if (status.status === 'completed' && status.imageUrl) {
-            return { imageUrl: status.imageUrl };
-        }
-
-        if (status.status === 'failed') {
-            throw new Error(status.error || 'Generation th?t b?i');
-        }
-
-        const elapsed = Math.round((Date.now() - startTime) / 1000);
-        if (timerEl) timerEl.textContent = `${elapsed}s`;
-
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-    }
-
-    throw new Error('Generation qu� th?i gian ch?. Vui l�ng th? l?i.');
-}
 
 function renderHistory() {
     const grid = document.getElementById('history-grid');
@@ -1110,14 +1239,14 @@ function setupEnhanceEvents() {
         document.getElementById('gen-prompt').value = text;
         updateCharCount();
         switchTab('generate');
-        showToast('? Prompt n�ng c?p d� s?n s�ng d? t?o ?nh!', 'success');
+        showToast('✨ Prompt nâng cấp đã sẵn sàng để tạo ảnh!', 'success');
     });
 }
 
 function enhancePrompt() {
     const input = document.getElementById('enhance-input').value.trim();
     if (!input) {
-        showToast('Vui l�ng nh?p � tu?ng', 'error');
+        showToast('Vui lòng nhập ý tưởng', 'error');
         return;
     }
 
@@ -1130,7 +1259,7 @@ function enhancePrompt() {
     document.getElementById('enhanced-prompt').classList.remove('hidden');
     document.getElementById('enhanced-text').textContent = enhanced;
 
-    showToast('? Prompt d� du?c n�ng c?p!', 'success');
+    showToast('✨ Prompt đã được nâng cấp!', 'success');
 }
 
 function localEnhancePrompt(prompt, style) {
@@ -1229,7 +1358,7 @@ async function checkComfyUIConnection() {
     const statusTitle = document.getElementById('wf-status-title');
     const statusText = document.getElementById('wf-status-text');
 
-    statusText.textContent = '�ang ki?m tra...';
+    statusText.textContent = 'Đang kiểm tra...';
 
     try {
         const response = await fetch(`${url}/system_stats`, {
@@ -1239,9 +1368,9 @@ async function checkComfyUIConnection() {
         if (response.ok) {
             const data = await response.json();
             statusIcon.classList.add('connected');
-            statusTitle.textContent = 'ComfyUI Connected ?';
-            statusText.textContent = `GPU: ${data.devices?.[0]?.name || 'Unknown'} � VRAM: ${formatBytes(data.devices?.[0]?.vram_total || 0)}`;
-            showToast('? �� k?t n?i ComfyUI!', 'success');
+            statusTitle.textContent = 'ComfyUI Connected ✅';
+            statusText.textContent = `GPU: ${data.devices?.[0]?.name || 'Unknown'} � VRAM: ${formatBytes(data.devices?.[0]?.vram_total || 0)}`;
+            showToast('✅ Đã kết nối ComfyUI!', 'success');
 
             // Update provider status
             document.getElementById('provider-status').innerHTML = `
@@ -1254,14 +1383,14 @@ async function checkComfyUIConnection() {
     } catch (error) {
         statusIcon.classList.remove('connected');
         statusTitle.textContent = 'ComfyUI Offline';
-        statusText.textContent = 'Kh�ng th? k?t n?i. H�y d?m b?o ComfyUI dang ch?y.';
-        showToast('? Kh�ng th? k?t n?i ComfyUI', 'error');
+        statusText.textContent = 'Không thể kết nối. Hãy đảm bảo ComfyUI đang chạy.';
+        showToast('❌ Không thể kết nối ComfyUI', 'error');
     }
 }
 
 function handleWorkflowFile(file) {
     if (!file.name.endsWith('.json')) {
-        showToast('Ch? ch?p nh?n file .json', 'error');
+        showToast('Chỉ chấp nhận file .json', 'error');
         return;
     }
 
@@ -1277,9 +1406,9 @@ function handleWorkflowFile(file) {
             localStorage.setItem('kgen_workflows', JSON.stringify(workflows));
 
             renderWorkflowList();
-            showToast(`? �� import workflow "${name}"`, 'success');
+            showToast(`✅ Đã import workflow "${name}"`, 'success');
         } catch (err) {
-            showToast('JSON kh�ng h?p l?', 'error');
+            showToast('JSON không hợp lệ', 'error');
         }
     };
     reader.readAsText(file);
@@ -1297,8 +1426,8 @@ function renderWorkflowList() {
                     <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2" opacity="0.3"/>
                     <path d="M6 16h36" stroke="currentColor" stroke-width="2" opacity="0.3"/>
                 </svg>
-                <p>Chua c� workflow n�o</p>
-                <p class="wf-hint">Import file JSON workflow t? ComfyUI (API Format)</p>
+                <p>Chua c� workflow n�o</p>
+                <p class="wf-hint">Import file JSON workflow từ ComfyUI (API Format)</p>
             </div>
         `;
         return;
@@ -1314,7 +1443,7 @@ function renderWorkflowList() {
                         <h4 style="font-size: 0.95rem; font-weight: 600;">${escapeHtml(name)}</h4>
                         <p style="font-size: 0.82rem; color: var(--text-secondary);">${nodeCount} nodes</p>
                     </div>
-                    <button class="btn btn-sm btn-ghost" onclick="deleteWorkflow('${escapeHtml(name)}')">??? Xo�</button>
+                    <button class="btn btn-sm btn-ghost" onclick="deleteWorkflow('${escapeHtml(name)}')">🗑️ Xoá</button>
                 </div>
             </div>
         `;
@@ -1326,7 +1455,7 @@ function deleteWorkflow(name) {
     delete workflows[name];
     localStorage.setItem('kgen_workflows', JSON.stringify(workflows));
     renderWorkflowList();
-    showToast(`??? �� xo� workflow "${name}"`, 'info');
+    showToast(`🗑️ Đã xoá workflow "${name}"`, 'info');
 }
 // Make available globally
 window.deleteWorkflow = deleteWorkflow;
@@ -1340,9 +1469,17 @@ function setupSettingsEvents() {
     document.getElementById('btn-reset-settings').addEventListener('click', resetSettings);
 
     // Toggle token visibility
-    document.getElementById('btn-toggle-kgen-token').addEventListener('click', () => {
+    document.getElementById('btn-toggle-gemini-key')?.addEventListener('click', () => {
+        const input = document.getElementById('setting-gemini-key');
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+    });
+    document.getElementById('btn-toggle-openrouter-key')?.addEventListener('click', () => {
+        const input = document.getElementById('setting-openrouter-key');
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+    });
+    document.getElementById('btn-toggle-kgen-token')?.addEventListener('click', () => {
         const input = document.getElementById('setting-kgen-token');
-        input.type = input.type === 'password' ? 'text' : 'password';
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
     });
 }
 
@@ -1352,17 +1489,20 @@ function loadSettings() {
         APP_STATE.settings = { ...APP_STATE.settings, ...saved };
 
         // Populate form
-        document.getElementById('setting-kgen-token').value = APP_STATE.settings.kgenToken || '';
-        document.getElementById('setting-openai-key').value = APP_STATE.settings.openaiKey || '';
-        document.getElementById('setting-openai-base').value = APP_STATE.settings.openaiBase || 'https://api.openai.com';
-        document.getElementById('setting-openai-model').value = APP_STATE.settings.openaiModel || 'gpt-image-1.5';
-        document.getElementById('setting-comfyui-url').value = APP_STATE.settings.comfyuiUrl || 'http://localhost:8188';
-        document.getElementById('setting-google-client-id').value = APP_STATE.settings.googleClientId || '';
-        document.getElementById('setting-supabase-url').value = APP_STATE.settings.supabaseUrl || '';
-        document.getElementById('setting-supabase-anon-key').value = APP_STATE.settings.supabaseAnonKey || '';
-        document.getElementById('setting-stripe-key').value = APP_STATE.settings.stripePublishableKey || '';
-        document.getElementById('setting-stripe-pro').value = APP_STATE.settings.stripePriceIdPro || '';
-        document.getElementById('setting-stripe-premium').value = APP_STATE.settings.stripePriceIdPremium || '';
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+        setVal('setting-gemini-key', APP_STATE.settings.geminiApiKey || '');
+        setVal('setting-openrouter-key', APP_STATE.settings.openrouterApiKey || '');
+        setVal('setting-kgen-token', APP_STATE.settings.kgenToken || '');
+        setVal('setting-openai-key', APP_STATE.settings.openaiKey || '');
+        setVal('setting-openai-base', APP_STATE.settings.openaiBase || 'https://api.openai.com');
+        setVal('setting-openai-model', APP_STATE.settings.openaiModel || 'gpt-image-1');
+        setVal('setting-comfyui-url', APP_STATE.settings.comfyuiUrl || 'http://localhost:8188');
+        setVal('setting-google-client-id', APP_STATE.settings.googleClientId || '');
+        setVal('setting-supabase-url', APP_STATE.settings.supabaseUrl || '');
+        setVal('setting-supabase-anon-key', APP_STATE.settings.supabaseAnonKey || '');
+        setVal('setting-stripe-key', APP_STATE.settings.stripePublishableKey || '');
+        setVal('setting-stripe-pro', APP_STATE.settings.stripePriceIdPro || '');
+        setVal('setting-stripe-premium', APP_STATE.settings.stripePriceIdPremium || '');
 
         updateProviderStatus();
     } catch (e) {
@@ -1371,18 +1511,21 @@ function loadSettings() {
 }
 
 function saveSettings() {
+    const getVal = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
     APP_STATE.settings = {
-        kgenToken: document.getElementById('setting-kgen-token').value.trim(),
-        openaiKey: document.getElementById('setting-openai-key').value.trim(),
-        openaiBase: document.getElementById('setting-openai-base').value.trim(),
-        openaiModel: document.getElementById('setting-openai-model').value.trim(),
-        comfyuiUrl: document.getElementById('setting-comfyui-url').value.trim(),
-        googleClientId: document.getElementById('setting-google-client-id').value.trim(),
-        supabaseUrl: document.getElementById('setting-supabase-url').value.trim(),
-        supabaseAnonKey: document.getElementById('setting-supabase-anon-key').value.trim(),
-        stripePublishableKey: document.getElementById('setting-stripe-key').value.trim(),
-        stripePriceIdPro: document.getElementById('setting-stripe-pro').value.trim(),
-        stripePriceIdPremium: document.getElementById('setting-stripe-premium').value.trim(),
+        geminiApiKey: getVal('setting-gemini-key'),
+        openrouterApiKey: getVal('setting-openrouter-key'),
+        kgenToken: getVal('setting-kgen-token'),
+        openaiKey: getVal('setting-openai-key'),
+        openaiBase: getVal('setting-openai-base'),
+        openaiModel: getVal('setting-openai-model'),
+        comfyuiUrl: getVal('setting-comfyui-url'),
+        googleClientId: getVal('setting-google-client-id'),
+        supabaseUrl: getVal('setting-supabase-url'),
+        supabaseAnonKey: getVal('setting-supabase-anon-key'),
+        stripePublishableKey: getVal('setting-stripe-key'),
+        stripePriceIdPro: getVal('setting-stripe-pro'),
+        stripePriceIdPremium: getVal('setting-stripe-premium'),
     };
 
     localStorage.setItem('kgen_settings', JSON.stringify(APP_STATE.settings));
@@ -1399,16 +1542,18 @@ function saveSettings() {
         initSupabase();
     }
 
-    showToast('?? C�i d?t d� du?c luu!', 'success');
+    showToast('✅ Cài đặt đã được lưu!', 'success');
 }
 
 function resetSettings() {
     localStorage.removeItem('kgen_settings');
     APP_STATE.settings = {
+        geminiApiKey: '',
+        openrouterApiKey: '',
         kgenToken: '',
         openaiKey: '',
         openaiBase: 'https://api.openai.com',
-        openaiModel: 'gpt-image-1.5',
+        openaiModel: 'gpt-image-1',
         comfyuiUrl: 'http://localhost:8188',
         googleClientId: '',
         supabaseUrl: '',
@@ -1418,29 +1563,33 @@ function resetSettings() {
         stripePriceIdPremium: '',
     };
 
-    document.getElementById('setting-kgen-token').value = '';
-    document.getElementById('setting-openai-key').value = '';
-    document.getElementById('setting-openai-base').value = 'https://api.openai.com';
-    document.getElementById('setting-openai-model').value = 'gpt-image-1.5';
-    document.getElementById('setting-comfyui-url').value = 'http://localhost:8188';
-    document.getElementById('setting-google-client-id').value = '';
-    document.getElementById('setting-supabase-url').value = '';
-    document.getElementById('setting-supabase-anon-key').value = '';
-    document.getElementById('setting-stripe-key').value = '';
-    document.getElementById('setting-stripe-pro').value = '';
-    document.getElementById('setting-stripe-premium').value = '';
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    setVal('setting-gemini-key', '');
+    setVal('setting-openrouter-key', '');
+    setVal('setting-kgen-token', '');
+    setVal('setting-openai-key', '');
+    setVal('setting-openai-base', 'https://api.openai.com');
+    setVal('setting-openai-model', 'gpt-image-1');
+    setVal('setting-comfyui-url', 'http://localhost:8188');
+    setVal('setting-google-client-id', '');
+    setVal('setting-supabase-url', '');
+    setVal('setting-supabase-anon-key', '');
+    setVal('setting-stripe-key', '');
+    setVal('setting-stripe-pro', '');
+    setVal('setting-stripe-premium', '');
 
     updateProviderStatus();
-    showToast('?? �� kh�i ph?c c�i d?t m?c d?nh', 'info');
+    showToast('✅ Đã khôi phục cài đặt mặc định', 'info');
 }
 
 function updateProviderStatus() {
     const statusEl = document.getElementById('provider-status');
     const providers = [];
 
-    if (APP_STATE.settings.kgenToken) providers.push('KGen');
-    if (APP_STATE.settings.openaiKey) providers.push('OpenAI');
-    if (APP_STATE.settings.comfyuiUrl) providers.push('ComfyUI');
+    if (APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini')) providers.push('Gemini');
+    if (APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter')) providers.push('OpenRouter');
+    if (APP_STATE.settings.openaiKey || getAdminAPIKey('openai')) providers.push('OpenAI');
+    if (APP_STATE.settings.comfyuiUrl && APP_STATE.settings._comfyuiManuallySet) providers.push('ComfyUI');
 
     if (providers.length > 0) {
         statusEl.innerHTML = `
@@ -1450,7 +1599,7 @@ function updateProviderStatus() {
     } else {
         statusEl.innerHTML = `
             <div class="status-dot offline"></div>
-            <span>Chua k?t n?i</span>
+            <span>Chưa cấu hình API key</span>
         `;
     }
 }
@@ -1488,7 +1637,7 @@ function shuffleArray(arr) {
 async function copyToClipboard(text) {
     try {
         await navigator.clipboard.writeText(text);
-        showToast('?? �� sao ch�p!', 'success');
+        showToast('✅ Đã sao chép!', 'success');
     } catch {
         // Fallback
         const textarea = document.createElement('textarea');
@@ -1497,7 +1646,7 @@ async function copyToClipboard(text) {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        showToast('?? �� sao ch�p!', 'success');
+        showToast('✅ Đã sao chép!', 'success');
     }
 }
 
@@ -1583,17 +1732,17 @@ function toggleAuthMode() {
     if (authMode === 'register') {
         loginForm.classList.add('hidden');
         registerForm.classList.remove('hidden');
-        title.textContent = 'T?o T�i Kho?n';
-        subtitle.textContent = '�ang k� mi?n ph� d? truy c?p to�n b? prompts';
-        switchText.textContent = '�� c� t�i kho?n?';
-        switchBtn.textContent = '�ang nh?p';
+        title.textContent = 'Tạo Tài Khoản';
+        subtitle.textContent = 'Đăng ký miễn phí để truy cập toàn bộ prompts';
+        switchText.textContent = 'Đã có tài khoản?';
+        switchBtn.textContent = 'Đăng nhập';
     } else {
         loginForm.classList.remove('hidden');
         registerForm.classList.add('hidden');
-        title.textContent = '�ang Nh?p';
-        subtitle.textContent = '�ang nh?p d? m? kh�a to�n b? thu vi?n 1,300+ prompts';
-        switchText.textContent = 'Chua c� t�i kho?n?';
-        switchBtn.textContent = '�ang k�';
+        title.textContent = 'Đang Nhập';
+        subtitle.textContent = 'Đăng nhập để mở khoá toàn bộ thư viện 1,300+ prompts';
+        switchText.textContent = 'Chưa có tài khoản?';
+        switchBtn.textContent = 'Đăng ký';
     }
 }
 
@@ -1607,10 +1756,10 @@ function openAuthModal() {
     const registerForm = document.getElementById('register-form');
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
-    document.getElementById('auth-title').textContent = '�ang Nh?p';
-    document.getElementById('auth-subtitle').textContent = '�ang nh?p d? m? kh�a to�n b? thu vi?n 1,300+ prompts';
-    document.getElementById('auth-switch-text').textContent = 'Chua c� t�i kho?n?';
-    document.getElementById('btn-switch-auth').textContent = '�ang k�';
+    document.getElementById('auth-title').textContent = 'Đang Nhập';
+    document.getElementById('auth-subtitle').textContent = 'Đăng nhập để mở khoá toàn bộ thư viện 1,300+ prompts';
+    document.getElementById('auth-switch-text').textContent = 'Chưa có tài khoản?';
+    document.getElementById('btn-switch-auth').textContent = 'Đăng ký';
 
     // Focus first input
     setTimeout(() => {
@@ -1629,11 +1778,11 @@ function handleRegister() {
     const password = document.getElementById('reg-password').value;
 
     if (!name || !email || !password) {
-        showToast('Vui l�ng di?n d?y d? th�ng tin', 'error');
+        showToast('Vui lòng điền đầy để thông tin', 'error');
         return;
     }
     if (password.length < 6) {
-        showToast('M?t kh?u ph?i c� �t nh?t 6 k� t?', 'error');
+        showToast('Mật khẩu phải có ít nhất 6 ký tự', 'error');
         return;
     }
 
@@ -1641,7 +1790,7 @@ function handleRegister() {
     const users = JSON.parse(localStorage.getItem('kgen_users') || '{}');
 
     if (users[email]) {
-        showToast('Email n�y d� du?c dang k�', 'error');
+        showToast('Email này đã được đăng ký', 'error');
         return;
     }
 
@@ -1666,7 +1815,7 @@ function handleRegister() {
     updateAuthUI();
     refreshGalleryForAuth();
 
-    showToast(`?? Ch�o m?ng ${name}! T�i kho?n d� du?c t?o th�nh c�ng`, 'success');
+    showToast(`👋 Chào mừng ${name}! Tài khoản đã được tạo thành công`, 'success');
 }
 
 function handleLogin() {
@@ -1674,7 +1823,7 @@ function handleLogin() {
     const password = document.getElementById('login-password').value;
 
     if (!email || !password) {
-        showToast('Vui l�ng nh?p email v� m?t kh?u', 'error');
+        showToast('Vui lòng nhập email và mật khẩu', 'error');
         return;
     }
 
@@ -1682,12 +1831,12 @@ function handleLogin() {
     const user = users[email];
 
     if (!user) {
-        showToast('Email kh�ng t?n t?i. H�y dang k� t�i kho?n m?i.', 'error');
+        showToast('Email không tồn tại. Hãy đăng ký tài khoản mới.', 'error');
         return;
     }
 
     if (user.passwordHash !== btoa(password)) {
-        showToast('M?t kh?u kh�ng d�ng', 'error');
+        showToast('Mật khẩu không đúng', 'error');
         return;
     }
 
@@ -1700,7 +1849,7 @@ function handleLogin() {
     updateAuthUI();
     refreshGalleryForAuth();
 
-    showToast(`?? Ch�o m?ng tr? l?i, ${user.name}!`, 'success');
+    showToast(`👋 Chào mừng trở lại, ${user.name}!`, 'success');
 }
 
 function handleLogout() {
@@ -1710,7 +1859,7 @@ function handleLogout() {
     updateAuthUI();
     refreshGalleryForAuth();
 
-    showToast('?? �� dang xu?t', 'info');
+    showToast('👋 Đã đăng xuất', 'info');
 }
 
 function updateAuthUI() {
@@ -1735,7 +1884,7 @@ function updateAuthUI() {
         // Show provider badge
         const roleEl = document.querySelector('.user-role');
         if (roleEl) {
-            roleEl.textContent = APP_STATE.currentUser.provider === 'google' ? '?? Google Account' : 'PRO Member';
+            roleEl.textContent = APP_STATE.currentUser.provider === 'google' ? '🔑 Google Account' : 'PRO Member';
         }
 
         // Hide guest banner if exists
@@ -1762,11 +1911,11 @@ function showGuestBanner() {
         <div class="guest-banner-text">
             <span class="banner-icon">??</span>
             <div>
-                <h3>B?n dang ? ch? d? xem tru?c</h3>
-                <p>Ch? hi?n th? <strong>10%</strong> n?i dung prompt. �ang nh?p mi?n ph� d? xem d?y d?!</p>
+                <h3>Bạn dang ? ch? để xem trước</h3>
+                <p>Ch? hiển thị <strong>10%</strong> nội dung prompt. Đăng nhập miễn phí để xem đầy đủ!</p>
             </div>
         </div>
-        <button class="btn btn-primary btn-sm" id="btn-guest-login">?? �ang nh?p ngay</button>
+        <button class="btn btn-primary btn-sm" id="btn-guest-login">?? Đăng nhập ngay</button>
     `;
 
     searchBar.parentNode.insertBefore(banner, searchBar);
@@ -1790,7 +1939,7 @@ let googleClientInitialized = false;
 
 function getGoogleClientId() {
     // ============================================================
-    // ?? GOOGLE OAUTH CLIENT ID � Paste your Client ID here!
+    // ?? GOOGLE OAUTH CLIENT ID � Paste your Client ID here!
     // Get it from: https://console.cloud.google.com/apis/credentials
     // ============================================================
     const GOOGLE_CLIENT_ID = '148696901444-8i6gftfcefcj3e81sntn51atfm4t6lbn.apps.googleusercontent.com';
@@ -1830,7 +1979,7 @@ function handleGoogleSignIn() {
     const clientId = getGoogleClientId();
 
     if (!clientId) {
-        // No client ID configured � show helpful message
+        // No client ID configured � show helpful message
         showGoogleSetupPrompt();
         return;
     }
@@ -1839,7 +1988,7 @@ function handleGoogleSignIn() {
         // Retry init
         initGoogleSignIn();
         if (!googleClientInitialized) {
-            showToast('Google Sign-In dang kh?i t?o, th? l?i sau gi�y l�t...', 'info');
+            showToast('Google Sign-In đang khởi tạo, thử lại sau giây lát...', 'info');
             return;
         }
     }
@@ -1850,7 +1999,7 @@ function handleGoogleSignIn() {
             if (notification.isNotDisplayed()) {
                 // Fallback: render a sign-in button in-place
                 console.log('One Tap not displayed, reason:', notification.getNotDisplayedReason());
-                showToast('Vui l�ng cho ph�p popup t? Google', 'info');
+                showToast('Vui lòng cho phép popup từ Google', 'info');
             }
             if (notification.isSkippedMoment()) {
                 console.log('One Tap skipped, reason:', notification.getSkippedReason());
@@ -1858,7 +2007,7 @@ function handleGoogleSignIn() {
         });
     } catch (error) {
         console.error('Google Sign-In error:', error);
-        showToast('L?i Google Sign-In. Vui l�ng th? l?i.', 'error');
+        showToast('Lỗi Google Sign-In. Vui lòng thử lại.', 'error');
     }
 }
 
@@ -1868,7 +2017,7 @@ function handleGoogleCredentialResponse(response) {
         const payload = decodeJwtPayload(response.credential);
 
         if (!payload || !payload.email) {
-            showToast('Kh�ng th? x�c th?c v?i Google', 'error');
+            showToast('Không thể xác thực với Google', 'error');
             return;
         }
 
@@ -1902,10 +2051,10 @@ function handleGoogleCredentialResponse(response) {
         updateAuthUI();
         refreshGalleryForAuth();
 
-        showToast(`?? Ch�o m?ng ${googleUser.name}! �� dang nh?p b?ng Google`, 'success');
+        showToast(`👋 Chào mừng ${googleUser.name}! Đã đăng nhập bằng Google`, 'success');
     } catch (error) {
         console.error('Google credential error:', error);
-        showToast('L?i x? l� th�ng tin Google', 'error');
+        showToast('Lỗi xử lý thông tin Google', 'error');
     }
 }
 
@@ -1936,18 +2085,18 @@ function showGoogleSetupPrompt() {
     infoDiv.className = 'google-setup-toast';
     infoDiv.innerHTML = `
         <div class="google-setup-content">
-            <h3>?? C?u h�nh Google Sign-In</h3>
-            <p>�? s? d?ng dang nh?p Google, b?n c?n:</p>
+            <h3>?? C?u hình Google Sign-In</h3>
+            <p>�? sử dụng đăng nhập Google, bạn c?n:</p>
             <ol>
-                <li>T?o project t?i <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent-blue)">Google Cloud Console</a></li>
+                <li>Tạo project tải <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent-blue)">Google Cloud Console</a></li>
                 <li>B?t Google Identity API</li>
-                <li>T?o OAuth 2.0 Client ID (Web application)</li>
-                <li>Th�m <code>http://localhost:3456</code> v�o Authorized JavaScript origins</li>
-                <li>D�n Client ID v�o <strong>C�i d?t ? Google Client ID</strong></li>
+                <li>Tạo OAuth 2.0 Client ID (Web application)</li>
+                <li>Thêm <code>http://localhost:3456</code> vào Authorized JavaScript origins</li>
+                <li>D�n Client ID vào <strong>Cài đặt ? Google Client ID</strong></li>
             </ol>
             <div style="display:flex;gap:8px;margin-top:12px">
-                <button class="btn btn-primary btn-sm" id="btn-goto-settings-google">?? M? C�i d?t</button>
-                <button class="btn btn-ghost btn-sm" id="btn-close-google-setup">��ng</button>
+                <button class="btn btn-primary btn-sm" id="btn-goto-settings-google">⚙️ Mở Cài đặt</button>
+                <button class="btn btn-ghost btn-sm" id="btn-close-google-setup">Đóng</button>
             </div>
         </div>
     `;
@@ -1995,7 +2144,7 @@ function setupPricing() {
         <div class="pricing-grid-inline">
             ${PRICING_TIERS.map(tier => `
                 <div class="pricing-card-inline ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}">
-                    ${tier.popular ? '<div class="popular-badge-inline">?? Ph? bi?n nh?t</div>' : ''}
+                    ${tier.popular ? '<div class="popular-badge-inline">🔥 Phổ biến nhất</div>' : ''}
                     <div class="tier-header-inline">
                         <span class="tier-emoji-inline">${tier.emoji}</span>
                         <h3>${tier.name}</h3>
@@ -2011,14 +2160,14 @@ function setupPricing() {
                     <button class="btn ${tier.buttonClass} tier-btn-inline" 
                         data-tier="${tier.id}"
                         ${currentTier === tier.id ? 'disabled' : ''}>
-                        ${currentTier === tier.id ? '\u2713 �ang s? d?ng' : tier.buttonText}
+                        ${currentTier === tier.id ? '\u2713 Đang sử dụng' : tier.buttonText}
                     </button>
                 </div>
             `).join('')}
         </div>
         <div class="pricing-footer-inline">
-            <p>\ud83d\udcb3 Thanh to�n an to�n qua <strong>Stripe</strong> \u2022 H?y b?t c? l�c n�o</p>
-            <p class="sub-note">H? tr?: MoMo, Visa, Mastercard, JCB \u2022 Ho�n ti?n 7 ng�y</p>
+            <p>\ud83d\udcb3 Thanh toán an toàn qua <strong>Stripe</strong> \u2022 Hủy bất cứ lúc nào</p>
+            <p class="sub-note">Hỗ trợ: MoMo, Visa, Mastercard, JCB \u2022 Hoàn tiền 7 ngày</p>
         </div>
     `;
 
@@ -2088,13 +2237,13 @@ function setupGuide() {
         if (e.key === 'ArrowLeft') goToGuideSlide(guideCurrentSlide - 1);
     });
 
-    // Auto-show for first-time visitors
-    if (!localStorage.getItem('kgen_guide_seen')) {
-        setTimeout(() => {
-            openGuide();
-            localStorage.setItem('kgen_guide_seen', 'true');
-        }, 2000);
-    }
+    // Auto-show disabled — guide available via sidebar button
+    // if (!localStorage.getItem('kgen_guide_seen')) {
+    //     setTimeout(() => {
+    //         openGuide();
+    //         localStorage.setItem('kgen_guide_seen', 'true');
+    //     }, 2000);
+    // }
 }
 
 function openGuide() {
@@ -2127,7 +2276,7 @@ function updateGuideSlide() {
     const nextBtn = document.getElementById('guide-next');
     if (prevBtn) prevBtn.disabled = guideCurrentSlide === 0;
     if (nextBtn) {
-        nextBtn.textContent = guideCurrentSlide === GUIDE_TOTAL_SLIDES - 1 ? 'B?t d?u d�ng! ??' : 'Ti?p ?';
+        nextBtn.textContent = guideCurrentSlide === GUIDE_TOTAL_SLIDES - 1 ? 'Bắt đầu dùng! 🎉' : 'Tiếp →';
     }
 }
 
@@ -2342,10 +2491,10 @@ function setupGenControls() {
             input.onchange = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                showToast('�ang ph�n t�ch ?nh...', 'info');
+                showToast('Đang phân tích ảnh...', 'info');
                 // For demo, just show that we received the file
                 setTimeout(() => {
-                    showToast('T�nh nang Describe Image s? t? d?ng t?o prompt t? ?nh', 'info');
+                    showToast('Tính năng Describe Image sẽ tự động tạo prompt từ ảnh', 'info');
                 }, 1500);
             };
             input.click();
