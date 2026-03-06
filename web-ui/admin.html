@@ -701,17 +701,17 @@
                                 target="_blank" style="color:var(--blue)">Google AI Studio</a> → Get API Key</div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Model</label>
-                        <input type="text" class="form-input" id="cfg-google-model" placeholder="gemini-3.0-flash"
-                            value="gemini-3.0-flash">
+                        <label class="form-label">Model Tạo Ảnh</label>
+                        <input type="text" class="form-input" id="cfg-google-model"
+                            placeholder="imagen-3.0-generate-002" value="imagen-3.0-generate-002">
                         <div class="form-hint" style="line-height: 1.5; margin-top: 6px;">
-                            Các model thế hệ mới nhất của Google:<br>
-                            • <b style="color:var(--accent-orange)">gemini-3.0-pro</b> <i>(Thông minh, mạnh mẽ nhất hiện
-                                nay)</i><br>
-                            • <b style="color:var(--accent-orange)">gemini-3.0-flash</b> <i>(Tốc độ cực nhanh, siêu rẻ,
-                                đang dùng rộng rãi)</i><br>
-                            • <b style="color:var(--accent-orange)">imagen-3.0-generate-002</b> <i>(Model chuyên dụng để
-                                vẽ hình)</i>
+                            <b style="color:var(--green)">⚠️ Chỉ nhập model TẠO ẢNH vào đây:</b><br>
+                            • <b style="color:var(--accent-orange)">imagen-3.0-generate-002</b> <i>(Khuyến nghị — model
+                                ảnh chính hãng Google)</i><br>
+                            • <b style="color:var(--accent-orange)">imagen-4.0-generate-preview-05-20</b> <i>(Imagen 4 —
+                                chất lượng cao nhất)</i><br>
+                            <span style="color:var(--red, #ef4444); font-size:11px;">❌ KHÔNG dùng gemini-3.0-flash hay
+                                gemini-3.0-pro — đó là model ngôn ngữ, không tạo ảnh được.</span>
                         </div>
                     </div>
                 </div>
@@ -887,7 +887,7 @@
         const DEFAULT_PASSWORD = 'admin2026';
 
         let adminConfig = {
-            api: { googleKey: '', googleModel: 'gemini-3.0-flash', openrouterKey: '', openaiKey: '', openaiBase: 'https://api.openai.com', openaiModel: 'gpt-image-1.5' },
+            api: { googleKey: '', googleModel: 'imagen-3.0-generate-002', openrouterKey: '', openaiKey: '', openaiBase: 'https://api.openai.com', openaiModel: 'gpt-image-1.5' },
             plans: {
                 free: { name: 'Miễn phí', imageLimit: 10, price: 0, priceDisplay: 'Miễn phí' },
                 pro: { name: 'Pro', imageLimit: 1000, price: 39000, priceDisplay: '39.000đ' },
@@ -950,7 +950,19 @@
                 const saved = localStorage.getItem(ADMIN_STORAGE_KEY);
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    adminConfig = { ...adminConfig, ...parsed };
+                    // Deep merge to keep defaults for missing fields
+                    adminConfig = {
+                        ...adminConfig,
+                        ...parsed,
+                        api: { ...adminConfig.api, ...(parsed.api || {}) },
+                        plans: { ...adminConfig.plans, ...(parsed.plans || {}) },
+                    };
+                    // Auto-fix: if googleModel is a text model (not imagen), reset to imagen
+                    const badModels = ['gemini-3.0-flash', 'gemini-3.0-pro', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+                    if (badModels.includes(adminConfig.api.googleModel)) {
+                        console.warn('Auto-correcting googleModel from', adminConfig.api.googleModel, 'to imagen-3.0-generate-002');
+                        adminConfig.api.googleModel = 'imagen-3.0-generate-002';
+                    }
                 }
             } catch (e) { console.error('Failed to load admin config:', e); }
         }
@@ -963,7 +975,7 @@
         function populateFields() {
             // API Keys
             document.getElementById('cfg-google-key').value = adminConfig.api.googleKey || '';
-            document.getElementById('cfg-google-model').value = adminConfig.api.googleModel || 'gemini-3.0-flash';
+            document.getElementById('cfg-google-model').value = adminConfig.api.googleModel || 'imagen-3.0-generate-002';
             document.getElementById('cfg-openrouter-key').value = adminConfig.api.openrouterKey || '';
             document.getElementById('cfg-openai-key').value = adminConfig.api.openaiKey || '';
             document.getElementById('cfg-openai-base').value = adminConfig.api.openaiBase || 'https://api.openai.com';
@@ -1013,7 +1025,7 @@
         // ===== SAVE FUNCTIONS =====
         function saveAPIKeys() {
             adminConfig.api.googleKey = document.getElementById('cfg-google-key').value.trim();
-            adminConfig.api.googleModel = document.getElementById('cfg-google-model').value.trim() || 'gemini-3.0-flash';
+            adminConfig.api.googleModel = document.getElementById('cfg-google-model').value.trim() || 'imagen-3.0-generate-002';
             adminConfig.api.openrouterKey = document.getElementById('cfg-openrouter-key').value.trim();
             adminConfig.api.openaiKey = document.getElementById('cfg-openai-key').value.trim();
             adminConfig.api.openaiBase = document.getElementById('cfg-openai-base').value.trim() || 'https://api.openai.com';

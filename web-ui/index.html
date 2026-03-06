@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icon-512.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111827">
-    <link rel="stylesheet" href="styles.css?v=20260306_1050">
+    <link rel="stylesheet" href="styles.css?v=20260306_1055">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
@@ -201,6 +201,23 @@
 
     <!-- ===== MAIN CONTENT ===== -->
     <main id="main-content" class="main-content">
+
+        <!-- Floating API Key Button (top-right) -->
+        <div class="api-key-fab" id="api-key-fab">
+            <button class="api-key-fab-btn" id="btn-quick-api" title="Cấu hình API Key">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M15.5 5.5a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM7.5 10l-4 9h13l-4-9" stroke="currentColor"
+                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor" />
+                </svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="display:none"
+                    id="api-key-check-icon">
+                    <path d="M20 6L9 17l-5-5" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                <span id="api-key-fab-label">API Key</span>
+            </button>
+        </div>
 
         <!-- ===== GALLERY TAB ===== -->
         <section id="tab-gallery" class="tab-content active">
@@ -1277,9 +1294,74 @@
         </div>
     </div>
 
-    <script src="site-config.js?v=20260306_1050"></script>
-    <script src="supabase.js?v=20260306_1050"></script>
-    <script src="app.js?v=20260306_1050"></script>
+    <!-- ===== QUICK API KEY MODAL ===== -->
+    <div id="quick-api-modal" class="quick-api-modal hidden">
+        <div class="quick-api-card">
+            <div class="quick-api-header">
+                <div class="quick-api-icon">🔑</div>
+                <div>
+                    <h3>Nhập API Key</h3>
+                    <p>Thêm key của bạn để tạo ảnh miễn phí không giới hạn</p>
+                </div>
+                <button class="quick-api-close" id="quick-api-close">&times;</button>
+            </div>
+
+            <div class="quick-api-tabs">
+                <button class="quick-api-tab active" data-provider="gemini">Google Gemini</button>
+                <button class="quick-api-tab" data-provider="openrouter">OpenRouter</button>
+                <button class="quick-api-tab" data-provider="openai">OpenAI</button>
+            </div>
+
+            <div class="quick-api-body">
+                <!-- Gemini -->
+                <div class="quick-api-pane active" id="pane-gemini">
+                    <p class="quick-api-hint">Dùng cho <strong>Nanobanana Pro</strong> (Imagen 3). Miễn phí 100
+                        ảnh/ngày.</p>
+                    <div class="quick-api-input-row">
+                        <input type="password" id="qk-gemini" placeholder="AIzaSy..." class="quick-api-input"
+                            autocomplete="off">
+                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-gemini')">👁</button>
+                    </div>
+                    <a href="https://aistudio.google.com/apikey" target="_blank" class="quick-api-link">→ Lấy key miễn
+                        phí tại Google AI Studio</a>
+                    <button class="quick-api-save-btn" onclick="saveQuickKey('gemini')">✅ Lưu & Kích hoạt</button>
+                </div>
+
+                <!-- OpenRouter -->
+                <div class="quick-api-pane hidden" id="pane-openrouter">
+                    <p class="quick-api-hint">Dùng cho <strong>GPT Image 1, DALL-E 3, Flux, Seedream</strong>.</p>
+                    <div class="quick-api-input-row">
+                        <input type="password" id="qk-openrouter" placeholder="sk-or-v1-..." class="quick-api-input"
+                            autocomplete="off">
+                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-openrouter')">👁</button>
+                    </div>
+                    <a href="https://openrouter.ai/keys" target="_blank" class="quick-api-link">→ Lấy key tại
+                        OpenRouter.ai</a>
+                    <button class="quick-api-save-btn" onclick="saveQuickKey('openrouter')">✅ Lưu & Kích hoạt</button>
+                </div>
+
+                <!-- OpenAI -->
+                <div class="quick-api-pane hidden" id="pane-openai">
+                    <p class="quick-api-hint">Dùng cho <strong>GPT Image 1.5</strong> (chất lượng cao nhất).</p>
+                    <div class="quick-api-input-row">
+                        <input type="password" id="qk-openai" placeholder="sk-..." class="quick-api-input"
+                            autocomplete="off">
+                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-openai')">👁</button>
+                    </div>
+                    <a href="https://platform.openai.com/api-keys" target="_blank" class="quick-api-link">→ Lấy key tại
+                        OpenAI Platform</a>
+                    <button class="quick-api-save-btn" onclick="saveQuickKey('openai')">✅ Lưu & Kích hoạt</button>
+                </div>
+            </div>
+
+            <!-- Current Keys Status -->
+            <div class="quick-api-status" id="quick-api-status"></div>
+        </div>
+    </div>
+
+    <script src="site-config.js?v=20260306_1055"></script>
+    <script src="supabase.js?v=20260306_1055"></script>
+    <script src="app.js?v=20260306_1055"></script>
 </body>
 
 </html>

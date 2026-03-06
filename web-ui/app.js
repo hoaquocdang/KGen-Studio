@@ -2606,3 +2606,141 @@ function setupGenControls() {
     }
 }
 
+// ============================================================
+// QUICK API KEY MODAL
+// ============================================================
+
+function initQuickApiKeyModal() {
+    const fab = document.getElementById('btn-quick-api');
+    const modal = document.getElementById('quick-api-modal');
+    const closeBtn = document.getElementById('quick-api-close');
+
+    if (!fab || !modal) return;
+
+    // Update FAB state based on saved keys
+    updateApiKeyFabState();
+
+    // Open modal
+    fab.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        updateQuickApiStatus();
+        // Pre-fill existing keys (masked)
+        const geminiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
+        const orKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
+        const oaiKey = APP_STATE.settings.openaiKey || getAdminAPIKey('openai');
+        const gemEl = document.getElementById('qk-gemini');
+        const orEl = document.getElementById('qk-openrouter');
+        const oaiEl = document.getElementById('qk-openai');
+        if (gemEl && geminiKey) gemEl.value = geminiKey;
+        if (orEl && orKey) orEl.value = orKey;
+        if (oaiEl && oaiKey) oaiEl.value = oaiKey;
+    });
+
+    // Close modal
+    closeBtn?.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+
+    // Tab switching
+    document.querySelectorAll('.quick-api-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.quick-api-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.quick-api-pane').forEach(p => p.classList.add('hidden'));
+            tab.classList.add('active');
+            const pane = document.getElementById('pane-' + tab.dataset.provider);
+            if (pane) pane.classList.remove('hidden');
+        });
+    });
+}
+
+function updateApiKeyFabState() {
+    const btn = document.getElementById('btn-quick-api');
+    const checkIcon = document.getElementById('api-key-check-icon');
+    const label = document.getElementById('api-key-fab-label');
+    if (!btn) return;
+
+    const hasGemini = !!(APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini'));
+    const hasOR = !!(APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter'));
+    const hasOAI = !!(APP_STATE.settings.openaiKey || getAdminAPIKey('openai'));
+    const hasAny = hasGemini || hasOR || hasOAI;
+
+    if (hasAny) {
+        btn.classList.add('has-key');
+        if (checkIcon) checkIcon.style.display = '';
+        btn.querySelector('svg:first-child').style.display = 'none';
+        if (label) label.textContent = 'Key đã cấu hình';
+    } else {
+        btn.classList.remove('has-key');
+        if (checkIcon) checkIcon.style.display = 'none';
+        btn.querySelector('svg:first-child').style.display = '';
+        if (label) label.textContent = 'API Key';
+    }
+}
+
+function updateQuickApiStatus() {
+    const container = document.getElementById('quick-api-status');
+    if (!container) return;
+
+    const keys = [
+        { label: 'Google Gemini', has: !!(APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini')) },
+        { label: 'OpenRouter', has: !!(APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter')) },
+        { label: 'OpenAI', has: !!(APP_STATE.settings.openaiKey || getAdminAPIKey('openai')) },
+    ];
+
+    const hasAny = keys.some(k => k.has);
+    if (!hasAny) { container.innerHTML = ''; return; }
+
+    container.innerHTML = keys.map(k => `
+        <div class="qk-status-row">
+            <span class="qk-status-dot ${k.has ? 'on' : 'off'}"></span>
+            <span>${k.label}: ${k.has ? '✅ Đã cấu hình' : '⬜ Chưa có'}</span>
+        </div>
+    `).join('');
+}
+
+function saveQuickKey(provider) {
+    let key = '';
+    if (provider === 'gemini') {
+        key = document.getElementById('qk-gemini')?.value.trim();
+        if (!key) { showToast('Vui lòng nhập Google Gemini API Key', 'error'); return; }
+        APP_STATE.settings.geminiApiKey = key;
+    } else if (provider === 'openrouter') {
+        key = document.getElementById('qk-openrouter')?.value.trim();
+        if (!key) { showToast('Vui lòng nhập OpenRouter API Key', 'error'); return; }
+        APP_STATE.settings.openrouterApiKey = key;
+    } else if (provider === 'openai') {
+        key = document.getElementById('qk-openai')?.value.trim();
+        if (!key) { showToast('Vui lòng nhập OpenAI API Key', 'error'); return; }
+        APP_STATE.settings.openaiKey = key;
+    }
+
+    // Persist to localStorage
+    localStorage.setItem('kgen_settings', JSON.stringify(APP_STATE.settings));
+
+    // Sync to settings panel UI if it exists
+    const g = document.getElementById('setting-gemini-key');
+    const o = document.getElementById('setting-openrouter-key');
+    if (g) g.value = APP_STATE.settings.geminiApiKey || '';
+    if (o) o.value = APP_STATE.settings.openrouterApiKey || '';
+
+    updateProviderStatus();
+    updateQuickApiStatus();
+    updateApiKeyFabState();
+
+    document.getElementById('quick-api-modal')?.classList.add('hidden');
+    showToast('✅ API key đã được lưu! Bạn có thể tạo ảnh không giới hạn ngay bây giờ.', 'success', 4000);
+}
+window.saveQuickKey = saveQuickKey;
+
+function toggleQKVisibility(inputId) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.type = el.type === 'password' ? 'text' : 'password';
+}
+window.toggleQKVisibility = toggleQKVisibility;
+
+// Hook into DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initQuickApiKeyModal, 300);
+});
