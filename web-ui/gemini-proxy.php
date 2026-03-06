@@ -1,55 +1,51 @@
 <?php
 /**
  * KGen Gallery — Gemini Imagen Proxy
- * Handles CORS for browser-to-Gemini API calls
- * Place this file in the same folder as index.html on your hosting
+ * Correct endpoint: :predict (NOT :generateImages)
+ * Correct body format: { instances:[{prompt}], parameters:{sampleCount, aspectRatio} }
+ * Correct auth: x-goog-api-key header (NOT ?key= query param)
  */
 
-// CORS headers — allow your domain only
 $allowed_origins = [
     'https://kgen.kudomax.vn',
     'http://127.0.0.1:8888',
     'http://localhost:8888',
+    'http://localhost',
 ];
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowed_origins)) {
     header("Access-Control-Allow-Origin: $origin");
-} else {
+}
+else {
     header("Access-Control-Allow-Origin: https://kgen.kudomax.vn");
 }
-
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-// Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
-
-// Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
     exit();
 }
 
-// Read request body
 $body = file_get_contents('php://input');
 $data = json_decode($body, true);
 if (!$data) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid JSON body']);
+    echo json_encode(['error' => 'Invalid JSON']);
     exit();
 }
 
-$apiKey    = $data['apiKey'] ?? '';
-$modelId   = $data['model'] ?? 'imagen-3.0-generate-002';
-$prompt    = $data['prompt'] ?? '';
-$count     = intval($data['numberOfImages'] ?? 1);
-$ar        = $data['aspectRatio'] ?? '1:1';
+$apiKey = $data['apiKey'] ?? '';
+$modelId = $data['model'] ?? 'imagen-3.0-generate-002';
+$prompt = $data['prompt'] ?? '';
+$count = intval($data['sampleCount'] ?? 1);
+$ar = $data['aspectRatio'] ?? '1:1';
 
 if (!$apiKey || !$prompt) {
     http_response_code(400);
@@ -57,7 +53,7 @@ if (!$apiKey || !$prompt) {
     exit();
 }
 
-// Block text models (safety check)
+// Block text models
 $blocked = ['gemini-1.5', 'gemini-2.0', 'gemini-3.0', 'gemini-flash', 'gemini-pro'];
 foreach ($blocked as $b) {
     if (str_contains($modelId, $b)) {
@@ -67,31 +63,34 @@ foreach ($blocked as $b) {
     }
 }
 
-// Forward to Gemini API
-$url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelId}:generateImages?key={$apiKey}";
+// CORRECT endpoint: :predict
+$url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelId}:predict";
 
+// CORRECT body format
 $payload = json_encode([
-    'prompt'  => $prompt,
-    'config'  => [
-        'numberOfImages' => min($count, 4),
-        'aspectRatio'    => $ar,
-        'outputOptions'  => ['mimeType' => 'image/png'],
+    'instances' => [['prompt' => $prompt]],
+    'parameters' => [
+        'sampleCount' => min($count, 4),
+        'aspectRatio' => $ar,
     ],
 ]);
 
 $ch = curl_init($url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => $payload,
-    CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-    CURLOPT_TIMEOUT        => 60,
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => $payload,
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json',
+        "x-goog-api-key: {$apiKey}", // CORRECT auth header
+    ],
+    CURLOPT_TIMEOUT => 60,
     CURLOPT_SSL_VERIFYPEER => true,
 ]);
 
-$response   = curl_exec($ch);
-$httpCode   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curlError  = curl_error($ch);
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlError = curl_error($ch);
 curl_close($ch);
 
 if ($curlError) {

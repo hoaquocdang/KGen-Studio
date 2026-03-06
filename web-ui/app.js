@@ -1131,49 +1131,60 @@ async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
 
 /**
  * Generate image via Google Gemini Imagen API
- * - On production (hosting): routes through /gemini-proxy.php to bypass CORS
- * - On localhost: calls Gemini API directly (no CORS issue via http-server --cors)
+ * Correct endpoint: :predict (NOT :generateImages)
+ * Correct body: { instances:[{prompt}], parameters:{sampleCount, aspectRatio} }
+ * Correct auth header: x-goog-api-key (NOT ?key= query param)
+ * - On production hosting: routes via /gemini-proxy.php to bypass CORS
+ * - On localhost: direct call (http-server --cors)
  */
 async function generateViaGemini(prompt, model, aspectRatio) {
     const apiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
     if (!apiKey) throw new Error('Gemini API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
 
-    // Determine image model from admin config
-    let modelId = 'imagen-3.0-generate-002'; // safe default
+    // Determine image model (always use imagen, never gemini text models)
+    let modelId = 'imagen-3.0-generate-002';
     const cfg = getSiteConfig();
     const adminModel = cfg.api?.googleModel;
     if (adminModel && !adminModel.includes('gemini-')) {
         modelId = adminModel;
     }
-
-    // Protection: text models cannot generate images
     if (modelId.includes('gemini-')) {
-        throw new Error('Model "' + modelId + '" là model ngôn ngữ, không tạo ảnh được. Vào Admin → API Keys → đổi Model thành "imagen-3.0-generate-002"');
+        throw new Error('Model "' + modelId + '" là model ngôn ngữ, không tạo ảnh được. Vào Admin → đổi Model thành "imagen-3.0-generate-002"');
     }
 
-    // Map aspect ratio
+    // Map aspect ratio — Imagen API accepts these exact strings
     const arMap = { '1:1': '1:1', '3:4': '3:4', '4:3': '4:3', '16:9': '16:9', '9:16': '9:16' };
     const ar = arMap[aspectRatio] || '1:1';
 
-    // Detect environment: use proxy on production, direct on localhost
+    // CORRECT request body per Google AI docs
+    const requestBody = {
+        instances: [{ prompt }],
+        parameters: {
+            sampleCount: 1,
+            aspectRatio: ar,
+        }
+    };
+
+    // CORRECT endpoint: :predict (not :generateImages)
+    const DIRECT_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:predict`;
+
     const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const PROXY_URL = '/gemini-proxy.php';
-    const DIRECT_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImages?key=${apiKey}`;
 
     let response;
 
     if (isLocal) {
-        // Direct call (http-server runs with --cors so this works on localhost)
+        // Direct call on localhost
         response = await fetch(DIRECT_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                prompt,
-                config: { numberOfImages: 1, aspectRatio: ar, outputOptions: { mimeType: 'image/png' } }
-            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey   // CORRECT auth header
+            },
+            body: JSON.stringify(requestBody),
         });
     } else {
-        // Use PHP proxy on hosting to bypass CORS
+        // PHP proxy on production hosting
         response = await fetch(PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1181,8 +1192,8 @@ async function generateViaGemini(prompt, model, aspectRatio) {
                 apiKey,
                 model: modelId,
                 prompt,
-                numberOfImages: 1,
                 aspectRatio: ar,
+                sampleCount: 1,
             }),
         });
     }
@@ -1190,73 +1201,102 @@ async function generateViaGemini(prompt, model, aspectRatio) {
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         const errMsg = err.error?.message || err.error || `HTTP ${response.status}`;
-        if (response.status === 400 && String(errMsg).includes('safety')) {
+        if (response.status === 400 && String(errMsg).toLowerCase().includes('safety')) {
             throw new Error('Prompt vi phạm chính sách an toàn của Google. Vui lòng chỉnh sửa prompt.');
         }
         if (response.status === 403) {
-            throw new Error('API key không có quyền dùng Imagen. Bật "Generative Language API" trong Google Cloud Console.');
+            throw new Error('API key không có quyền dùng Imagen. Vào Google Cloud Console → bật "Generative Language API".');
         }
         if (response.status === 429) {
-            throw new Error('Quá nhiều request. Vui lòng chờ vài giây rồi thử lại.');
+            throw new Error('Quá nhiều request. Chờ vài giây rồi thử lại.');
         }
         throw new Error(errMsg);
     }
 
     const data = await response.json();
-    const imageBytes = data.generatedImages?.[0]?.image?.imageBytes;
+    // Response format: { predictions: [{ bytesBase64Encoded: "...", mimeType: "image/png" }] }
+    const imageBytes = data.predictions?.[0]?.bytesBase64Encoded
+        || data.generatedImages?.[0]?.image?.imageBytes; // fallback
     if (!imageBytes) {
-        throw new Error('Không nhận được ảnh từ Gemini API. Prompt có thể bị lọc bởi bộ lọc an toàn.');
+        throw new Error('Không nhận được ảnh. Prompt có thể bị lọc bởi bộ lọc an toàn của Google.');
     }
 
-    return { imageUrl: `data:image/png;base64,${imageBytes}` };
+    const mimeType = data.predictions?.[0]?.mimeType || 'image/png';
+    return { imageUrl: `data:${mimeType};base64,${imageBytes}` };
 }
+
 
 /**
  * Generate image via OpenRouter API (OpenAI-compatible gateway)
  * Supports many models: openai/gpt-image-1, openai/dall-e-3, black-forest-labs/flux-1.1-pro, etc.
  */
+/**
+ * Generate image via OpenRouter API
+ * Uses /chat/completions with gpt-4o or specific image models
+ * For GPT Image 1: uses openai/gpt-image-1 via dedicated image endpoint
+ */
 async function generateViaOpenRouter(prompt, model, aspectRatio, negativePrompt) {
     const apiKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
-    if (!apiKey) throw new Error('OpenRouter API Key chưa được cấu hình. Vào Cài đặt để thêm.');
+    if (!apiKey) throw new Error('OpenRouter API Key chưa được cấu hình. Nhấn nút 🔑 API Key để thêm.');
 
-    const sizeMap = { '1:1': '1024x1024', '3:4': '1024x1536', '4:3': '1536x1024', '16:9': '1536x1024', '9:16': '1024x1536' };
+    const modelId = model || 'openai/gpt-image-1';
+    const sizeMap = { '1:1': '1024x1024', '3:4': '1024x1536', '4:3': '1536x1024', '16:9': '1792x1024', '9:16': '1024x1792' };
+    const size = sizeMap[aspectRatio] || '1024x1024';
+    const fullPrompt = negativePrompt ? `${prompt}\n\nAvoid: ${negativePrompt}` : prompt;
 
-    const response = await fetch('https://openrouter.ai/api/v1/images/generations', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': window.location.origin || 'https://kgen.gallery',
-            'X-Title': 'KGen Gallery',
-        },
-        body: JSON.stringify({
-            model: model || 'openai/gpt-image-1',
-            prompt: negativePrompt ? `${prompt}\n\nAvoid: ${negativePrompt}` : prompt,
-            size: sizeMap[aspectRatio] || '1024x1024',
-            n: 1,
-        }),
-    });
+    // GPT Image 1 and DALL-E models use the images/generations endpoint (OpenAI-compatible)
+    const isImageModel = modelId.includes('gpt-image') || modelId.includes('dall-e') || modelId.includes('imagen');
+
+    let response;
+    if (isImageModel) {
+        // Use OpenAI-style image generation endpoint
+        response = await fetch('https://openrouter.ai/api/v1/images/generations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': window.location.origin || 'https://kgen.kudomax.vn',
+                'X-Title': 'KGen Gallery',
+            },
+            body: JSON.stringify({
+                model: modelId,
+                prompt: fullPrompt,
+                size,
+                n: 1,
+                response_format: 'url',
+            }),
+        });
+    } else {
+        // Other models: use chat completions with image request
+        response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': window.location.origin || 'https://kgen.kudomax.vn',
+                'X-Title': 'KGen Gallery',
+            },
+            body: JSON.stringify({
+                model: modelId,
+                messages: [{ role: 'user', content: fullPrompt }],
+            }),
+        });
+    }
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         const errMsg = err.error?.message || `OpenRouter error: ${response.status}`;
-
-        if (response.status === 401) {
-            throw new Error('OpenRouter API key không hợp lệ. Kiểm tra lại key trong Cài đặt.');
-        }
-        if (response.status === 402) {
-            throw new Error('Hết credit OpenRouter. Nạp thêm tại openrouter.ai/credits.');
-        }
-        if (response.status === 429) {
-            throw new Error('Quá nhiều request. Vui lòng chờ vài giây rồi thử lại.');
-        }
+        if (response.status === 401) throw new Error('OpenRouter API key không hợp lệ. Kiểm tra lại key.');
+        if (response.status === 402) throw new Error('Hết credit OpenRouter. Nạp thêm tại openrouter.ai/credits.');
+        if (response.status === 404) throw new Error('Model "' + modelId + '" không tồn tại trên OpenRouter. Chọn model khác.');
+        if (response.status === 429) throw new Error('Quá nhiều request. Chờ vài giây rồi thử lại.');
         throw new Error(errMsg);
     }
 
     const data = await response.json();
     const imageData = data.data?.[0];
     const imageUrl = imageData?.url || (imageData?.b64_json ? `data:image/png;base64,${imageData.b64_json}` : null);
-    if (!imageUrl) throw new Error('Không nhận được ảnh từ OpenRouter API');
+    if (!imageUrl) throw new Error('Không nhận được ảnh từ OpenRouter. Model này có thể không hỗ trợ tạo ảnh.');
     return { imageUrl };
 }
 
