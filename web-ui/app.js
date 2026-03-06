@@ -1131,57 +1131,70 @@ async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
 
 /**
  * Generate image via Google Gemini Imagen API
- * Model name mapping: nanobanana-pro / nanobanana-2 → actual Gemini model IDs
+ * - On production (hosting): routes through /gemini-proxy.php to bypass CORS
+ * - On localhost: calls Gemini API directly (no CORS issue via http-server --cors)
  */
 async function generateViaGemini(prompt, model, aspectRatio) {
     const apiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
-    if (!apiKey) throw new Error('Gemini API Key chưa được cấu hình. Vào Cài đặt để thêm Google Gemini API key.');
+    if (!apiKey) throw new Error('Gemini API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
 
-    // Determine model
-    let modelId = 'imagen-3.0-generate-002'; // default
-
+    // Determine image model from admin config
+    let modelId = 'imagen-3.0-generate-002'; // safe default
     const cfg = getSiteConfig();
     const adminModel = cfg.api?.googleModel;
-    if (adminModel) {
+    if (adminModel && !adminModel.includes('gemini-')) {
         modelId = adminModel;
     }
 
-    // Protection: If user specified a text model like gemini-1.5, gemini-2.0 or gemini-3.0, it will crash the generateImages API.
-    // So we show a friendly error letting them know they must use the imagen model.
+    // Protection: text models cannot generate images
     if (modelId.includes('gemini-')) {
-        throw new Error('Bạn đang cấu hình model ngôn ngữ (' + modelId + ') để vẽ ảnh. Vui lòng vào Cài đặt đổi Model thành "imagen-3.0-generate-002"');
+        throw new Error('Model "' + modelId + '" là model ngôn ngữ, không tạo ảnh được. Vào Admin → API Keys → đổi Model thành "imagen-3.0-generate-002"');
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImages?key=${apiKey}`;
-
-    // Map aspect ratio format
+    // Map aspect ratio
     const arMap = { '1:1': '1:1', '3:4': '3:4', '4:3': '4:3', '16:9': '16:9', '9:16': '9:16' };
     const ar = arMap[aspectRatio] || '1:1';
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            prompt,
-            config: {
+    // Detect environment: use proxy on production, direct on localhost
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const PROXY_URL = '/gemini-proxy.php';
+    const DIRECT_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImages?key=${apiKey}`;
+
+    let response;
+
+    if (isLocal) {
+        // Direct call (http-server runs with --cors so this works on localhost)
+        response = await fetch(DIRECT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                prompt,
+                config: { numberOfImages: 1, aspectRatio: ar, outputOptions: { mimeType: 'image/png' } }
+            }),
+        });
+    } else {
+        // Use PHP proxy on hosting to bypass CORS
+        response = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                apiKey,
+                model: modelId,
+                prompt,
                 numberOfImages: 1,
                 aspectRatio: ar,
-                outputOptions: {
-                    mimeType: 'image/png'
-                }
-            }
-        }),
-    });
+            }),
+        });
+    }
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        const errMsg = err.error?.message || `Gemini Imagen error: ${response.status}`;
-
-        if (response.status === 400 && errMsg.includes('safety')) {
+        const errMsg = err.error?.message || err.error || `HTTP ${response.status}`;
+        if (response.status === 400 && String(errMsg).includes('safety')) {
             throw new Error('Prompt vi phạm chính sách an toàn của Google. Vui lòng chỉnh sửa prompt.');
         }
         if (response.status === 403) {
-            throw new Error('API key không có quyền sử dụng Imagen. Hãy bật Generative Language API trong Google Cloud Console.');
+            throw new Error('API key không có quyền dùng Imagen. Bật "Generative Language API" trong Google Cloud Console.');
         }
         if (response.status === 429) {
             throw new Error('Quá nhiều request. Vui lòng chờ vài giây rồi thử lại.');
