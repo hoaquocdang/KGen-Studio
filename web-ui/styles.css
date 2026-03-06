@@ -2776,3 +2776,52 @@ button[data-tab="settings"] {
     .quick-api-modal { align-items: flex-end; justify-content: center; padding: 0 12px 80px; }
     .quick-api-card { width: 100%; border-radius: 20px 20px 16px 16px; }
 }
+
+/* ===== MINIMAL API KEY BUTTON (replaces FAB) ===== */
+.api-key-mini-btn {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    z-index: 1000;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+.api-key-mini-btn:hover {
+    opacity: 1;
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+    transform: scale(1.08);
+}
+.api-key-mini-btn.has-key {
+    border-color: #22c55e;
+    color: #22c55e;
+    opacity: 0.9;
+}
+.api-key-mini-btn.has-key:hover {
+    background: #22c55e;
+    color: #fff;
+    border-color: #22c55e;
+}
+
+/* Hide old FAB styles if any remnants */
+.api-key-fab { display: none !important; }
+
+@media (max-width: 768px) {
+    .api-key-mini-btn {
+        top: auto;
+        bottom: 70px;
+        right: 14px;
+    }
+}

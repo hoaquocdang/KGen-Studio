@@ -2709,8 +2709,6 @@ function initQuickApiKeyModal() {
 
 function updateApiKeyFabState() {
     const btn = document.getElementById('btn-quick-api');
-    const checkIcon = document.getElementById('api-key-check-icon');
-    const label = document.getElementById('api-key-fab-label');
     if (!btn) return;
 
     const hasGemini = !!(APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini'));
@@ -2718,17 +2716,25 @@ function updateApiKeyFabState() {
     const hasOAI = !!(APP_STATE.settings.openaiKey || getAdminAPIKey('openai'));
     const hasAny = hasGemini || hasOR || hasOAI;
 
+    const miniIcon = document.getElementById('api-key-mini-icon');
+    const okIcon = document.getElementById('api-key-ok-icon');
+    // Support both old and new icon patterns
+    const checkIcon = document.getElementById('api-key-check-icon') || okIcon;
+
     if (hasAny) {
         btn.classList.add('has-key');
-        if (checkIcon) checkIcon.style.display = '';
-        btn.querySelector('svg:first-child').style.display = 'none';
-        if (label) label.textContent = 'Key đã cấu hình';
+        if (miniIcon) miniIcon.style.display = 'none';
+        if (okIcon) okIcon.style.display = '';
+        if (checkIcon && checkIcon !== okIcon) checkIcon.style.display = '';
     } else {
         btn.classList.remove('has-key');
-        if (checkIcon) checkIcon.style.display = 'none';
-        btn.querySelector('svg:first-child').style.display = '';
-        if (label) label.textContent = 'API Key';
+        if (miniIcon) miniIcon.style.display = '';
+        if (okIcon) okIcon.style.display = 'none';
+        if (checkIcon && checkIcon !== okIcon) checkIcon.style.display = 'none';
     }
+    // Update label if exists
+    const label = document.getElementById('api-key-fab-label');
+    if (label) label.textContent = hasAny ? 'Key đã cấu hình' : 'API Key';
 }
 
 function updateQuickApiStatus() {

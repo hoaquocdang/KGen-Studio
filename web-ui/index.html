@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icon-512.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111827">
-    <link rel="stylesheet" href="styles.css?v=20260306_1055">
+    <link rel="stylesheet" href="styles.css?v=20260306_1200">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
@@ -202,22 +202,18 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main id="main-content" class="main-content">
 
-        <!-- Floating API Key Button (top-right) -->
-        <div class="api-key-fab" id="api-key-fab">
-            <button class="api-key-fab-btn" id="btn-quick-api" title="Cấu hình API Key">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M15.5 5.5a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM7.5 10l-4 9h13l-4-9" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor" />
-                </svg>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="display:none"
-                    id="api-key-check-icon">
-                    <path d="M20 6L9 17l-5-5" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-                <span id="api-key-fab-label">API Key</span>
-            </button>
-        </div>
+        <!-- Minimal API Key Icon Button (top-right corner) -->
+        <button class="api-key-mini-btn" id="btn-quick-api" title="Thêm API Key của bạn để tạo ảnh không giới hạn">
+            <svg id="api-key-mini-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                    d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg id="api-key-ok-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none">
+                <path d="M9 12l2 2 4-4M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777z"
+                    stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </button>
 
         <!-- ===== GALLERY TAB ===== -->
         <section id="tab-gallery" class="tab-content active">
@@ -1359,9 +1355,9 @@
         </div>
     </div>
 
-    <script src="site-config.js?v=20260306_1055"></script>
-    <script src="supabase.js?v=20260306_1055"></script>
-    <script src="app.js?v=20260306_1055"></script>
+    <script src="site-config.js?v=20260306_1200"></script>
+    <script src="supabase.js?v=20260306_1200"></script>
+    <script src="app.js?v=20260306_1200"></script>
 </body>
 
 </html>
