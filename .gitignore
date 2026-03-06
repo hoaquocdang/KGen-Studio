@@ -28,3 +28,7 @@ npm-debug.log*
 
 .vercel
 *.zip
+
+# API keys - DO NOT COMMIT
+web-ui/site-config.js
+
