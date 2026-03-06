@@ -57,7 +57,35 @@ const CATEGORY_EMOJI = {
 // ============================================================
 
 function getSiteConfig() {
-    return window.SITE_CONFIG || {};
+    let cfg = window.SITE_CONFIG || {};
+
+    // LOCAL DEV OVERRIDE: Automatically sync keys from Admin Panel if they exist in localStorage
+    try {
+        const storedAdmin = localStorage.getItem('kgen_admin_config');
+        if (storedAdmin) {
+            const adminCfg = JSON.parse(storedAdmin);
+
+            // Deep merge api config
+            cfg.api = {
+                ...cfg.api,
+                geminiApiKey: adminCfg.api?.googleKey || cfg.api?.geminiApiKey || '',
+                googleModel: adminCfg.api?.googleModel || cfg.api?.googleModel || 'imagen-3.0-generate-002',
+                openrouterApiKey: adminCfg.api?.openrouterKey || cfg.api?.openrouterApiKey || '',
+                openaiKey: adminCfg.api?.openaiKey || cfg.api?.openaiKey || '',
+                openaiBase: adminCfg.api?.openaiBase || cfg.api?.openaiBase || 'https://api.openai.com',
+                openaiModel: adminCfg.api?.openaiModel || cfg.api?.openaiModel || 'gpt-image-1'
+            };
+
+            // Merge plans
+            if (adminCfg.plans) {
+                cfg.plans = { ...cfg.plans, ...adminCfg.plans };
+            }
+        }
+    } catch (err) {
+        console.warn('Could not read admin config from localStorage', err);
+    }
+
+    return cfg;
 }
 
 function getAdminAPIKey(type) {
@@ -1109,14 +1137,21 @@ async function generateViaGemini(prompt, model, aspectRatio) {
     const apiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
     if (!apiKey) throw new Error('Gemini API Key chưa được cấu hình. Vào Cài đặt để thêm Google Gemini API key.');
 
-    // Map friendly model names to actual Gemini API model IDs
-    const modelMap = {
-        'nanobanana-pro': 'imagen-3.0-generate-002',
-        'nanobanana-2': 'imagen-3.0-fast-generate-001',
-        'imagen-3.0-generate-002': 'imagen-3.0-generate-002',
-        'imagen-3.0-fast-generate-001': 'imagen-3.0-fast-generate-001',
-    };
-    const modelId = modelMap[model] || model || 'imagen-3.0-generate-002';
+    // Determine model
+    let modelId = 'imagen-3.0-generate-002'; // default
+
+    const cfg = getSiteConfig();
+    const adminModel = cfg.api?.googleModel;
+    if (adminModel) {
+        modelId = adminModel;
+    }
+
+    // Protection: If user specified a text model like gemini-1.5, gemini-2.0 or gemini-3.0, it will crash the generateImages API.
+    // So we show a friendly error letting them know they must use the imagen model.
+    if (modelId.includes('gemini-')) {
+        throw new Error('Bạn đang cấu hình model ngôn ngữ (' + modelId + ') để vẽ ảnh. Vui lòng vào Cài đặt đổi Model thành "imagen-3.0-generate-002"');
+    }
+
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImages?key=${apiKey}`;
 
     // Map aspect ratio format
@@ -2381,6 +2416,7 @@ function setupModelSelector() {
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         selector.classList.toggle('open');
+        dropdown.classList.toggle('active');
     });
 
     // Select model option
@@ -2411,6 +2447,7 @@ function setupModelSelector() {
 
             if (hiddenInput) hiddenInput.value = modelValue;
             selector.classList.remove('open');
+            dropdown.classList.remove('active');
         });
     });
 
@@ -2418,12 +2455,14 @@ function setupModelSelector() {
     document.addEventListener('click', (e) => {
         if (!selector.contains(e.target)) {
             selector.classList.remove('open');
+            dropdown.classList.remove('active');
         }
     });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             selector.classList.remove('open');
+            dropdown.classList.remove('active');
         }
     });
 }
