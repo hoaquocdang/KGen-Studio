@@ -329,11 +329,35 @@ function switchTab(tabName) {
     });
 
     // Update tab content
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        const isActive = tab.id === `tab-${tabName}`;
-        tab.classList.toggle('active', isActive);
-        tab.classList.remove('hidden'); // Remove hidden so CSS active works
-    });
+    const mainContent = document.getElementById('main-content');
+
+    if (tabName === 'generate') {
+        // Keep gallery active, slide in generate panel
+        document.getElementById('tab-gallery').classList.add('active');
+        document.getElementById('tab-gallery').classList.remove('hidden');
+
+        document.getElementById('tab-generate').classList.add('active');
+        document.getElementById('tab-generate').classList.remove('hidden');
+
+        // Hide others history/favorites etc.
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            if (tab.id !== 'tab-gallery' && tab.id !== 'tab-generate') {
+                tab.classList.remove('active');
+            }
+        });
+
+        // Add class to squeeze main content
+        mainContent.classList.add('has-generate-panel');
+    } else {
+        // Normal tab switching
+        mainContent.classList.remove('has-generate-panel');
+
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            const isActive = tab.id === `tab-${tabName}`;
+            tab.classList.toggle('active', isActive);
+            if (isActive) tab.classList.remove('hidden');
+        });
+    }
 
     // Re-render pricing if switching to pricing tab
     if (tabName === 'pricing' && typeof setupPricing === 'function') {

@@ -419,6 +419,13 @@ a {
     overflow: hidden;
     /* keep child rounded corners */
     padding: 0;
+    transition: margin-right 0.4s var(--ease-spring);
+}
+
+@media (min-width: 1024px) {
+    .main-content.has-generate-panel {
+        margin-right: calc(380px + 32px);
+    }
 }
 
 .tab-content {
@@ -841,15 +848,57 @@ a {
     display: none;
 }
 
-/* ===== GENERATE TAB ===== */
+/* ===== GENERATE TAB (SLIDING PANEL) ===== */
+#tab-generate {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    bottom: 90px;
+    width: 380px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: -4px 0 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    z-index: 150;
+    overflow-y: auto;
+    padding: 0;
+
+    transform: translateX(120%);
+    transition: transform 0.4s var(--ease-spring);
+    display: block !important;
+    visibility: hidden;
+}
+
+#tab-generate.active {
+    transform: translateX(0);
+    visibility: visible;
+}
+
+.gpanel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 20px 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 10;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.gpanel-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
 .generate-layout {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
 }
 
 .generate-form-container {
-    min-width: 0;
+    width: 100%;
 }
 
 .gen-card {
@@ -2214,8 +2263,17 @@ button[data-tab="settings"] {
         -webkit-overflow-scrolling: touch;
     }
 
-    .generate-layout {
-        grid-template-columns: 1fr;
+    #tab-generate {
+        top: 56px;
+        /* Below mobile header */
+        left: 0;
+        right: 0;
+        bottom: 56px;
+        /* Above mobile bottom nav */
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+        z-index: 150;
     }
 
     .modal-body {
