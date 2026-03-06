@@ -899,7 +899,23 @@ async function generateImage() {
 
         switch (selectedProvider) {
             case 'gemini':
-                result = await generateViaGemini(prompt, model, aspectRatio);
+                try {
+                    result = await generateViaGemini(prompt, model, aspectRatio);
+                } catch (geminiErr) {
+                    // Auto-fallback to OpenRouter if Gemini quota exceeded (429)
+                    const fallbackKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
+                    if (geminiErr.message.includes('429') || geminiErr.message.includes('Quota') || geminiErr.message.includes('quota')) {
+                        if (fallbackKey) {
+                            showToast('⚡ Gemini hết quota, đang chuyển sang OpenRouter...', 'info', 3000);
+                            result = await generateViaOpenRouter(prompt, 'openai/gpt-image-1', aspectRatio, negativePrompt);
+                            selectedProvider = 'openrouter'; // track actual provider used
+                        } else {
+                            throw new Error('Gemini hết quota. Nhấn 🔑 API Key để thêm OpenRouter key (miễn phí) để tiếp tục tạo ảnh.');
+                        }
+                    } else {
+                        throw geminiErr; // re-throw non-quota errors
+                    }
+                }
                 break;
             case 'openrouter':
                 result = await generateViaOpenRouter(prompt, model, aspectRatio, negativePrompt);
