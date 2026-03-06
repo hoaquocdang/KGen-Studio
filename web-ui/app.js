@@ -690,9 +690,9 @@ function openModal(item) {
     document.getElementById('modal-rank').textContent = `#${item.rank}`;
     document.getElementById('modal-author').textContent = item.author_name;
     document.getElementById('modal-model').textContent = item.model;
-    document.getElementById('modal-likes').textContent = `❤️ ${formatNumber(item.likes)}`;
+    document.getElementById('modal-likes').textContent = `?? ${formatNumber(item.likes)}`;
     document.getElementById('modal-views').textContent = `👁️ ${formatNumber(item.views)}`;
-    document.getElementById('modal-date').textContent = `📅 ${item.date}`;
+    document.getElementById('modal-date').textContent = `?? ${item.date}`;
     document.getElementById('modal-source-link').href = item.source_url;
 
     // Store full prompt
@@ -1070,9 +1070,9 @@ function showGenerationError(message) {
     } else if (lower.includes('network') || lower.includes('fetch') || lower.includes('econnrefused')) {
         guidance = '🌐 Lỗi kết nối mạng. Kiểm tra internet và thử lại.';
     } else if (lower.includes('safety') || lower.includes('policy') || lower.includes('flagged')) {
-        guidance = '🚫 Prompt có thể vi phạm chính sách nội dung. Thử chỉnh sửa prompt.';
+        guidance = '?? Prompt có thể vi phạm chính sách nội dung. Thử chỉnh sửa prompt.';
     } else {
-        guidance = '❌ Thử lại hoặc chọn model/provider khác.';
+        guidance = '?? Thử lại hoặc chọn model/provider khác.';
     }
 
     showToast(`❌ ${message}\n${guidance}`, 'error', 6000);
@@ -1970,11 +1970,11 @@ function showGuestBanner() {
         <div class="guest-banner-text">
             <span class="banner-icon">??</span>
             <div>
-                <h3>Bạn đang ở chế độ xem trước</h3>
-                <p>Chỉ hiển thị <strong>10%</strong> nội dung prompt. Đăng nhập miễn phí để xem đầy đủ!</p>
+                <h3>Bạn dang ? ch? để xem trước</h3>
+                <p>Ch? hiển thị <strong>10%</strong> nội dung prompt. Đăng nhập miễn phí để xem đầy đủ!</p>
             </div>
         </div>
-        <button class="btn btn-primary btn-sm" id="btn-guest-login">🔐 Đăng nhập ngay</button>
+        <button class="btn btn-primary btn-sm" id="btn-guest-login">?? Đăng nhập ngay</button>
     `;
 
     searchBar.parentNode.insertBefore(banner, searchBar);
@@ -2185,7 +2185,7 @@ function showGoogleSetupPrompt() {
     infoDiv.className = 'google-setup-toast';
     infoDiv.innerHTML = `
         <div class="google-setup-content">
-            <h3>⚙️ Cấu hình Google Sign-In</h3>
+            <h3>?? C?u hình Google Sign-In</h3>
             <p>�? sử dụng đăng nhập Google, bạn c?n:</p>
             <ol>
                 <li>Tạo project tải <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent-blue)">Google Cloud Console</a></li>
