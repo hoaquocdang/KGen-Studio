@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KGen Gallery â€” Trending AI Prompts</title>
+    <title>MeiGen Gallery — Trending AI Prompts</title>
     <meta name="description"
-        content="KGen Gallery: Browse 1,300+ curated AI prompts. Generate stunning images with Nanobanana Pro, GPT Image 1 & more. Copy-paste ready.">
+        content="MeiGen Gallery: Browse 1,300+ curated AI prompts. Generate stunning images with Nanobanana Pro, GPT Image 1 & more. Copy-paste ready.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icon-512.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111827">
-    <link rel="stylesheet" href="styles.css?v=20260306_0920">
+    <link rel="stylesheet" href="styles.css?v=20260306_1015">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
@@ -30,13 +30,13 @@
             </svg>
         </button>
         <div class="mobile-logo">
-            <img src="logo.png" alt="KGen" class="mobile-logo-icon"
+            <img src="logo.png" alt="MeiGen" class="mobile-logo-icon"
                 style="width:24px;height:24px;border-radius:6px;object-fit:contain">
             <span>KGen <span style="font-style:italic;font-weight:400">Gallery</span></span>
         </div>
         <div class="mobile-header-actions">
             <button class="mobile-credits-btn" id="mobile-credits-btn">
-                <span>âœ¨</span> Free Credits Daily
+                <span>✨</span> Free Credits Daily
             </button>
         </div>
     </header>
@@ -45,15 +45,16 @@
         <div class="splash-content">
             <div class="splash-logo">
                 <div class="splash-icon">
-                    <img src="logo.png" alt="KGen" style="width:56px;height:56px;border-radius:14px;object-fit:contain">
+                    <img src="logo.png" alt="MeiGen"
+                        style="width:56px;height:56px;border-radius:14px;object-fit:contain">
                 </div>
-                <h1 class="splash-title">KGen Gallery</h1>
+                <h1 class="splash-title">MeiGen Gallery</h1>
             </div>
             <div class="splash-loader">
                 <div class="splash-bar">
                     <div class="splash-bar-fill"></div>
                 </div>
-                <p class="splash-status">Äang táº£i thÆ° viá»‡n prompt...</p>
+                <p class="splash-status">Đang tải thư viện prompt...</p>
             </div>
         </div>
     </div>
@@ -62,9 +63,9 @@
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
             <div class="logo">
-                <img src="logo.png" alt="KGen" class="logo-icon"
+                <img src="logo.png" alt="MeiGen" class="logo-icon"
                     style="width:28px;height:28px;border-radius:7px;object-fit:contain">
-                <span class="logo-text">KGen <span class="logo-accent">Gallery</span></span>
+                <span class="logo-text">MeiGen <span class="logo-accent">Gallery</span></span>
             </div>
         </div>
 
@@ -160,11 +161,11 @@
                 <span class="version-dot"></span>
             </div>
             <div class="sidebar-legal">
-                <a href="#">Terms</a> Â· <a href="#">Privacy</a> Â· <a href="#">DMCA</a> Â· <a href="#">Refund</a>
+                <a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">DMCA</a> · <a href="#">Refund</a>
             </div>
             <div class="sidebar-share">
-                <strong>Share KGen</strong>
-                <span>ðŸŽ</span>
+                <strong>Share MeiGen</strong>
+                <span>🎁</span>
                 <p>Invite friends, get 200 credits</p>
             </div>
             <div class="sidebar-cta-row">
@@ -174,8 +175,8 @@
             <!-- Hidden elements -->
             <div class="user-area" id="user-area" style="display:none">
                 <div class="user-logged-out" id="user-logged-out">
-                    <button class="btn btn-primary btn-sm" id="btn-open-login-alt" style="width:100%">ÄÄƒng
-                        nháº­p</button>
+                    <button class="btn btn-primary btn-sm" id="btn-open-login-alt" style="width:100%">Đăng
+                        nhập</button>
                 </div>
                 <div class="user-logged-in hidden" id="user-logged-in">
                     <div class="user-avatar" id="user-avatar">U</div>
@@ -183,7 +184,7 @@
                         <span class="user-name" id="user-display-name">User</span>
                         <span class="user-role">PRO Member</span>
                     </div>
-                    <button class="btn-icon" id="btn-logout" title="ÄÄƒng xuáº¥t">
+                    <button class="btn-icon" id="btn-logout" title="Đăng xuất">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h2M10.5 11.5L14 8l-3.5-3.5M14 8H6"
                                 stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
@@ -194,7 +195,7 @@
             </div>
             <div class="provider-status" id="provider-status" style="display:none">
                 <div class="status-dot offline"></div>
-                <span>ChÆ°a káº¿t ná»‘i</span>
+                <span>Chưa kết nối</span>
             </div>
         </div>
     </aside>
@@ -251,7 +252,7 @@
             <!-- Load More -->
             <div class="load-more-container" id="load-more-container">
                 <button class="btn btn-primary btn-lg" id="btn-load-more">
-                    Xem thÃªm
+                    Xem thêm
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                     </svg>
@@ -265,8 +266,8 @@
                     <path d="M32 20v8M28 36c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" opacity="0.5" />
                 </svg>
-                <p>KhÃ´ng tÃ¬m tháº¥y prompt nÃ o</p>
-                <button class="btn btn-ghost" id="btn-reset-filters">XoÃ¡ bá»™ lá»c</button>
+                <p>Không tìm thấy prompt nào</p>
+                <button class="btn btn-ghost" id="btn-reset-filters">Xoá bộ lọc</button>
             </div>
         </section>
 
@@ -275,7 +276,7 @@
             <header class="tab-header gpanel-header">
                 <h2>Generate</h2>
                 <button class="btn btn-ghost btn-sm" style="padding: 4px; border:none; background:transparent;"
-                    onclick="switchTab('gallery')" title="ÄÃ³ng">
+                    onclick="switchTab('gallery')" title="Đóng">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -300,8 +301,8 @@
                                         stroke-linejoin="round" />
                                 </svg>
                                 <div class="gen-card-text">
-                                    <span class="gen-card-title">MÃ´ táº£ áº£nh</span>
-                                    <span class="gen-card-sub">KÃ©o tháº£ áº£nh Ä‘á»ƒ táº¡o prompt</span>
+                                    <span class="gen-card-title">Mô tả ảnh</span>
+                                    <span class="gen-card-sub">Kéo thả ảnh để tạo prompt</span>
                                 </div>
                             </div>
                             <div class="gen-card-thumbs">
@@ -335,8 +336,8 @@
                                         stroke-linejoin="round" />
                                 </svg>
                                 <div class="gen-card-text">
-                                    <span class="gen-card-title">KÃ©o tháº£ hoáº·c táº£i áº£nh tham chiáº¿u</span>
-                                    <span class="gen-card-sub">tuá»³ chá»n</span>
+                                    <span class="gen-card-title">Kéo thả hoặc tải ảnh tham chiếu</span>
+                                    <span class="gen-card-sub">tuỳ chọn</span>
                                 </div>
                             </div>
                             <button class="gen-add-btn" id="btn-add-ref-file" type="button">
@@ -352,7 +353,7 @@
                         <div class="ref-url-row hidden" id="ref-url-row">
                             <input type="text" id="ref-url" class="form-input"
                                 placeholder="https://example.com/image.jpg">
-                            <button class="btn btn-sm btn-primary" id="btn-add-ref">ThÃªm</button>
+                            <button class="btn btn-sm btn-primary" id="btn-add-ref">Thêm</button>
                         </div>
 
                         <!-- 3. Prompt Card -->
@@ -360,7 +361,7 @@
                             <div class="gen-prompt-header">
                                 <label class="gen-prompt-label" for="gen-prompt">Prompt</label>
                                 <button class="gen-translate-btn" id="btn-enhance-from-gen"
-                                    title="NÃ¢ng cáº¥p prompt báº±ng AI">
+                                    title="Nâng cấp prompt bằng AI">
                                     <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
                                         <path
                                             d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
@@ -369,7 +370,7 @@
                                 </button>
                             </div>
                             <textarea id="gen-prompt" class="gen-prompt-textarea" rows="5"
-                                placeholder="KÃ©o tháº£ áº£nh Ä‘á»ƒ Ã¡p dá»¥ng prompt, hoáº·c tá»± gÃµ"></textarea>
+                                placeholder="Kéo thả ảnh để áp dụng prompt, hoặc tự gõ"></textarea>
                             <div class="gen-prompt-footer">
                                 <span class="gen-prompt-enhance-hint" id="btn-enhance-hint">
                                     <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
@@ -377,9 +378,9 @@
                                             d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
                                             fill="currentColor" />
                                     </svg>
-                                    NÃ¢ng cáº¥p &nbsp; âŒ˜ + â†‘
+                                    Nâng cấp &nbsp; ⌘ + ↑
                                 </span>
-                                <span class="char-count" id="prompt-char-count">0 kÃ½ tá»±</span>
+                                <span class="char-count" id="prompt-char-count">0 ký tự</span>
                             </div>
                         </div>
 
@@ -395,7 +396,7 @@
                                 </button>
                                 <span class="gen-ctrl-value" id="gen-count-display">1<span
                                         class="gen-ctrl-muted">/4</span></span>
-                                <button class="gen-ctrl-btn gen-lock-btn" type="button" title="KhoÃ¡ sá»‘ lÆ°á»£ng">
+                                <button class="gen-ctrl-btn gen-lock-btn" type="button" title="Khoá số lượng">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -463,11 +464,11 @@
 
                         <!-- 5. FAQ Link -->
                         <div class="gen-faq-row">
-                            <span class="gen-faq-icon">â“</span>
+                            <span class="gen-faq-icon">❓</span>
                             <span class="gen-faq-label">FAQ</span>
-                            <a href="model-comparison.html" target="_blank" class="gen-faq-link">CÃ¡c model khÃ¡c nhau
-                                tháº¿
-                                nÃ o? <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <a href="model-comparison.html" target="_blank" class="gen-faq-link">Các model khác nhau
+                                thế
+                                nào? <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                                     <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2"
                                         stroke-linecap="round" stroke-linejoin="round" />
                                 </svg></a>
@@ -475,7 +476,7 @@
 
                         <!-- 6. Notification Banner -->
                         <div class="gen-banner" id="gen-banner">
-                            <span>Nanobanana Pro / GPT Image 1 cÃ³ sáºµn ðŸŽ‰</span>
+                            <span>Nanobanana Pro / GPT Image 1 có sẵn 🎉</span>
                             <button class="gen-banner-close" id="gen-banner-close" type="button">&times;</button>
                         </div>
 
@@ -488,7 +489,7 @@
                             <div class="model-selector" id="model-selector">
                                 <button class="model-selector-btn" id="model-selector-btn" type="button">
                                     <span class="model-sel-icon">
-                                        <span style="font-size:1.1rem">âœ¨</span>
+                                        <span style="font-size:1.1rem">✨</span>
                                     </span>
                                     <span class="model-sel-name" id="model-sel-name">Nanobanana Pro</span>
                                     <span class="model-sel-dot"></span>
@@ -505,7 +506,7 @@
                                             Google Gemini</div>
                                         <div class="model-option active" data-model="nanobanana-pro"
                                             data-provider="gemini" data-credits="5">
-                                            <span class="model-opt-icon emoji">âœ¨</span>
+                                            <span class="model-opt-icon emoji">✨</span>
                                             <span class="model-opt-name">Nanobanana Pro</span>
                                             <span class="model-opt-dot"></span>
                                             <span class="model-badge new">Best</span>
@@ -513,7 +514,7 @@
                                         </div>
                                         <div class="model-option" data-model="nanobanana-2" data-provider="gemini"
                                             data-credits="2">
-                                            <span class="model-opt-icon emoji">âš¡</span>
+                                            <span class="model-opt-icon emoji">⚡</span>
                                             <span class="model-opt-name">Nanobanana 2</span>
                                             <span class="model-opt-credits">2</span>
                                         </div>
@@ -524,26 +525,26 @@
                                             OpenRouter</div>
                                         <div class="model-option" data-model="openai/gpt-image-1"
                                             data-provider="openrouter" data-credits="10">
-                                            <span class="model-opt-icon emoji">ðŸ¤–</span>
+                                            <span class="model-opt-icon emoji">🤖</span>
                                             <span class="model-opt-name">GPT Image 1</span>
                                             <span class="model-badge new">New</span>
                                             <span class="model-opt-credits">10</span>
                                         </div>
                                         <div class="model-option" data-model="openai/dall-e-3"
                                             data-provider="openrouter" data-credits="5">
-                                            <span class="model-opt-icon emoji">ðŸŽ¨</span>
+                                            <span class="model-opt-icon emoji">🎨</span>
                                             <span class="model-opt-name">DALL-E 3</span>
                                             <span class="model-opt-credits">5</span>
                                         </div>
                                         <div class="model-option" data-model="black-forest-labs/flux-1.1-pro"
                                             data-provider="openrouter" data-credits="5">
-                                            <span class="model-opt-icon emoji">ðŸ”¥</span>
+                                            <span class="model-opt-icon emoji">🔥</span>
                                             <span class="model-opt-name">Flux 1.1 Pro</span>
                                             <span class="model-opt-credits">5</span>
                                         </div>
                                         <div class="model-option" data-model="stability/stable-diffusion-xl"
                                             data-provider="openrouter" data-credits="2">
-                                            <span class="model-opt-icon emoji">ðŸŒ€</span>
+                                            <span class="model-opt-icon emoji">🌀</span>
                                             <span class="model-opt-name">Stable Diffusion XL</span>
                                             <span class="model-opt-credits">2</span>
                                         </div>
@@ -579,27 +580,27 @@
                                 <path d="M8 56l16-20 12 15 8-10 28 15" stroke="currentColor" stroke-width="1.5"
                                     opacity="0.25" />
                             </svg>
-                            <h3>áº¢nh cá»§a báº¡n sáº½ hiá»ƒn thá»‹ á»Ÿ Ä‘Ã¢y</h3>
-                            <p>Nháº­p prompt vÃ  nháº¥n "Generate" Ä‘á»ƒ báº¯t Ä‘áº§u</p>
+                            <h3>Ảnh của bạn sẽ hiển thị ở đây</h3>
+                            <p>Nhập prompt và nhấn "Generate" để bắt đầu</p>
                         </div>
                         <div class="result-image-wrap hidden" id="result-image-wrap">
                             <img id="result-image" alt="Generated Image">
                             <div class="result-actions">
-                                <button class="btn btn-sm btn-ghost" id="btn-download-result">â¬‡ï¸ Táº£i vá»</button>
-                                <button class="btn btn-sm btn-ghost" id="btn-copy-url">ðŸ“‹ Sao chÃ©p URL</button>
-                                <button class="btn btn-sm btn-ghost" id="btn-use-as-ref">ðŸ”— DÃ¹ng lÃ m tham
-                                    chiáº¿u</button>
+                                <button class="btn btn-sm btn-ghost" id="btn-download-result">⬇️ Tải về</button>
+                                <button class="btn btn-sm btn-ghost" id="btn-copy-url">📋 Sao chép URL</button>
+                                <button class="btn btn-sm btn-ghost" id="btn-use-as-ref">🔗 Dùng làm tham
+                                    chiếu</button>
                             </div>
                         </div>
                         <div class="result-loading hidden" id="result-loading">
                             <div class="gen-spinner"></div>
-                            <p>Äang táº¡o áº£nh...</p>
+                            <p>Đang tạo ảnh...</p>
                             <span class="gen-timer" id="gen-timer">0s</span>
                         </div>
                     </div>
                     <!-- History -->
                     <div class="gen-history" id="gen-history">
-                        <h3 class="history-title">Lá»‹ch sá»­ táº¡o áº£nh</h3>
+                        <h3 class="history-title">Lịch sử tạo ảnh</h3>
                         <div class="history-grid" id="history-grid"></div>
                     </div>
                 </div>
@@ -609,38 +610,38 @@
         <!-- ===== ENHANCE TAB ===== -->
         <section id="tab-enhance" class="tab-content">
             <header class="tab-header">
-                <h1>NÃ¢ng Cáº¥p <span class="header-accent">Prompt</span></h1>
-                <p class="tab-subtitle">Biáº¿n Ã½ tÆ°á»Ÿng Ä‘Æ¡n giáº£n thÃ nh prompt chuyÃªn nghiá»‡p</p>
+                <h1>Nâng Cấp <span class="header-accent">Prompt</span></h1>
+                <p class="tab-subtitle">Biến ý tưởng đơn giản thành prompt chuyên nghiệp</p>
             </header>
 
             <div class="enhance-layout">
                 <div class="enhance-card">
                     <div class="enhance-input-section">
-                        <label class="form-label">Ã tÆ°á»Ÿng cá»§a báº¡n</label>
+                        <label class="form-label">Ý tưởng của bạn</label>
                         <textarea id="enhance-input" class="form-textarea" rows="4"
                             placeholder="VD: a cat in a garden, sunset portrait, product on marble table..."></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-section">
-                            <label class="form-label">Phong cÃ¡ch</label>
+                            <label class="form-label">Phong cách</label>
                             <div class="style-picker" id="style-picker">
                                 <button class="style-btn active" data-style="realistic">
-                                    <span class="style-emoji">ðŸ“·</span>
+                                    <span class="style-emoji">📷</span>
                                     <span>Realistic</span>
                                 </button>
                                 <button class="style-btn" data-style="anime">
-                                    <span class="style-emoji">ðŸŽŒ</span>
+                                    <span class="style-emoji">🎌</span>
                                     <span>Anime</span>
                                 </button>
                                 <button class="style-btn" data-style="illustration">
-                                    <span class="style-emoji">ðŸŽ¨</span>
+                                    <span class="style-emoji">🎨</span>
                                     <span>Illustration</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-lg" id="btn-enhance">
-                        âœ¨ NÃ¢ng Cáº¥p Prompt
+                        ✨ Nâng Cấp Prompt
                     </button>
                 </div>
 
@@ -650,16 +651,16 @@
                             <path d="M32 8l7 14 15 2-11 10 3 15-14-7-14 7 3-15L10 24l15-2L32 8z" stroke="currentColor"
                                 stroke-width="2" opacity="0.2" fill="none" />
                         </svg>
-                        <p>Prompt nÃ¢ng cáº¥p sáº½ hiá»ƒn thá»‹ á»Ÿ Ä‘Ã¢y</p>
+                        <p>Prompt nâng cấp sẽ hiển thị ở đây</p>
                     </div>
                     <div class="enhanced-prompt hidden" id="enhanced-prompt">
                         <div class="enhanced-header">
-                            <span class="enhanced-badge">âœ¨ Enhanced</span>
-                            <button class="btn btn-sm btn-ghost" id="btn-copy-enhanced">ðŸ“‹ Copy</button>
+                            <span class="enhanced-badge">✨ Enhanced</span>
+                            <button class="btn btn-sm btn-ghost" id="btn-copy-enhanced">📋 Copy</button>
                         </div>
                         <pre id="enhanced-text" class="enhanced-text"></pre>
-                        <button class="btn btn-primary" id="btn-use-enhanced">ðŸš€ DÃ¹ng prompt nÃ y Ä‘á»ƒ táº¡o
-                            áº£nh</button>
+                        <button class="btn btn-primary" id="btn-use-enhanced">🚀 Dùng prompt này để tạo
+                            ảnh</button>
                     </div>
                 </div>
             </div>
@@ -669,7 +670,7 @@
         <section id="tab-workflow" class="tab-content">
             <header class="tab-header">
                 <h1>ComfyUI <span class="header-accent">Workflows</span></h1>
-                <p class="tab-subtitle">Quáº£n lÃ½ vÃ  cáº¥u hÃ¬nh ComfyUI workflow cho local generation</p>
+                <p class="tab-subtitle">Quản lý và cấu hình ComfyUI workflow cho local generation</p>
             </header>
 
             <div class="workflow-layout">
@@ -682,12 +683,12 @@
                     </div>
                     <div class="wf-status-info">
                         <h3 id="wf-status-title">ComfyUI Status</h3>
-                        <p id="wf-status-text">Kiá»ƒm tra káº¿t ná»‘i...</p>
+                        <p id="wf-status-text">Kiểm tra kết nối...</p>
                     </div>
                     <div class="wf-status-actions">
                         <input type="text" id="comfyui-url" class="form-input" placeholder="http://localhost:8188"
                             value="http://localhost:8188">
-                        <button class="btn btn-primary btn-sm" id="btn-check-comfyui">Káº¿t ná»‘i</button>
+                        <button class="btn btn-primary btn-sm" id="btn-check-comfyui">Kết nối</button>
                     </div>
                 </div>
 
@@ -698,8 +699,8 @@
                                 opacity="0.3" />
                             <path d="M6 16h36" stroke="currentColor" stroke-width="2" opacity="0.3" />
                         </svg>
-                        <p>ChÆ°a cÃ³ workflow nÃ o</p>
-                        <p class="wf-hint">Import file JSON workflow tá»« ComfyUI (API Format)</p>
+                        <p>Chưa có workflow nào</p>
+                        <p class="wf-hint">Import file JSON workflow từ ComfyUI (API Format)</p>
                     </div>
                 </div>
 
@@ -713,7 +714,7 @@
                                 <path d="M20 14v12M14 20h12" stroke="currentColor" stroke-width="1.5"
                                     stroke-linecap="round" />
                             </svg>
-                            <p>KÃ©o tháº£ file .json hoáº·c click Ä‘á»ƒ chá»n</p>
+                            <p>Kéo thả file .json hoặc click để chọn</p>
                             <input type="file" id="wf-file-input" accept=".json" class="hidden">
                         </div>
                     </div>
@@ -724,8 +725,8 @@
         <!-- ===== SETTINGS TAB ===== -->
         <section id="tab-settings" class="tab-content">
             <header class="tab-header">
-                <h1>CÃ i Äáº·t <span class="header-accent">Studio</span></h1>
-                <p class="tab-subtitle">Cáº¥u hÃ¬nh providers vÃ  tuá»³ chá»‰nh giao diá»‡n</p>
+                <h1>Cài Đặt <span class="header-accent">Studio</span></h1>
+                <p class="tab-subtitle">Cấu hình providers và tuỳ chỉnh giao diện</p>
             </header>
 
             <div class="settings-layout">
@@ -741,11 +742,11 @@
                         <label class="form-label" for="setting-gemini-key">API Key</label>
                         <div class="input-group">
                             <input type="password" id="setting-gemini-key" class="form-input" placeholder="AIzaSy...">
-                            <button class="btn btn-sm btn-ghost" id="btn-toggle-gemini-key">ðŸ‘ï¸</button>
+                            <button class="btn btn-sm btn-ghost" id="btn-toggle-gemini-key">👁️</button>
                         </div>
-                        <p class="form-hint">Táº¡o key táº¡i <a href="https://aistudio.google.com/apikey"
+                        <p class="form-hint">Tạo key tại <a href="https://aistudio.google.com/apikey"
                                 target="_blank">Google AI Studio</a>
-                            â†’ Get API Key. Há»— trá»£ Nanobanana Pro, Nanobanana 2.</p>
+                            → Get API Key. Hỗ trợ Nanobanana Pro, Nanobanana 2.</p>
                     </div>
                 </div>
 
@@ -762,11 +763,11 @@
                         <div class="input-group">
                             <input type="password" id="setting-openrouter-key" class="form-input"
                                 placeholder="sk-or-v1-...">
-                            <button class="btn btn-sm btn-ghost" id="btn-toggle-openrouter-key">ðŸ‘ï¸</button>
+                            <button class="btn btn-sm btn-ghost" id="btn-toggle-openrouter-key">👁️</button>
                         </div>
-                        <p class="form-hint">Láº¥y key táº¡i <a href="https://openrouter.ai/keys"
+                        <p class="form-hint">Lấy key tại <a href="https://openrouter.ai/keys"
                                 target="_blank">openrouter.ai/keys</a>.
-                            Truy cáº­p GPT Image 1, DALL-E 3, Flux, Stable Diffusion, v.v.</p>
+                            Truy cập GPT Image 1, DALL-E 3, Flux, Stable Diffusion, v.v.</p>
                     </div>
                 </div>
 
@@ -856,9 +857,8 @@
                         <label class="form-label" for="setting-supabase-anon-key">Anon Key</label>
                         <input type="text" id="setting-supabase-anon-key" class="form-input"
                             placeholder="eyJhbGciOiJIUzI1NiIs...">
-                        <p class="form-hint">Láº¥y táº¡i <a href="https://supabase.com/dashboard"
-                                target="_blank">Supabase
-                                Dashboard</a> â†’ Settings â†’ API</p>
+                        <p class="form-hint">Lấy tại <a href="https://supabase.com/dashboard" target="_blank">Supabase
+                                Dashboard</a> → Settings → API</p>
                     </div>
                 </div>
 
@@ -884,14 +884,14 @@
                         <label class="form-label" for="setting-stripe-premium">Premium Payment Link</label>
                         <input type="text" id="setting-stripe-premium" class="form-input"
                             placeholder="https://buy.stripe.com/...">
-                        <p class="form-hint">Táº¡o táº¡i <a href="https://dashboard.stripe.com/payment-links"
-                                target="_blank">Stripe Dashboard</a> â†’ Payment Links</p>
+                        <p class="form-hint">Tạo tại <a href="https://dashboard.stripe.com/payment-links"
+                                target="_blank">Stripe Dashboard</a> → Payment Links</p>
                     </div>
                 </div>
 
                 <div class="settings-actions">
-                    <button class="btn btn-primary" id="btn-save-settings">ðŸ’¾ LÆ°u cÃ i Ä‘áº·t</button>
-                    <button class="btn btn-ghost" id="btn-reset-settings">ðŸ”„ KhÃ´i phá»¥c máº·c Ä‘á»‹nh</button>
+                    <button class="btn btn-primary" id="btn-save-settings">💾 Lưu cài đặt</button>
+                    <button class="btn btn-ghost" id="btn-reset-settings">🔄 Khôi phục mặc định</button>
                 </div>
             </div>
         </section>
@@ -899,8 +899,8 @@
         <!-- ===== PRICING TAB ===== -->
         <section id="tab-pricing" class="tab-content hidden">
             <header class="tab-header">
-                <h1>NÃ¢ng Cáº¥p <span class="header-accent">Pro</span></h1>
-                <p class="tab-subtitle">Má»Ÿ khoÃ¡ toÃ n bá»™ sá»©c máº¡nh KGen Studio</p>
+                <h1>Nâng Cấp <span class="header-accent">Pro</span></h1>
+                <p class="tab-subtitle">Mở khoá toàn bộ sức mạnh MeiGen Studio</p>
             </header>
             <div class="pricing-container" id="pricing-container">
                 <!-- Rendered by JS -->
@@ -924,9 +924,9 @@
                     </div>
                     <div class="modal-cats" id="modal-cats"></div>
                     <div class="modal-stats">
-                        <span id="modal-likes">â¤ï¸ 0</span>
-                        <span id="modal-views">ðŸ‘ï¸ 0</span>
-                        <span id="modal-date">ðŸ“… -</span>
+                        <span id="modal-likes">❤️ 0</span>
+                        <span id="modal-views">👁️ 0</span>
+                        <span id="modal-date">📅 -</span>
                     </div>
                     <div class="modal-prompt-section">
                         <label class="form-label">Prompt</label>
@@ -942,17 +942,17 @@
                                             stroke-linecap="round" />
                                         <circle cx="16" cy="21" r="2" fill="currentColor" />
                                     </svg>
-                                    <p>ÄÄƒng nháº­p d? xem prompt d?y d?</p>
-                                    <button class="btn btn-primary btn-sm" id="btn-login-from-modal">?? ÄÄƒng nháº­p
+                                    <p>Đăng nhập dủ xem prompt đầy dủ</p>
+                                    <button class="btn btn-primary btn-sm" id="btn-login-from-modal">?? Đăng nhập
                                         ngay</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-actions">
-                        <button class="btn btn-primary" id="btn-use-prompt">ðŸš€ DÃ¹ng prompt nÃ y</button>
-                        <button class="btn btn-ghost" id="btn-copy-prompt">ðŸ“‹ Copy prompt</button>
-                        <a class="btn btn-ghost" id="modal-source-link" href="#" target="_blank">ðŸ”— Nguá»“n</a>
+                        <button class="btn btn-primary" id="btn-use-prompt">🚀 Dùng prompt này</button>
+                        <button class="btn btn-ghost" id="btn-copy-prompt">📋 Copy prompt</button>
+                        <a class="btn btn-ghost" id="modal-source-link" href="#" target="_blank">🔗 Nguồn</a>
                     </div>
                 </div>
             </div>
@@ -965,9 +965,9 @@
             <button class="modal-close" id="auth-modal-close">&times;</button>
             <div class="auth-modal-body">
                 <div class="auth-header">
-                    <img src="logo.png" alt="KGen" class="auth-logo">
-                    <h2 id="auth-title">ÄÄƒng Nháº­p</h2>
-                    <p class="auth-subtitle" id="auth-subtitle">ÄÄƒng nháº­p Ä‘á»ƒ má»Ÿ khÃ³a toÃ n bá»™ thÆ° viá»‡n
+                    <img src="logo.png" alt="MeiGen" class="auth-logo">
+                    <h2 id="auth-title">Đăng Nhập</h2>
+                    <p class="auth-subtitle" id="auth-subtitle">Đăng nhập để mở khóa toàn bộ thư viện
                         1,300+ prompts</p>
                 </div>
 
@@ -978,16 +978,16 @@
                         <input type="email" id="login-email" class="form-input" placeholder="your@email.com" required>
                     </div>
                     <div class="form-section">
-                        <label class="form-label" for="login-password">Máº­t kháº©u</label>
-                        <input type="password" id="login-password" class="form-input"
-                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required minlength="6">
+                        <label class="form-label" for="login-password">Mật khẩu</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required
+                            minlength="6">
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
-                        ðŸ” ÄÄƒng Nháº­p
+                        🔐 Đăng Nhập
                     </button>
 
                     <div class="auth-divider">
-                        <span>hoáº·c</span>
+                        <span>hoặc</span>
                     </div>
 
                     <button type="button" class="btn-google" id="btn-google-login">
@@ -1001,31 +1001,31 @@
                             <path fill="#34A853"
                                 d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                         </svg>
-                        ÄÄƒng nháº­p báº±ng Google
+                        Đăng nhập bằng Google
                     </button>
                 </form>
 
                 <!-- Register Form -->
                 <form id="register-form" class="auth-form hidden">
                     <div class="form-section">
-                        <label class="form-label" for="reg-name">TÃªn hiá»ƒn thá»‹</label>
-                        <input type="text" id="reg-name" class="form-input" placeholder="Nguyá»…n VÄƒn A" required>
+                        <label class="form-label" for="reg-name">Tên hiển thị</label>
+                        <input type="text" id="reg-name" class="form-input" placeholder="Nguyễn Văn A" required>
                     </div>
                     <div class="form-section">
                         <label class="form-label" for="reg-email">Email</label>
                         <input type="email" id="reg-email" class="form-input" placeholder="your@email.com" required>
                     </div>
                     <div class="form-section">
-                        <label class="form-label" for="reg-password">Máº­t kháº©u</label>
-                        <input type="password" id="reg-password" class="form-input"
-                            placeholder="Tá»‘i thiá»ƒu 6 kÃ½ tá»±" required minlength="6">
+                        <label class="form-label" for="reg-password">Mật khẩu</label>
+                        <input type="password" id="reg-password" class="form-input" placeholder="Tối thiểu 6 ký tự"
+                            required minlength="6">
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
-                        âœ¨ Táº¡o TÃ i Khoáº£n
+                        ✨ Tạo Tài Khoản
                     </button>
 
                     <div class="auth-divider">
-                        <span>hoáº·c</span>
+                        <span>hoặc</span>
                     </div>
 
                     <button type="button" class="btn-google" id="btn-google-register">
@@ -1039,19 +1039,19 @@
                             <path fill="#34A853"
                                 d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                         </svg>
-                        ÄÄƒng kÃ½ báº±ng Google
+                        Đăng ký bằng Google
                     </button>
                 </form>
 
                 <div class="auth-switch">
-                    <span id="auth-switch-text">ChÆ°a cÃ³ tÃ i khoáº£n?</span>
-                    <button class="btn btn-ghost btn-sm" id="btn-switch-auth">ÄÄƒng kÃ½</button>
+                    <span id="auth-switch-text">Chưa có tài khoản?</span>
+                    <button class="btn btn-ghost btn-sm" id="btn-switch-auth">Đăng ký</button>
                 </div>
 
                 <div class="auth-preview-info">
-                    <div class="preview-badge">ðŸ‘ï¸ Cháº¿ Ä‘á»™ xem trÆ°á»›c</div>
-                    <p>Báº¡n Ä‘ang xem <strong>10%</strong> ná»™i dung prompt. ÄÄƒng nháº­p miá»…n phÃ­ Ä‘á»ƒ má»Ÿ
-                        khÃ³a toÃ n bá»™!</p>
+                    <div class="preview-badge">👁️ Chế độ xem trước</div>
+                    <p>Bạn đang xem <strong>10%</strong> nội dung prompt. Đăng nhập miễn phí để mở
+                        khóa toàn bộ!</p>
                 </div>
             </div>
         </div>
@@ -1115,29 +1115,29 @@
             <div class="guide-slides" id="guide-slides">
                 <!-- Slide 1: Welcome -->
                 <div class="guide-slide active" data-slide="0">
-                    <div class="guide-slide-icon">ðŸ‘‹</div>
-                    <h2>ChÃ o má»«ng Ä‘áº¿n KGen Studio!</h2>
-                    <p class="guide-subtitle">Ná»n táº£ng AI Prompt & Image Generation #1 Viá»‡t Nam</p>
+                    <div class="guide-slide-icon">👋</div>
+                    <h2>Chào mừng đến KGen Studio!</h2>
+                    <p class="guide-subtitle">Nền tảng AI Prompt & Image Generation #1 Việt Nam</p>
                     <div class="guide-features">
                         <div class="guide-feature-item">
-                            <span class="gf-icon">ðŸ“š</span>
+                            <span class="gf-icon">📚</span>
                             <div>
                                 <strong>1,500+ Prompt AI</strong>
-                                <p>ThÆ° viá»‡n prompt Ä‘Æ°á»£c tuyá»ƒn chá»n tá»« cá»™ng Ä‘á»“ng</p>
+                                <p>Thư viện prompt được tuyển chọn từ cộng đồng</p>
                             </div>
                         </div>
                         <div class="guide-feature-item">
-                            <span class="gf-icon">âœ¨</span>
+                            <span class="gf-icon">✨</span>
                             <div>
-                                <strong>Táº¡o & NÃ¢ng cáº¥p</strong>
-                                <p>Táº¡o áº£nh AI vÃ  nÃ¢ng cáº¥p prompt tá»± Ä‘á»™ng</p>
+                                <strong>Tạo & Nâng cấp</strong>
+                                <p>Tạo ảnh AI và nâng cấp prompt tự động</p>
                             </div>
                         </div>
                         <div class="guide-feature-item">
-                            <span class="gf-icon">ðŸŽ</span>
+                            <span class="gf-icon">🎁</span>
                             <div>
-                                <strong>Miá»…n phÃ­ sá»­ dá»¥ng</strong>
-                                <p>Duyá»‡t gallery, copy prompt hoÃ n toÃ n free</p>
+                                <strong>Miễn phí sử dụng</strong>
+                                <p>Duyệt gallery, copy prompt hoàn toàn free</p>
                             </div>
                         </div>
                     </div>
@@ -1145,28 +1145,28 @@
 
                 <!-- Slide 2: Gallery -->
                 <div class="guide-slide" data-slide="1">
-                    <div class="guide-slide-icon">ðŸ“š</div>
-                    <h2>ThÆ° Viá»‡n Prompt AI</h2>
-                    <p class="guide-subtitle">Duyá»‡t, tÃ¬m kiáº¿m vÃ  copy prompt dá»… dÃ ng</p>
+                    <div class="guide-slide-icon">📚</div>
+                    <h2>Thư Viện Prompt AI</h2>
+                    <p class="guide-subtitle">Duyệt, tìm kiếm và copy prompt dễ dàng</p>
                     <div class="guide-steps">
                         <div class="guide-step">
                             <span class="step-num">1</span>
-                            <p><strong>TÃ¬m kiáº¿m</strong> â€” GÃµ tá»« khoÃ¡ Ä‘á»ƒ tÃ¬m prompt (VD: "cyberpunk girl",
+                            <p><strong>Tìm kiếm</strong> — Gõ từ khoá để tìm prompt (VD: "cyberpunk girl",
                                 "food
                                 photography")</p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">2</span>
-                            <p><strong>Lá»c danh má»¥c</strong> â€” Nháº¥n chip (Product, Girl, 3D...) Ä‘á»ƒ lá»c theo
+                            <p><strong>Lọc danh mục</strong> — Nhấn chip (Product, Girl, 3D...) để lọc theo
                                 category</p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">3</span>
-                            <p><strong>Xem chi tiáº¿t</strong> â€” Click vÃ o card Ä‘á»ƒ xem prompt Ä‘áº§y Ä‘á»§</p>
+                            <p><strong>Xem chi tiết</strong> — Click vào card để xem prompt đầy đủ</p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">4</span>
-                            <p><strong>Copy &amp; DÃ¹ng</strong> â€” Nháº¥n nÃºt Copy rá»“i paste vÃ o Midjourney,
+                            <p><strong>Copy &amp; Dùng</strong> — Nhấn nút Copy rồi paste vào Midjourney,
                                 ChatGPT,
                                 DALL-E...
                             </p>
@@ -1176,51 +1176,51 @@
 
                 <!-- Slide 3: Create -->
                 <div class="guide-slide" data-slide="2">
-                    <div class="guide-slide-icon">ðŸŽ¨</div>
-                    <h2>Táº¡o áº£nh AI</h2>
-                    <p class="guide-subtitle">Biáº¿n Ã½ tÆ°á»Ÿng thÃ nh hÃ¬nh áº£nh chá»‰ trong vÃ i giÃ¢y</p>
+                    <div class="guide-slide-icon">🎨</div>
+                    <h2>Tạo ảnh AI</h2>
+                    <p class="guide-subtitle">Biến ý tưởng thành hình ảnh chỉ trong vài giây</p>
                     <div class="guide-steps">
                         <div class="guide-step">
                             <span class="step-num">1</span>
-                            <p><strong>Nháº­p prompt</strong> â€” MÃ´ táº£ hÃ¬nh áº£nh báº¡n muá»‘n táº¡o báº±ng tiáº¿ng
+                            <p><strong>Nhập prompt</strong> — Mô tả hình ảnh bạn muốn tạo bằng tiếng
                                 Anh</p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">2</span>
-                            <p><strong>Chá»n phong cÃ¡ch</strong> â€” Realistic, Illustration, Anime, Photography...
+                            <p><strong>Chọn phong cách</strong> — Realistic, Illustration, Anime, Photography...
                             </p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">3</span>
-                            <p><strong>Chá»n tá»· lá»‡</strong> â€” 1:1 (vuÃ´ng), 3:4 (portrait), 16:9 (landscape)...
+                            <p><strong>Chọn tỷ lệ</strong> — 1:1 (vuông), 3:4 (portrait), 16:9 (landscape)...
                             </p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">4</span>
-                            <p><strong>Táº¡o áº£nh</strong> â€” Nháº¥n "Táº¡o áº£nh" vÃ  Ä‘á»£i AI xá»­ lÃ½ (~10-30
-                                giÃ¢y)</p>
+                            <p><strong>Tạo ảnh</strong> — Nhấn "Tạo ảnh" và đợi AI xử lý (~10-30
+                                giây)</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Slide 4: Enhance -->
                 <div class="guide-slide" data-slide="3">
-                    <div class="guide-slide-icon">âœ¨</div>
-                    <h2>NÃ¢ng Cáº¥p Prompt</h2>
-                    <p class="guide-subtitle">AI sáº½ biáº¿n Ã½ tÆ°á»Ÿng Ä‘Æ¡n giáº£n thÃ nh prompt chuyÃªn nghiá»‡p</p>
+                    <div class="guide-slide-icon">✨</div>
+                    <h2>Nâng Cấp Prompt</h2>
+                    <p class="guide-subtitle">AI sẽ biến ý tưởng đơn giản thành prompt chuyên nghiệp</p>
                     <div class="guide-steps">
                         <div class="guide-step">
                             <span class="step-num">1</span>
-                            <p><strong>Nháº­p Ã½ tÆ°á»Ÿng ngáº¯n</strong> â€” VD: "a cat sitting in a garden"</p>
+                            <p><strong>Nhập ý tưởng ngắn</strong> — VD: "a cat sitting in a garden"</p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">2</span>
-                            <p><strong>Chá»n style</strong> â€” Realistic (thá»±c), Artistic (nghá»‡ thuáº­t), Anime...
+                            <p><strong>Chọn style</strong> — Realistic (thực), Artistic (nghệ thuật), Anime...
                             </p>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">3</span>
-                            <p><strong>Nháº¥n NÃ¢ng Cáº¥p</strong> â€” Nháº­n prompt chi tiáº¿t vá»›i lighting,
+                            <p><strong>Nhấn Nâng Cấp</strong> — Nhận prompt chi tiết với lighting,
                                 composition, camera
                                 angles</p>
                         </div>
@@ -1229,34 +1229,34 @@
 
                 <!-- Slide 5: Tips -->
                 <div class="guide-slide" data-slide="4">
-                    <div class="guide-slide-icon">ðŸ’¡</div>
-                    <h2>Máº¹o Sá»­ Dá»¥ng</h2>
-                    <p class="guide-subtitle">Táº­n dá»¥ng tá»‘i Ä‘a KGen Studio</p>
+                    <div class="guide-slide-icon">💡</div>
+                    <h2>Mẹo Sử Dụng</h2>
+                    <p class="guide-subtitle">Tận dụng tối đa MeiGen Studio</p>
                     <div class="guide-tips">
                         <div class="guide-tip">
-                            <span>ðŸ“±</span>
-                            <p><strong>DÃ¹ng trÃªn Ä‘iá»‡n thoáº¡i</strong> â€” App tá»‘i Æ°u cho mobile, dÃ¹ng bottom
-                                nav Ä‘á»ƒ chuyá»ƒn
+                            <span>📱</span>
+                            <p><strong>Dùng trên điện thoại</strong> — App tối ưu cho mobile, dùng bottom
+                                nav để chuyển
                                 tab</p>
                         </div>
                         <div class="guide-tip">
-                            <span>ðŸ”</span>
-                            <p><strong>TÃ¬m kiáº¿m thÃ´ng minh</strong> â€” DÃ¹ng tá»« khoÃ¡ tiáº¿ng Anh cho káº¿t quáº£
-                                tá»‘t nháº¥t</p>
+                            <span>🔍</span>
+                            <p><strong>Tìm kiếm thông minh</strong> — Dùng từ khoá tiếng Anh cho kết quả
+                                tốt nhất</p>
                         </div>
                         <div class="guide-tip">
-                            <span>ðŸŽ²</span>
-                            <p><strong>Ngáº«u nhiÃªn</strong> â€” Nháº¥n nÃºt "Ngáº«u nhiÃªn" Ä‘á»ƒ khÃ¡m phÃ¡ prompt
-                                má»›i</p>
+                            <span>🎲</span>
+                            <p><strong>Ngẫu nhiên</strong> — Nhấn nút "Ngẫu nhiên" để khám phá prompt
+                                mới</p>
                         </div>
                         <div class="guide-tip">
-                            <span>ðŸ”‘</span>
-                            <p><strong>ÄÄƒng nháº­p Google</strong> â€” Má»Ÿ khoÃ¡ toÃ n bá»™ prompt vÃ  lÆ°u favorites
+                            <span>🔑</span>
+                            <p><strong>Đăng nhập Google</strong> — Mở khoá toàn bộ prompt và lưu favorites
                             </p>
                         </div>
                         <div class="guide-tip">
-                            <span>âš¡</span>
-                            <p><strong>Copy nhanh</strong> â€” Click vÃ o card â†’ nháº¥n Copy â†’ paste vÃ o AI tool
+                            <span>⚡</span>
+                            <p><strong>Copy nhanh</strong> — Click vào card → nhấn Copy → paste vào AI tool
                             </p>
                         </div>
                     </div>
@@ -1265,7 +1265,7 @@
 
             <!-- Navigation -->
             <div class="guide-nav">
-                <button class="guide-btn guide-btn-prev" id="guide-prev">â† TrÆ°á»›c</button>
+                <button class="guide-btn guide-btn-prev" id="guide-prev">← Trước</button>
                 <div class="guide-dots" id="guide-dots">
                     <span class="guide-dot active" data-dot="0"></span>
                     <span class="guide-dot" data-dot="1"></span>
@@ -1273,14 +1273,14 @@
                     <span class="guide-dot" data-dot="3"></span>
                     <span class="guide-dot" data-dot="4"></span>
                 </div>
-                <button class="guide-btn guide-btn-next" id="guide-next">Tiáº¿p â†’</button>
+                <button class="guide-btn guide-btn-next" id="guide-next">Tiếp →</button>
             </div>
         </div>
     </div>
 
-    <script src="site-config.js?v=20260306_0920"></script>
-    <script src="supabase.js?v=20260306_0920"></script>
-    <script src="app.js?v=20260306_0920"></script>
+    <script src="site-config.js?v=20260306_1015"></script>
+    <script src="supabase.js?v=20260306_1015"></script>
+    <script src="app.js?v=20260306_1015"></script>
 </body>
 
 </html>
