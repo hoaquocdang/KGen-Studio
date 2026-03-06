@@ -702,10 +702,17 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Model</label>
-                        <input type="text" class="form-input" id="cfg-google-model" placeholder="gemini-2.0-flash-exp"
-                            value="gemini-2.0-flash-exp">
-                        <div class="form-hint">Các model hỗ trợ: gemini-2.0-flash-exp, gemini-1.5-pro,
-                            imagen-3.0-generate-002</div>
+                        <input type="text" class="form-input" id="cfg-google-model" placeholder="gemini-3.0-flash"
+                            value="gemini-3.0-flash">
+                        <div class="form-hint" style="line-height: 1.5; margin-top: 6px;">
+                            Các model thế hệ mới nhất của Google:<br>
+                            • <b style="color:var(--accent-orange)">gemini-3.0-pro</b> <i>(Thông minh, mạnh mẽ nhất hiện
+                                nay)</i><br>
+                            • <b style="color:var(--accent-orange)">gemini-3.0-flash</b> <i>(Tốc độ cực nhanh, siêu rẻ,
+                                đang dùng rộng rãi)</i><br>
+                            • <b style="color:var(--accent-orange)">imagen-3.0-generate-002</b> <i>(Model chuyên dụng để
+                                vẽ hình)</i>
+                        </div>
                     </div>
                 </div>
 
@@ -880,7 +887,7 @@
         const DEFAULT_PASSWORD = 'admin2026';
 
         let adminConfig = {
-            api: { googleKey: '', googleModel: 'gemini-2.0-flash-exp', openrouterKey: '', openaiKey: '', openaiBase: 'https://api.openai.com', openaiModel: 'gpt-image-1.5' },
+            api: { googleKey: '', googleModel: 'gemini-3.0-flash', openrouterKey: '', openaiKey: '', openaiBase: 'https://api.openai.com', openaiModel: 'gpt-image-1.5' },
             plans: {
                 free: { name: 'Miễn phí', imageLimit: 10, price: 0, priceDisplay: 'Miễn phí' },
                 pro: { name: 'Pro', imageLimit: 1000, price: 39000, priceDisplay: '39.000đ' },
@@ -956,7 +963,7 @@
         function populateFields() {
             // API Keys
             document.getElementById('cfg-google-key').value = adminConfig.api.googleKey || '';
-            document.getElementById('cfg-google-model').value = adminConfig.api.googleModel || 'gemini-2.0-flash-exp';
+            document.getElementById('cfg-google-model').value = adminConfig.api.googleModel || 'gemini-3.0-flash';
             document.getElementById('cfg-openrouter-key').value = adminConfig.api.openrouterKey || '';
             document.getElementById('cfg-openai-key').value = adminConfig.api.openaiKey || '';
             document.getElementById('cfg-openai-base').value = adminConfig.api.openaiBase || 'https://api.openai.com';
@@ -1006,7 +1013,7 @@
         // ===== SAVE FUNCTIONS =====
         function saveAPIKeys() {
             adminConfig.api.googleKey = document.getElementById('cfg-google-key').value.trim();
-            adminConfig.api.googleModel = document.getElementById('cfg-google-model').value.trim() || 'gemini-2.0-flash-exp';
+            adminConfig.api.googleModel = document.getElementById('cfg-google-model').value.trim() || 'gemini-3.0-flash';
             adminConfig.api.openrouterKey = document.getElementById('cfg-openrouter-key').value.trim();
             adminConfig.api.openaiKey = document.getElementById('cfg-openai-key').value.trim();
             adminConfig.api.openaiBase = document.getElementById('cfg-openai-base').value.trim() || 'https://api.openai.com';
