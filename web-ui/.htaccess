@@ -14,7 +14,7 @@ RewriteRule ^adminkgen/(.*)$ /admin.html [R=301,L]
 # -----------------------------------------------
 # SECURITY: Block direct access to sensitive files
 # -----------------------------------------------
-<FilesMatch "(site-config\.js|\.env|\.git)">
+<FilesMatch "\.(env|git)">
     Order allow,deny
     Deny from all
 </FilesMatch>
