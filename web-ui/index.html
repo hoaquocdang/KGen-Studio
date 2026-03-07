@@ -134,22 +134,22 @@
                 </button>
             </div>
 
-            <!-- More From Us -->
+            <!-- Hướng dẫn -->
             <div class="sidebar-section">
-                <div class="sidebar-section-label">More from us</div>
+                <div class="sidebar-section-label">Hướng dẫn</div>
                 <a href="#" class="nav-link-item">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" />
                         <path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
                     </svg>
-                    <span>MCP Server</span>
+                    <span>Tài liệu sử dụng</span>
                 </a>
                 <a href="#" class="nav-link-item">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M3 1l5 7-5 7M8 1l5 7-5 7" stroke="currentColor" stroke-width="1.3"
                             stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <span>Figma Plugin</span>
+                    <span>Video hướng dẫn</span>
                 </a>
             </div>
         </nav>
@@ -465,104 +465,49 @@
                                     <span id="gen-quality-label">2K</span>
                                 </button>
                                 <div class="gen-quality-dropdown hidden" id="gen-quality-dropdown">
-                                    <button class="gen-q-opt" data-quality="low" data-label="1K">1K ï¿½ Nhanh</button>
-                                    <button class="gen-q-opt active" data-quality="medium" data-label="2K">2K ï¿½ Trung
-                                        bï¿½nh</button>
-                                    <button class="gen-q-opt" data-quality="high" data-label="4K">4K ï¿½ Cao</button>
+                                    <button class="gen-q-opt" data-quality="1K" data-label="1K">1K — Nhanh (18
+                                        credits)</button>
+                                    <button class="gen-q-opt active" data-quality="2K" data-label="2K">2K — Sắc nét (18
+                                        credits)</button>
+                                    <button class="gen-q-opt" data-quality="4K" data-label="4K">4K — Cao nhất (24
+                                        credits)</button>
                                 </div>
-                                <input type="hidden" id="gen-quality" value="medium">
+                                <input type="hidden" id="gen-quality" value="2K">
                             </div>
                         </div>
 
-                        <!-- 5. FAQ Link -->
+                        <!-- 5. Pricing Info -->
                         <div class="gen-faq-row">
-                            <span class="gen-faq-icon">❓</span>
-                            <span class="gen-faq-label">FAQ</span>
-                            <a href="model-comparison.html" target="_blank" class="gen-faq-link">Các model khác nhau
-                                thế
-                                nào? <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                    <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg></a>
+                            <span class="gen-faq-icon">💰</span>
+                            <span class="gen-faq-label">Giá</span>
+                            <span class="gen-faq-link" style="cursor:default">1K/2K: 18 credits (~$0.09) · 4K: 24
+                                credits (~$0.12)</span>
                         </div>
 
                         <!-- 6. Notification Banner -->
                         <div class="gen-banner" id="gen-banner">
-                            <span>Nanobanana Pro / GPT Image 1 có sẵn 🎉</span>
+                            <span>Nanobanana Pro — 2K sắc nét, 4K scaling, text rendering tốt hơn 🎉</span>
                             <button class="gen-banner-close" id="gen-banner-close" type="button">&times;</button>
                         </div>
 
-                        <!-- Provider hidden (auto) -->
-                        <input type="hidden" id="gen-provider" value="auto">
+                        <!-- Provider hidden (kie-ai) -->
+                        <input type="hidden" id="gen-provider" value="kie-ai">
                         <input type="hidden" id="gen-negative" value="">
 
-                        <!-- 7. Model Selector -->
+                        <!-- 7. Model Display (Nanobanana Pro only) -->
                         <div class="gen-model-area">
                             <div class="model-selector" id="model-selector">
-                                <button class="model-selector-btn" id="model-selector-btn" type="button">
+                                <div class="model-selector-btn" id="model-selector-btn"
+                                    style="cursor:default;pointer-events:none;">
                                     <span class="model-sel-icon">
                                         <span style="font-size:1.1rem">✨</span>
                                     </span>
                                     <span class="model-sel-name" id="model-sel-name">Nanobanana Pro</span>
                                     <span class="model-sel-dot"></span>
-                                    <svg class="model-sel-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                        <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </button>
-                                <div class="model-dropdown" id="model-dropdown">
-                                    <div class="model-dropdown-inner">
-                                        <!-- Google Gemini Models -->
-                                        <div class="model-group-label"
-                                            style="padding:6px 12px;font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);font-weight:600;">
-                                            Google Gemini</div>
-                                        <div class="model-option active" data-model="nanobanana-pro"
-                                            data-provider="gemini" data-credits="5">
-                                            <span class="model-opt-icon emoji">✨</span>
-                                            <span class="model-opt-name">Nanobanana Pro</span>
-                                            <span class="model-opt-dot"></span>
-                                            <span class="model-badge new">Best</span>
-                                            <span class="model-opt-credits">5</span>
-                                        </div>
-                                        <div class="model-option" data-model="nanobanana-2" data-provider="gemini"
-                                            data-credits="2">
-                                            <span class="model-opt-icon emoji">⚡</span>
-                                            <span class="model-opt-name">Nanobanana 2</span>
-                                            <span class="model-opt-credits">2</span>
-                                        </div>
-
-                                        <!-- OpenRouter Models -->
-                                        <div class="model-group-label"
-                                            style="padding:6px 12px;font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);font-weight:600;border-top:1px solid var(--border-light);">
-                                            OpenRouter</div>
-                                        <div class="model-option" data-model="openai/dall-e-3"
-                                            data-provider="openrouter" data-credits="10">
-                                            <span class="model-opt-icon emoji">🤖</span>
-                                            <span class="model-opt-name">GPT Image 1</span>
-                                            <span class="model-badge new">New</span>
-                                            <span class="model-opt-credits">10</span>
-                                        </div>
-                                        <div class="model-option" data-model="openai/dall-e-3"
-                                            data-provider="openrouter" data-credits="5">
-                                            <span class="model-opt-icon emoji">🎨</span>
-                                            <span class="model-opt-name">DALL-E 3</span>
-                                            <span class="model-opt-credits">5</span>
-                                        </div>
-                                        <div class="model-option" data-model="black-forest-labs/flux-1.1-pro"
-                                            data-provider="openrouter" data-credits="5">
-                                            <span class="model-opt-icon emoji">🔥</span>
-                                            <span class="model-opt-name">Flux 1.1 Pro</span>
-                                            <span class="model-opt-credits">5</span>
-                                        </div>
-                                        <div class="model-option" data-model="stability/stable-diffusion-xl"
-                                            data-provider="openrouter" data-credits="2">
-                                            <span class="model-opt-icon emoji">🌀</span>
-                                            <span class="model-opt-name">Stable Diffusion XL</span>
-                                            <span class="model-opt-credits">2</span>
-                                        </div>
-                                    </div>
+                                    <span class="model-badge new" style="margin-left:8px;font-size:0.65rem;">by Google
+                                        DeepMind</span>
                                 </div>
-                                <input type="hidden" id="gen-model" value="nanobanana-pro">
+                                <input type="hidden" id="gen-model" value="nano-banana-pro">
                             </div>
                         </div>
 
@@ -576,7 +521,7 @@
                                     d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
                                     fill="currentColor" />
                             </svg>
-                            <span class="gen-btn-credits" id="gen-btn-credits">10</span>
+                            <span class="gen-btn-credits" id="gen-btn-credits">18</span>
                         </button>
                     </div>
                 </div>
@@ -748,82 +693,28 @@
                             <path d="M10 2l2.5 5 5.5.8-4 3.9.9 5.3L10 14.5 5.1 17l.9-5.3-4-3.9 5.5-.8L10 2z"
                                 stroke="currentColor" stroke-width="1.5" fill="none" />
                         </svg>
-                        Google Gemini (Imagen)
+                        Kie AI — Nanobanana Pro
                     </h3>
                     <div class="form-section">
-                        <label class="form-label" for="setting-gemini-key">API Key</label>
+                        <label class="form-label" for="setting-kie-key">API Key</label>
                         <div class="input-group">
-                            <input type="password" id="setting-gemini-key" class="form-input" placeholder="AIzaSy...">
-                            <button class="btn btn-sm btn-ghost" id="btn-toggle-gemini-key">👁️</button>
+                            <input type="password" id="setting-kie-key" class="form-input"
+                                placeholder="Nhập API Key từ Kie AI...">
+                            <button class="btn btn-sm btn-ghost" id="btn-toggle-kie-key">👁️</button>
                         </div>
-                        <p class="form-hint">Tạo key tại <a href="https://aistudio.google.com/apikey"
-                                target="_blank">Google AI Studio</a>
-                            → Get API Key. Hỗ trợ Nanobanana Pro, Nanobanana 2.</p>
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <h3 class="settings-title">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M3 10h14M10 3v14" stroke="currentColor" stroke-width="1.5"
-                                stroke-linecap="round" />
-                        </svg>
-                        OpenRouter
-                    </h3>
-                    <div class="form-section">
-                        <label class="form-label" for="setting-openrouter-key">API Key</label>
-                        <div class="input-group">
-                            <input type="password" id="setting-openrouter-key" class="form-input"
-                                placeholder="sk-or-v1-...">
-                            <button class="btn btn-sm btn-ghost" id="btn-toggle-openrouter-key">👁️</button>
-                        </div>
-                        <p class="form-hint">Lấy key tại <a href="https://openrouter.ai/keys"
-                                target="_blank">openrouter.ai/keys</a>.
-                            Truy cập GPT Image 1, DALL-E 3, Flux, Stable Diffusion, v.v.</p>
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <h3 class="settings-title">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
-                        OpenAI Compatible
-                    </h3>
-                    <div class="form-section">
-                        <label class="form-label" for="setting-openai-key">API Key</label>
-                        <input type="password" id="setting-openai-key" class="form-input" placeholder="sk-...">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-section">
-                            <label class="form-label" for="setting-openai-base">Base URL</label>
-                            <input type="text" id="setting-openai-base" class="form-input"
-                                placeholder="https://api.openai.com" value="https://api.openai.com">
-                        </div>
-                        <div class="form-section">
-                            <label class="form-label" for="setting-openai-model">Model</label>
-                            <input type="text" id="setting-openai-model" class="form-input" placeholder="gpt-image-1.5"
-                                value="gpt-image-1.5">
+                        <p class="form-hint">Lấy API key tại <a href="https://kie.ai" target="_blank">kie.ai</a>
+                            → API Key Management. Model: Nanobanana Pro (Google DeepMind).</p>
+                        <div
+                            style="margin-top:12px;padding:12px;background:var(--bg-secondary,#f5f7fa);border-radius:8px;font-size:0.82rem;color:var(--text-secondary,#666);">
+                            <strong>💰 Bảng giá:</strong><br>
+                            • 1K/2K: 18 credits (~$0.09/ảnh)<br>
+                            • 4K: 24 credits (~$0.12/ảnh)<br>
+                            <span style="color:var(--accent,#4a90d9);">High-tier top-up +10% bonus → ~$0.082 (1K/2K) /
+                                ~$0.11 (4K)</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="settings-card">
-                    <h3 class="settings-title">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <rect x="3" y="3" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M7 7h6M7 10h4M7 13h5" stroke="currentColor" stroke-width="1.2"
-                                stroke-linecap="round" />
-                        </svg>
-                        ComfyUI Local
-                    </h3>
-                    <div class="form-section">
-                        <label class="form-label" for="setting-comfyui-url">Server URL</label>
-                        <input type="text" id="setting-comfyui-url" class="form-input"
-                            placeholder="http://localhost:8188" value="http://localhost:8188">
-                    </div>
-                </div>
 
                 <div class="settings-card">
                     <h3 class="settings-title">
@@ -1302,51 +1193,17 @@
                 <button class="quick-api-close" id="quick-api-close">&times;</button>
             </div>
 
-            <div class="quick-api-tabs">
-                <button class="quick-api-tab active" data-provider="gemini">Google Gemini</button>
-                <button class="quick-api-tab" data-provider="openrouter">OpenRouter</button>
-                <button class="quick-api-tab" data-provider="openai">OpenAI</button>
-            </div>
-
             <div class="quick-api-body">
-                <!-- Gemini -->
-                <div class="quick-api-pane active" id="pane-gemini">
-                    <p class="quick-api-hint">Dùng cho <strong>Nanobanana Pro</strong> (Imagen 3). Miễn phí 100
-                        ảnh/ngày.</p>
+                <!-- Kie AI -->
+                <div class="quick-api-pane active" id="pane-kie">
+                    <p class="quick-api-hint">Model: <strong>Nanobanana Pro</strong> (Google DeepMind). 2K sắc nét, 4K scaling.</p>
                     <div class="quick-api-input-row">
-                        <input type="password" id="qk-gemini" placeholder="AIzaSy..." class="quick-api-input"
-                            autocomplete="off">
-                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-gemini')">👁</button>
+                        <input type="password" id="qk-kie" placeholder="Nhập API Key từ Kie AI..." class="quick-api-input" autocomplete="off">
+                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-kie')">👁</button>
                     </div>
-                    <a href="https://aistudio.google.com/apikey" target="_blank" class="quick-api-link">→ Lấy key miễn
-                        phí tại Google AI Studio</a>
-                    <button class="quick-api-save-btn" onclick="saveQuickKey('gemini')">✅ Lưu & Kích hoạt</button>
-                </div>
-
-                <!-- OpenRouter -->
-                <div class="quick-api-pane hidden" id="pane-openrouter">
-                    <p class="quick-api-hint">Dùng cho <strong>GPT Image 1, DALL-E 3, Flux, Seedream</strong>.</p>
-                    <div class="quick-api-input-row">
-                        <input type="password" id="qk-openrouter" placeholder="sk-or-v1-..." class="quick-api-input"
-                            autocomplete="off">
-                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-openrouter')">👁</button>
-                    </div>
-                    <a href="https://openrouter.ai/keys" target="_blank" class="quick-api-link">→ Lấy key tại
-                        OpenRouter.ai</a>
-                    <button class="quick-api-save-btn" onclick="saveQuickKey('openrouter')">✅ Lưu & Kích hoạt</button>
-                </div>
-
-                <!-- OpenAI -->
-                <div class="quick-api-pane hidden" id="pane-openai">
-                    <p class="quick-api-hint">Dùng cho <strong>GPT Image 1.5</strong> (chất lượng cao nhất).</p>
-                    <div class="quick-api-input-row">
-                        <input type="password" id="qk-openai" placeholder="sk-..." class="quick-api-input"
-                            autocomplete="off">
-                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-openai')">👁</button>
-                    </div>
-                    <a href="https://platform.openai.com/api-keys" target="_blank" class="quick-api-link">→ Lấy key tại
-                        OpenAI Platform</a>
-                    <button class="quick-api-save-btn" onclick="saveQuickKey('openai')">✅ Lưu & Kích hoạt</button>
+                    <a href="https://kie.ai" target="_blank" class="quick-api-link">→ Lấy key tại kie.ai</a>
+                    <div style="margin:8px 0;font-size:0.78rem;color:var(--text-secondary,#888);">💰 1K/2K: 18 credits (~$0.09) · 4K: 24 credits (~$0.12)</div>
+                    <button class="quick-api-save-btn" onclick="saveQuickKey('kie')">✅ Lưu &amp; Kích hoạt</button>
                 </div>
             </div>
 

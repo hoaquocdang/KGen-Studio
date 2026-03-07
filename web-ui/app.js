@@ -21,13 +21,7 @@ const APP_STATE = {
     // Auth
     currentUser: null, // { email, name, createdAt }
     settings: {
-        geminiApiKey: '',
-        openrouterApiKey: '',
-        kgenToken: '',
-        openaiKey: '',
-        openaiBase: 'https://api.openai.com',
-        openaiModel: 'gpt-image-1',
-        comfyuiUrl: 'http://localhost:8188',
+        kieApiKey: '',
         googleClientId: '',
         supabaseUrl: '',
         supabaseAnonKey: '',
@@ -68,12 +62,9 @@ function getSiteConfig() {
             // Deep merge api config
             cfg.api = {
                 ...cfg.api,
-                geminiApiKey: adminCfg.api?.googleKey || cfg.api?.geminiApiKey || '',
-                googleModel: adminCfg.api?.googleModel || cfg.api?.googleModel || 'imagen-3.0-generate-002',
-                openrouterApiKey: adminCfg.api?.openrouterKey || cfg.api?.openrouterApiKey || '',
-                openaiKey: adminCfg.api?.openaiKey || cfg.api?.openaiKey || '',
-                openaiBase: adminCfg.api?.openaiBase || cfg.api?.openaiBase || 'https://api.openai.com',
-                openaiModel: adminCfg.api?.openaiModel || cfg.api?.openaiModel || 'gpt-image-1'
+                kieApiKey: adminCfg.api?.kieApiKey || cfg.api?.kieApiKey || '',
+                kieApiBase: adminCfg.api?.kieApiBase || cfg.api?.kieApiBase || 'https://api.kie.ai',
+                kieModel: adminCfg.api?.kieModel || cfg.api?.kieModel || 'nano-banana-pro',
             };
 
             // Merge plans
@@ -90,12 +81,9 @@ function getSiteConfig() {
 
 function getAdminAPIKey(type) {
     const cfg = getSiteConfig();
-    if (type === 'gemini') return cfg.api?.geminiApiKey || '';
-    if (type === 'openrouter') return cfg.api?.openrouterApiKey || '';
-    if (type === 'KGen') return cfg.api?.KGenToken || '';
-    if (type === 'openai') return cfg.api?.openaiKey || '';
-    if (type === 'openaiBase') return cfg.api?.openaiBase || 'https://api.openai.com';
-    if (type === 'openaiModel') return cfg.api?.openaiModel || 'gpt-image-1';
+    if (type === 'kie') return cfg.api?.kieApiKey || '';
+    if (type === 'kieBase') return cfg.api?.kieApiBase || 'https://api.kie.ai';
+    if (type === 'kieModel') return cfg.api?.kieModel || 'nano-banana-pro';
     return '';
 }
 
@@ -155,7 +143,7 @@ function getUserImagesUsed() {
  * If yes, they bypass the admin quota system entirely (using their own credits)
  */
 function hasPersonalApiKey() {
-    return !!(APP_STATE.settings.geminiApiKey || APP_STATE.settings.openrouterApiKey || APP_STATE.settings.openaiKey);
+    return !!(APP_STATE.settings.kieApiKey);
 }
 
 function canGenerateImage() {
@@ -212,13 +200,8 @@ function loadSiteConfig() {
     const cfg = getSiteConfig();
     // Apply admin API keys to settings as fallback
     if (cfg.api) {
-        if (cfg.api.KGenToken && !APP_STATE.settings.kgenToken) {
-            APP_STATE.settings.kgenToken = cfg.api.KGenToken;
-        }
-        if (cfg.api.openaiKey && !APP_STATE.settings.openaiKey) {
-            APP_STATE.settings.openaiKey = cfg.api.openaiKey;
-            APP_STATE.settings.openaiBase = cfg.api.openaiBase || APP_STATE.settings.openaiBase;
-            APP_STATE.settings.openaiModel = cfg.api.openaiModel || APP_STATE.settings.openaiModel;
+        if (cfg.api.kieApiKey && !APP_STATE.settings.kieApiKey) {
+            APP_STATE.settings.kieApiKey = cfg.api.kieApiKey;
         }
     }
     console.log('Site config loaded:', cfg.version || 'default');
@@ -831,7 +814,6 @@ async function generateImage() {
         const plan = getUserPlan();
         const limit = getUserImageLimit();
         if (plan === 'free') {
-            // Show API key guide modal for free users
             showApiKeyGuideModal();
         } else {
             showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói để tiếp tục!`, 'error', 5000);
@@ -840,11 +822,8 @@ async function generateImage() {
         return;
     }
 
-    const provider = document.getElementById('gen-provider').value;
-    const model = document.getElementById('gen-model').value.trim();
     const quality = document.getElementById('gen-quality').value;
     const aspectRatio = document.querySelector('.gen-ar-opt.active')?.dataset.ratio || '3:4';
-    const negativePrompt = document.getElementById('gen-negative').value.trim();
 
     // Show loading
     document.getElementById('result-placeholder').classList.add('hidden');
@@ -859,76 +838,7 @@ async function generateImage() {
     }, 1000);
 
     try {
-        // Determine provider based on selected model or auto-detect from API keys
-        let result;
-        let selectedProvider = provider;
-
-        // Get provider from model selector (data-provider attribute)
-        const activeModelOpt = document.querySelector('.model-option.active');
-        const modelProvider = activeModelOpt?.dataset.provider || '';
-
-        if (provider === 'auto') {
-            // Route based on selected model's provider
-            if (modelProvider === 'gemini') {
-                selectedProvider = 'gemini';
-            } else if (modelProvider === 'openrouter') {
-                selectedProvider = 'openrouter';
-            } else if (modelProvider === 'openai') {
-                selectedProvider = 'openai';
-            } else if (modelProvider === 'comfyui') {
-                selectedProvider = 'comfyui';
-            } else {
-                // Auto-detect: check which API keys are available
-                const geminiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
-                const openrouterKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
-                const openaiKey = APP_STATE.settings.openaiKey || getAdminAPIKey('openai');
-
-                if (geminiKey) {
-                    selectedProvider = 'gemini';
-                } else if (openrouterKey) {
-                    selectedProvider = 'openrouter';
-                } else if (openaiKey) {
-                    selectedProvider = 'openai';
-                } else if (APP_STATE.settings.comfyuiUrl && APP_STATE.settings._comfyuiManuallySet) {
-                    selectedProvider = 'comfyui';
-                } else {
-                    throw new Error('Chưa cấu hình API key nào. Vào Cài đặt để thêm Gemini API key hoặc OpenRouter API key.');
-                }
-            }
-        }
-
-        switch (selectedProvider) {
-            case 'gemini':
-                try {
-                    result = await generateViaGemini(prompt, model, aspectRatio);
-                } catch (geminiErr) {
-                    // Auto-fallback to OpenRouter if Gemini quota exceeded (429)
-                    const fallbackKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
-                    if (geminiErr.message.includes('429') || geminiErr.message.includes('Quota') || geminiErr.message.includes('quota')) {
-                        if (fallbackKey) {
-                            showToast('⚡ Gemini hết quota, đang chuyển sang OpenRouter...', 'info', 3000);
-                            result = await generateViaOpenRouter(prompt, 'openai/gpt-image-1', aspectRatio, negativePrompt);
-                            selectedProvider = 'openrouter'; // track actual provider used
-                        } else {
-                            throw new Error('Gemini hết quota. Nhấn 🔑 API Key để thêm OpenRouter key (miễn phí) để tiếp tục tạo ảnh.');
-                        }
-                    } else {
-                        throw geminiErr; // re-throw non-quota errors
-                    }
-                }
-                break;
-            case 'openrouter':
-                result = await generateViaOpenRouter(prompt, model, aspectRatio, negativePrompt);
-                break;
-            case 'openai':
-                result = await generateViaOpenAI(prompt, model, quality, aspectRatio, negativePrompt);
-                break;
-            case 'comfyui':
-                result = await generateViaComfyUI(prompt, negativePrompt);
-                break;
-            default:
-                throw new Error(`Provider "${selectedProvider}" chưa được hỗ trợ. Chọn model khác.`);
-        }
+        const result = await generateViaKieAI(prompt, aspectRatio, quality);
 
         // Show result
         clearInterval(timerInterval);
@@ -947,7 +857,7 @@ async function generateImage() {
             APP_STATE.generationHistory.unshift({
                 url: result.imageUrl,
                 prompt,
-                provider: selectedProvider,
+                provider: 'kie-ai',
                 timestamp: new Date().toISOString(),
             });
             renderHistory();
@@ -961,7 +871,6 @@ async function generateImage() {
         document.getElementById('result-loading').classList.add('hidden');
         document.getElementById('result-placeholder').classList.remove('hidden');
 
-        // Show clear error message instead of misleading random gallery image
         const errorMsg = error.message || 'Lỗi không xác định';
         showGenerationError(errorMsg);
 
@@ -970,11 +879,10 @@ async function generateImage() {
 }
 
 /**
- * Show modal with guide on how to add personal API key
- * Shown when free users exhaust their 10-image quota
+ * Show modal with guide on how to add Kie AI API key
+ * Shown when free users exhaust their quota
  */
 function showApiKeyGuideModal() {
-    // Remove existing modal if any
     document.getElementById('api-key-guide-modal')?.remove();
 
     const modal = document.createElement('div');
@@ -985,46 +893,33 @@ function showApiKeyGuideModal() {
             <div style="text-align:center;margin-bottom:20px;">
                 <div style="font-size:2.5rem;margin-bottom:8px;">🔑</div>
                 <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 6px 0;">Hết lượt tạo ảnh miễn phí</h2>
-                <p style="color:var(--text-secondary,#666);font-size:0.9rem;margin:0;">Bạn đã dùng hết 10 ảnh miễn phí. Thêm API key để tiếp tục tạo không giới hạn!</p>
+                <p style="color:var(--text-secondary,#666);font-size:0.9rem;margin:0;">Thêm API key từ Kie AI để tiếp tục tạo ảnh không giới hạn!</p>
             </div>
 
             <div style="background:var(--bg-secondary,#f5f7fa);border-radius:12px;padding:20px;margin-bottom:16px;">
-                <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 12px 0;">🌟 Cách 1: Google Gemini (Miễn phí)</h3>
+                <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 12px 0;">✨ Kie AI — Nanobanana Pro</h3>
                 <ol style="margin:0;padding-left:20px;font-size:0.85rem;line-height:1.7;color:var(--text-secondary,#555);">
-                    <li>Truy cập <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent,#4a90d9);font-weight:600;">Google AI Studio</a></li>
-                    <li>Đăng nhập Google → Nhấn <strong>"Get API Key"</strong></li>
+                    <li>Truy cập <a href="https://kie.ai" target="_blank" style="color:var(--accent,#4a90d9);font-weight:600;">kie.ai</a></li>
+                    <li>Đăng ký tài khoản → API Key Management</li>
                     <li>Copy API key và dán vào ô bên dưới</li>
                 </ol>
                 <div style="display:flex;gap:8px;margin-top:12px;">
-                    <input type="text" id="guide-gemini-key" placeholder="AIzaSy..." style="flex:1;padding:10px 12px;border:1px solid var(--border-light,#ddd);border-radius:8px;font-size:0.85rem;background:var(--bg-primary,#fff);">
-                    <button onclick="saveGuideKey('gemini')" style="padding:10px 16px;background:var(--accent,#4a90d9);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Lưu</button>
+                    <input type="text" id="guide-kie-key" placeholder="Nhập API Key từ Kie AI..." style="flex:1;padding:10px 12px;border:1px solid var(--border-light,#ddd);border-radius:8px;font-size:0.85rem;background:var(--bg-primary,#fff);">
+                    <button onclick="saveGuideKey('kie')" style="padding:10px 16px;background:var(--accent,#4a90d9);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Lưu</button>
                 </div>
-            </div>
-
-            <div style="background:var(--bg-secondary,#f5f7fa);border-radius:12px;padding:20px;margin-bottom:16px;">
-                <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 12px 0;">🔗 Cách 2: OpenRouter (Nhiều model)</h3>
-                <ol style="margin:0;padding-left:20px;font-size:0.85rem;line-height:1.7;color:var(--text-secondary,#555);">
-                    <li>Truy cập <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent,#4a90d9);font-weight:600;">openrouter.ai/keys</a></li>
-                    <li>Đăng ký → Tạo API key</li>
-                    <li>Copy key và dán vào ô bên dưới</li>
-                </ol>
-                <div style="display:flex;gap:8px;margin-top:12px;">
-                    <input type="text" id="guide-openrouter-key" placeholder="sk-or-v1-..." style="flex:1;padding:10px 12px;border:1px solid var(--border-light,#ddd);border-radius:8px;font-size:0.85rem;background:var(--bg-primary,#fff);">
-                    <button onclick="saveGuideKey('openrouter')" style="padding:10px 16px;background:var(--accent,#4a90d9);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Lưu</button>
+                <div style="margin-top:10px;padding:10px;background:var(--bg-primary,#fff);border-radius:8px;font-size:0.78rem;color:var(--text-secondary,#888);">
+                    💰 Giá: 1K/2K = 18 credits (~$0.09) · 4K = 24 credits (~$0.12)
                 </div>
             </div>
 
             <div style="text-align:center;padding-top:8px;border-top:1px solid var(--border-light,#eee);">
-                <p style="font-size:0.82rem;color:var(--text-secondary,#888);margin:12px 0 8px 0;">Hoặc nâng cấp lên Pro (1.000 token/tháng) hoặc Premium (5.000 token/tháng)</p>
-                <div style="display:flex;gap:8px;justify-content:center;">
-                    <button onclick="document.getElementById('api-key-guide-modal').remove();switchTab('pricing')" style="padding:10px 20px;background:transparent;border:1px solid var(--border-light,#ddd);border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;">Xem gói nâng cấp</button>
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
                     <button onclick="document.getElementById('api-key-guide-modal').remove()" style="padding:10px 20px;background:transparent;border:1px solid var(--border-light,#ddd);border-radius:8px;cursor:pointer;font-size:0.85rem;color:var(--text-secondary,#888);">Đóng</button>
                 </div>
             </div>
         </div>
     `;
 
-    // Close on backdrop click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
     });
@@ -1036,15 +931,10 @@ function showApiKeyGuideModal() {
  * Save API key from the guide modal and close it
  */
 function saveGuideKey(type) {
-    let key = '';
-    if (type === 'gemini') {
-        key = document.getElementById('guide-gemini-key')?.value.trim();
+    if (type === 'kie') {
+        const key = document.getElementById('guide-kie-key')?.value.trim();
         if (!key) { showToast('Vui lòng nhập API key', 'error'); return; }
-        APP_STATE.settings.geminiApiKey = key;
-    } else if (type === 'openrouter') {
-        key = document.getElementById('guide-openrouter-key')?.value.trim();
-        if (!key) { showToast('Vui lòng nhập API key', 'error'); return; }
-        APP_STATE.settings.openrouterApiKey = key;
+        APP_STATE.settings.kieApiKey = key;
     }
 
     // Save to localStorage
@@ -1052,254 +942,147 @@ function saveGuideKey(type) {
 
     // Also update settings form if visible
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-    setVal('setting-gemini-key', APP_STATE.settings.geminiApiKey || '');
-    setVal('setting-openrouter-key', APP_STATE.settings.openrouterApiKey || '');
+    setVal('setting-kie-key', APP_STATE.settings.kieApiKey || '');
 
     updateProviderStatus();
 
-    // Close modal
     document.getElementById('api-key-guide-modal')?.remove();
     showToast('✅ API key đã được lưu! Bạn có thể tạo ảnh không giới hạn.', 'success', 4000);
 }
 window.saveGuideKey = saveGuideKey;
+
 /**
- * Show a clear error message to the user instead of displaying a random gallery image
+ * Show a clear error message to the user
  */
 function showGenerationError(message) {
     const placeholder = document.getElementById('result-placeholder');
     placeholder.classList.remove('hidden');
 
-    // Classify error and provide helpful guidance
     let guidance = '';
     const lower = message.toLowerCase();
 
     if (lower.includes('token') || lower.includes('api key') || lower.includes('cấu hình')) {
-        guidance = '🔒 Vui lòng vào Cài đặt (thanh bên) để thêm API token MeiGen hoặc OpenAI key.';
+        guidance = '🔒 Vui lòng vào Cài đặt để thêm Kie AI API key.';
     } else if (lower.includes('401') || lower.includes('403') || lower.includes('unauthorized')) {
-        guidance = '🔑 API token không hợp lệ hoặc đã hết hạn. Kiểm tra lại trong Cài đặt.';
+        guidance = '🔑 API key không hợp lệ hoặc đã hết hạn. Kiểm tra lại trong Cài đặt.';
     } else if (lower.includes('402') || lower.includes('credit') || lower.includes('insufficient')) {
-        guidance = '💰 Hết credit. Credit miễn phí sẽ được reset mỗi ngày.';
+        guidance = '💰 Hết credit Kie AI. Nạp thêm tại kie.ai.';
     } else if (lower.includes('429') || lower.includes('rate')) {
         guidance = '⏳ Quá nhiều request. Vui lòng đợi vài giây rồi thử lại.';
     } else if (lower.includes('timeout') || lower.includes('timed out')) {
-        guidance = '⏱️ Request quá lâu. Thử lại � có thể server đang bận.';
+        guidance = '⏱️ Request quá lâu. Thử lại — có thể server đang bận.';
     } else if (lower.includes('network') || lower.includes('fetch') || lower.includes('econnrefused')) {
         guidance = '🌐 Lỗi kết nối mạng. Kiểm tra internet và thử lại.';
     } else if (lower.includes('safety') || lower.includes('policy') || lower.includes('flagged')) {
         guidance = '🚫 Prompt có thể vi phạm chính sách nội dung. Thử chỉnh sửa prompt.';
     } else {
-        guidance = '❌ Thử lại hoặc chọn model/provider khác.';
+        guidance = '❌ Vui lòng thử lại.';
     }
 
     showToast(`❌ ${message}\n${guidance}`, 'error', 6000);
 }
 
-async function generateViaComfyUI(prompt, negativePrompt) {
-    const url = APP_STATE.settings.comfyuiUrl;
-    if (!url) throw new Error('ComfyUI URL chưa được cấu hình');
+/**
+ * Generate image via Kie AI API (Nanobanana Pro)
+ * Step 1: Create task via POST /api/v1/jobs/createTask
+ * Step 2: Poll for result via GET /api/v1/jobs/queryTask/{taskId}
+ */
+async function generateViaKieAI(prompt, aspectRatio, resolution) {
+    const apiKey = APP_STATE.settings.kieApiKey || getAdminAPIKey('kie');
+    if (!apiKey) throw new Error('Kie AI API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
 
-    // Basic ComfyUI API call
-    const response = await fetch(`${url}/prompt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            prompt: { /* workflow would go here */ },
-        }),
-    });
+    const baseUrl = getAdminAPIKey('kieBase') || 'https://api.kie.ai';
+    const model = getAdminAPIKey('kieModel') || 'nano-banana-pro';
 
-    if (!response.ok) throw new Error(`ComfyUI error: ${response.status}`);
-    return await response.json();
-}
+    // Collect reference images if any
+    const imageInput = APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages.slice(0, 8) : [];
 
-async function generateViaOpenAI(prompt, model, quality, size, negativePrompt) {
-    const apiKey = APP_STATE.settings.openaiKey || getAdminAPIKey('openai');
-    if (!apiKey) throw new Error('OpenAI API Key chưa được cấu hình. Vào Cài đặt để thêm.');
+    // Map resolution value
+    const resolutionValue = resolution || '2K';
 
-    const baseUrl = APP_STATE.settings.openaiBase || getAdminAPIKey('openaiBase') || 'https://api.openai.com';
-    const sizeMap = { '1:1': '1024x1024', '3:4': '1024x1536', '4:3': '1536x1024', '16:9': '1536x1024', '9:16': '1024x1536' };
-
-    const response = await fetch(`${baseUrl}/v1/images/generations`, {
+    // Step 1: Create task
+    const createResponse = await fetch(`${baseUrl}/api/v1/jobs/createTask`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-            model: model || APP_STATE.settings.openaiModel || getAdminAPIKey('openaiModel') || 'gpt-image-1',
-            prompt: negativePrompt ? `${prompt}\n\nAvoid: ${negativePrompt}` : prompt,
-            size: sizeMap[size] || '1024x1024',
-            quality,
-            n: 1,
+            model: model,
+            input: {
+                prompt: prompt,
+                image_input: imageInput,
+                aspect_ratio: aspectRatio || '1:1',
+                resolution: resolutionValue,
+                output_format: 'png',
+            },
         }),
     });
 
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || `OpenAI error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const imageData = data.data?.[0];
-    const imageUrl = imageData?.url || (imageData?.b64_json ? `data:image/png;base64,${imageData.b64_json}` : null);
-    if (!imageUrl) throw new Error('Không nhận được ảnh từ OpenAI API');
-    return { imageUrl };
-}
-
-/**
- * Generate image via Google Gemini API
- * Uses gemini-2.0-flash-exp-image-generation (works with standard AI Studio keys)
- * Falls back to imagen-3.0-generate-002 if admin configured it specifically
- */
-async function generateViaGemini(prompt, model, aspectRatio) {
-    const apiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
-    if (!apiKey) throw new Error('Gemini API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
-
-    // Check if admin specifically configured an imagen model
-    const cfg = getSiteConfig();
-    const adminModel = cfg.api?.googleModel || '';
-    const useImagen = adminModel.startsWith('imagen-');
-
-    // Map aspect ratio
-    const arMap = { '1:1': '1:1', '3:4': '3:4', '4:3': '4:3', '16:9': '16:9', '9:16': '9:16' };
-    const ar = arMap[aspectRatio] || '1:1';
-
-    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    let response;
-
-    if (useImagen) {
-        // === Imagen path (requires special API access / billing) ===
-        const modelId = adminModel;
-        const DIRECT_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:predict`;
-        const PROXY_URL = '/gemini-proxy.php';
-        const requestBody = { instances: [{ prompt }], parameters: { sampleCount: 1, aspectRatio: ar } };
-
-        if (isLocal) {
-            response = await fetch(DIRECT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-                body: JSON.stringify(requestBody),
-            });
-        } else {
-            response = await fetch(PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey, model: modelId, prompt, aspectRatio: ar, sampleCount: 1 }),
-            });
-        }
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            const errMsg = err.error?.message || `HTTP ${response.status}`;
-            if (response.status === 429) throw new Error('Quota Imagen API hết. Vui lòng kiểm tra billing tại console.cloud.google.com hoặc dùng model Gemini thay thế.');
-            if (response.status === 403 || response.status === 404) throw new Error('API key không có quyền dùng Imagen. Vào Admin → đổi Model thành để trống (dùng Gemini Flash Image).');
-            throw new Error(errMsg);
-        }
-
-        const data = await response.json();
-        const imageBytes = data.predictions?.[0]?.bytesBase64Encoded || data.generatedImages?.[0]?.image?.imageBytes;
-        if (!imageBytes) throw new Error('Không nhận được ảnh từ Imagen API.');
-        const mimeType = data.predictions?.[0]?.mimeType || 'image/png';
-        return { imageUrl: `data:${mimeType};base64,${imageBytes}` };
-
-    } else {
-        // === Gemini Flash Image path (works with standard AI Studio key) ===
-        const MODEL = 'gemini-2.0-flash-exp-image-generation';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-        const body = {
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
-        };
-
-        response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            const errMsg = err.error?.message || `HTTP ${response.status}`;
-            if (response.status === 429) throw new Error('Quota API hết. Gemini free tier rất giới hạn. Thử lại sau 1 phút hoặc dùng OpenRouter key.');
-            if (response.status === 400 && String(errMsg).toLowerCase().includes('safety')) throw new Error('Prompt vi phạm bộ lọc an toàn của Google. Vui lòng chỉnh sửa.');
-            if (response.status === 403) throw new Error('API key không có quyền. Kiểm tra lại key tại aistudio.google.com/apikey.');
-            throw new Error(errMsg);
-        }
-
-        const data = await response.json();
-        const parts = data.candidates?.[0]?.content?.parts || [];
-        const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
-        if (!imagePart) throw new Error('Không nhận được ảnh. Prompt có thể bị lọc bởi safety filter của Google.');
-        return { imageUrl: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` };
-    }
-}
-
-/**
- * Generate image via OpenRouter API
- * Uses /images/generations for image models, /chat/completions for others
- */
-async function generateViaOpenRouter(prompt, model, aspectRatio, negativePrompt) {
-    const apiKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
-    if (!apiKey) throw new Error('OpenRouter API Key chưa được cấu hình. Nhấn nút 🔑 API Key để thêm.');
-
-    const modelId = model || 'openai/gpt-image-1';
-    const sizeMap = { '1:1': '1024x1024', '3:4': '1024x1536', '4:3': '1536x1024', '16:9': '1792x1024', '9:16': '1024x1792' };
-    const size = sizeMap[aspectRatio] || '1024x1024';
-    const fullPrompt = negativePrompt ? `${prompt}\n\nAvoid: ${negativePrompt}` : prompt;
-
-    // GPT Image 1 and DALL-E models use the images/generations endpoint (OpenAI-compatible)
-    const isImageModel = modelId.includes('gpt-image') || modelId.includes('dall-e') || modelId.includes('imagen');
-
-    let response;
-    if (isImageModel) {
-        // Use OpenAI-style image generation endpoint
-        response = await fetch('https://openrouter.ai/api/v1/images/generations', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': window.location.origin || 'https://kgen.kudomax.vn',
-                'X-Title': 'KGen Gallery',
-            },
-            body: JSON.stringify({
-                model: modelId,
-                prompt: fullPrompt,
-                size,
-                n: 1,
-                response_format: 'url',
-            }),
-        });
-    } else {
-        // Other models: use chat completions with image request
-        response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': window.location.origin || 'https://kgen.kudomax.vn',
-                'X-Title': 'KGen Gallery',
-            },
-            body: JSON.stringify({
-                model: modelId,
-                messages: [{ role: 'user', content: fullPrompt }],
-            }),
-        });
-    }
-
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        const errMsg = err.error?.message || `OpenRouter error: ${response.status}`;
-        if (response.status === 401) throw new Error('OpenRouter API key không hợp lệ. Kiểm tra lại key.');
-        if (response.status === 402) throw new Error('Hết credit OpenRouter. Nạp thêm tại openrouter.ai/credits.');
-        if (response.status === 404) throw new Error('Model "' + modelId + '" không tồn tại trên OpenRouter. Chọn model khác.');
-        if (response.status === 429) throw new Error('Quá nhiều request. Chờ vài giây rồi thử lại.');
+    if (!createResponse.ok) {
+        const err = await createResponse.json().catch(() => ({}));
+        const errMsg = err.message || `HTTP ${createResponse.status}`;
+        if (createResponse.status === 401) throw new Error('Kie AI API key không hợp lệ. Kiểm tra lại key tại kie.ai.');
+        if (createResponse.status === 402) throw new Error('Hết credit Kie AI. Nạp thêm tại kie.ai.');
+        if (createResponse.status === 429) throw new Error('Quá nhiều request. Đợi vài giây rồi thử lại.');
         throw new Error(errMsg);
     }
 
-    const data = await response.json();
-    const imageData = data.data?.[0];
-    const imageUrl = imageData?.url || (imageData?.b64_json ? `data:image/png;base64,${imageData.b64_json}` : null);
-    if (!imageUrl) throw new Error('Không nhận được ảnh từ OpenRouter. Model này có thể không hỗ trợ tạo ảnh.');
-    return { imageUrl };
+    const createData = await createResponse.json();
+    if (createData.code !== 200) {
+        throw new Error(createData.message || 'Lỗi khi tạo task.');
+    }
+
+    const taskId = createData.data?.taskId;
+    if (!taskId) throw new Error('Không nhận được taskId từ server.');
+
+    // Step 2: Poll for result
+    const maxWait = 120000; // 2 minutes timeout
+    const pollInterval = 2000; // Poll every 2 seconds
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < maxWait) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+        const queryResponse = await fetch(`${baseUrl}/api/v1/jobs/queryTask/${taskId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+            },
+        });
+
+        if (!queryResponse.ok) {
+            // Server hiccup, continue polling
+            console.warn('Poll error:', queryResponse.status);
+            continue;
+        }
+
+        const queryData = await queryResponse.json();
+        const taskData = queryData.data || queryData;
+
+        if (taskData.state === 'success') {
+            // Parse resultJson to get image URL
+            let resultUrls = [];
+            try {
+                const resultJson = JSON.parse(taskData.resultJson || '{}');
+                resultUrls = resultJson.resultUrls || [];
+            } catch (e) {
+                console.warn('Failed to parse resultJson:', e);
+            }
+
+            if (resultUrls.length > 0) {
+                return { imageUrl: resultUrls[0] };
+            } else {
+                throw new Error('Tạo ảnh thành công nhưng không có URL ảnh.');
+            }
+        } else if (taskData.state === 'fail') {
+            const failMsg = taskData.failMsg || 'Tạo ảnh thất bại.';
+            throw new Error(failMsg);
+        }
+        // else: still processing, continue poll
+    }
+
+    throw new Error('Quá thời gian chờ (2 phút). Vui lòng thử lại.');
 }
 
 
@@ -1583,19 +1366,12 @@ function setupSettingsEvents() {
     document.getElementById('btn-reset-settings').addEventListener('click', resetSettings);
 
     // Toggle token visibility
-    document.getElementById('btn-toggle-gemini-key')?.addEventListener('click', () => {
-        const input = document.getElementById('setting-gemini-key');
-        if (input) input.type = input.type === 'password' ? 'text' : 'password';
-    });
-    document.getElementById('btn-toggle-openrouter-key')?.addEventListener('click', () => {
-        const input = document.getElementById('setting-openrouter-key');
-        if (input) input.type = input.type === 'password' ? 'text' : 'password';
-    });
-    document.getElementById('btn-toggle-kgen-token')?.addEventListener('click', () => {
-        const input = document.getElementById('setting-kgen-token');
+    document.getElementById('btn-toggle-kie-key')?.addEventListener('click', () => {
+        const input = document.getElementById('setting-kie-key');
         if (input) input.type = input.type === 'password' ? 'text' : 'password';
     });
 }
+
 
 function loadSettings() {
     try {
@@ -1604,13 +1380,7 @@ function loadSettings() {
 
         // Populate form
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-        setVal('setting-gemini-key', APP_STATE.settings.geminiApiKey || '');
-        setVal('setting-openrouter-key', APP_STATE.settings.openrouterApiKey || '');
-        setVal('setting-kgen-token', APP_STATE.settings.kgenToken || '');
-        setVal('setting-openai-key', APP_STATE.settings.openaiKey || '');
-        setVal('setting-openai-base', APP_STATE.settings.openaiBase || 'https://api.openai.com');
-        setVal('setting-openai-model', APP_STATE.settings.openaiModel || 'gpt-image-1');
-        setVal('setting-comfyui-url', APP_STATE.settings.comfyuiUrl || 'http://localhost:8188');
+        setVal('setting-kie-key', APP_STATE.settings.kieApiKey || '');
         setVal('setting-google-client-id', APP_STATE.settings.googleClientId || '');
         setVal('setting-supabase-url', APP_STATE.settings.supabaseUrl || '');
         setVal('setting-supabase-anon-key', APP_STATE.settings.supabaseAnonKey || '');
@@ -1627,13 +1397,7 @@ function loadSettings() {
 function saveSettings() {
     const getVal = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
     APP_STATE.settings = {
-        geminiApiKey: getVal('setting-gemini-key'),
-        openrouterApiKey: getVal('setting-openrouter-key'),
-        kgenToken: getVal('setting-kgen-token'),
-        openaiKey: getVal('setting-openai-key'),
-        openaiBase: getVal('setting-openai-base'),
-        openaiModel: getVal('setting-openai-model'),
-        comfyuiUrl: getVal('setting-comfyui-url'),
+        kieApiKey: getVal('setting-kie-key'),
         googleClientId: getVal('setting-google-client-id'),
         supabaseUrl: getVal('setting-supabase-url'),
         supabaseAnonKey: getVal('setting-supabase-anon-key'),
@@ -1662,13 +1426,7 @@ function saveSettings() {
 function resetSettings() {
     localStorage.removeItem('kgen_settings');
     APP_STATE.settings = {
-        geminiApiKey: '',
-        openrouterApiKey: '',
-        kgenToken: '',
-        openaiKey: '',
-        openaiBase: 'https://api.openai.com',
-        openaiModel: 'gpt-image-1',
-        comfyuiUrl: 'http://localhost:8188',
+        kieApiKey: '',
         googleClientId: '',
         supabaseUrl: '',
         supabaseAnonKey: '',
@@ -1678,13 +1436,7 @@ function resetSettings() {
     };
 
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-    setVal('setting-gemini-key', '');
-    setVal('setting-openrouter-key', '');
-    setVal('setting-kgen-token', '');
-    setVal('setting-openai-key', '');
-    setVal('setting-openai-base', 'https://api.openai.com');
-    setVal('setting-openai-model', 'gpt-image-1');
-    setVal('setting-comfyui-url', 'http://localhost:8188');
+    setVal('setting-kie-key', '');
     setVal('setting-google-client-id', '');
     setVal('setting-supabase-url', '');
     setVal('setting-supabase-anon-key', '');
@@ -1698,17 +1450,12 @@ function resetSettings() {
 
 function updateProviderStatus() {
     const statusEl = document.getElementById('provider-status');
-    const providers = [];
+    const hasKey = !!(APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
 
-    if (APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini')) providers.push('Gemini');
-    if (APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter')) providers.push('OpenRouter');
-    if (APP_STATE.settings.openaiKey || getAdminAPIKey('openai')) providers.push('OpenAI');
-    if (APP_STATE.settings.comfyuiUrl && APP_STATE.settings._comfyuiManuallySet) providers.push('ComfyUI');
-
-    if (providers.length > 0) {
+    if (hasKey) {
         statusEl.innerHTML = `
             <div class="status-dot"></div>
-            <span>${providers.join(', ')}</span>
+            <span>Kie AI (Nanobanana Pro)</span>
         `;
     } else {
         statusEl.innerHTML = `
@@ -1717,6 +1464,7 @@ function updateProviderStatus() {
         `;
     }
 }
+
 
 // ============================================================
 // UTILITIES
@@ -2679,16 +2427,10 @@ function initQuickApiKeyModal() {
     fab.addEventListener('click', () => {
         modal.classList.remove('hidden');
         updateQuickApiStatus();
-        // Pre-fill existing keys (masked)
-        const geminiKey = APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini');
-        const orKey = APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter');
-        const oaiKey = APP_STATE.settings.openaiKey || getAdminAPIKey('openai');
-        const gemEl = document.getElementById('qk-gemini');
-        const orEl = document.getElementById('qk-openrouter');
-        const oaiEl = document.getElementById('qk-openai');
-        if (gemEl && geminiKey) gemEl.value = geminiKey;
-        if (orEl && orKey) orEl.value = orKey;
-        if (oaiEl && oaiKey) oaiEl.value = oaiKey;
+        // Pre-fill existing key
+        const kieKey = APP_STATE.settings.kieApiKey || getAdminAPIKey('kie');
+        const kieEl = document.getElementById('qk-kie');
+        if (kieEl && kieKey) kieEl.value = kieKey;
     });
 
     // Close modal
@@ -2697,7 +2439,7 @@ function initQuickApiKeyModal() {
         if (e.target === modal) modal.classList.add('hidden');
     });
 
-    // Tab switching
+    // Tab switching (keep for compatibility)
     document.querySelectorAll('.quick-api-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.quick-api-tab').forEach(t => t.classList.remove('active'));
@@ -2713,17 +2455,13 @@ function updateApiKeyFabState() {
     const btn = document.getElementById('btn-quick-api');
     if (!btn) return;
 
-    const hasGemini = !!(APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini'));
-    const hasOR = !!(APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter'));
-    const hasOAI = !!(APP_STATE.settings.openaiKey || getAdminAPIKey('openai'));
-    const hasAny = hasGemini || hasOR || hasOAI;
+    const hasKey = !!(APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
 
     const miniIcon = document.getElementById('api-key-mini-icon');
     const okIcon = document.getElementById('api-key-ok-icon');
-    // Support both old and new icon patterns
     const checkIcon = document.getElementById('api-key-check-icon') || okIcon;
 
-    if (hasAny) {
+    if (hasKey) {
         btn.classList.add('has-key');
         if (miniIcon) miniIcon.style.display = 'none';
         if (okIcon) okIcon.style.display = '';
@@ -2734,56 +2472,40 @@ function updateApiKeyFabState() {
         if (okIcon) okIcon.style.display = 'none';
         if (checkIcon && checkIcon !== okIcon) checkIcon.style.display = 'none';
     }
-    // Update label if exists
     const label = document.getElementById('api-key-fab-label');
-    if (label) label.textContent = hasAny ? 'Key đã cấu hình' : 'API Key';
+    if (label) label.textContent = hasKey ? 'Key đã cấu hình' : 'API Key';
 }
 
 function updateQuickApiStatus() {
     const container = document.getElementById('quick-api-status');
     if (!container) return;
 
-    const keys = [
-        { label: 'Google Gemini', has: !!(APP_STATE.settings.geminiApiKey || getAdminAPIKey('gemini')) },
-        { label: 'OpenRouter', has: !!(APP_STATE.settings.openrouterApiKey || getAdminAPIKey('openrouter')) },
-        { label: 'OpenAI', has: !!(APP_STATE.settings.openaiKey || getAdminAPIKey('openai')) },
-    ];
+    const hasKey = !!(APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
 
-    const hasAny = keys.some(k => k.has);
-    if (!hasAny) { container.innerHTML = ''; return; }
+    if (!hasKey) { container.innerHTML = ''; return; }
 
-    container.innerHTML = keys.map(k => `
+    container.innerHTML = `
         <div class="qk-status-row">
-            <span class="qk-status-dot ${k.has ? 'on' : 'off'}"></span>
-            <span>${k.label}: ${k.has ? '✅ Đã cấu hình' : '⬜ Chưa có'}</span>
+            <span class="qk-status-dot on"></span>
+            <span>Kie AI (Nanobanana Pro): ✅ Đã cấu hình</span>
         </div>
-    `).join('');
+    `;
 }
 
 function saveQuickKey(provider) {
-    let key = '';
-    if (provider === 'gemini') {
-        key = document.getElementById('qk-gemini')?.value.trim();
-        if (!key) { showToast('Vui lòng nhập Google Gemini API Key', 'error'); return; }
-        APP_STATE.settings.geminiApiKey = key;
-    } else if (provider === 'openrouter') {
-        key = document.getElementById('qk-openrouter')?.value.trim();
-        if (!key) { showToast('Vui lòng nhập OpenRouter API Key', 'error'); return; }
-        APP_STATE.settings.openrouterApiKey = key;
-    } else if (provider === 'openai') {
-        key = document.getElementById('qk-openai')?.value.trim();
-        if (!key) { showToast('Vui lòng nhập OpenAI API Key', 'error'); return; }
-        APP_STATE.settings.openaiKey = key;
+    if (provider === 'kie' || provider === 'gemini') {
+        // Accept both 'kie' and 'gemini' for backward compatibility
+        const key = (document.getElementById('qk-kie') || document.getElementById('qk-gemini'))?.value.trim();
+        if (!key) { showToast('Vui lòng nhập Kie AI API Key', 'error'); return; }
+        APP_STATE.settings.kieApiKey = key;
     }
 
     // Persist to localStorage
     localStorage.setItem('kgen_settings', JSON.stringify(APP_STATE.settings));
 
     // Sync to settings panel UI if it exists
-    const g = document.getElementById('setting-gemini-key');
-    const o = document.getElementById('setting-openrouter-key');
-    if (g) g.value = APP_STATE.settings.geminiApiKey || '';
-    if (o) o.value = APP_STATE.settings.openrouterApiKey || '';
+    const kieEl = document.getElementById('setting-kie-key');
+    if (kieEl) kieEl.value = APP_STATE.settings.kieApiKey || '';
 
     updateProviderStatus();
     updateQuickApiStatus();

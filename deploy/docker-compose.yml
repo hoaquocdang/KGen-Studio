@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  kgen-gallery:
+    image: nginx:alpine
+    container_name: kgen-gallery
+    restart: unless-stopped
+    volumes:
+      - ./web-ui:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    labels:
+      # Traefik auto-discovery
+      - "traefik.enable=true"
+      # HTTPS route
+      - "traefik.http.routers.kgen.rule=Host(`kgen.cloud`)"
+      - "traefik.http.routers.kgen.entrypoints=websecure"
+      - "traefik.http.routers.kgen.tls.certresolver=myresolver"
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.kgen-http.rule=Host(`kgen.cloud`)"
+      - "traefik.http.routers.kgen-http.entrypoints=web"
+      - "traefik.http.routers.kgen-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # Service port
+      - "traefik.http.services.kgen.loadbalancer.server.port=80"
+    networks:
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
