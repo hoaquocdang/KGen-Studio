@@ -885,6 +885,14 @@ function showAIToolsModal() {
                         <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-primary);">🎬 Tạo kịch bản Video Veo 3</h3>
                         <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">Trích xuất nội dung từ sách, tài liệu thành Format Video Veo 3 hấp dẫn học sinh.</p>
                     </div>
+                    <div style="grid-column:1/-1;border:1px solid var(--border-light);padding:16px;border-radius:12px;background:var(--bg-tertiary);transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)';" onmouseout="this.style.borderColor='var(--border-light)';">
+                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-primary);">🚀 Workflow tạo video - Podcasts - quảng cáo</h3>
+                        <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">Tự động tạo video, podcast và quảng cáo từ văn bản với quy trình chuẩn.</p>
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <a href="https://picsart.com/pricing/referral?referralCode=490498f3-87d2-4745-86e9-55f072c79294" target="_blank" class="btn btn-primary" style="padding:6px 16px; font-size:0.85rem; height:auto;">Đăng ký tài khoản</a>
+                            <a href="https://picsart.com/create/workflows/fbc60bc110349ff61e7106f961e1aedd4c8e5d144bbb20c577be97293794dc4d" target="_blank" class="btn btn-ghost" style="padding:6px 16px; font-size:0.85rem; height:auto; border:1px solid var(--border-color);">Mẫu tự động</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
