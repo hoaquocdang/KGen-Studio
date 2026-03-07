@@ -3496,3 +3496,193 @@ button[data-tab="settings"] {
     color: var(--accent-purple);
     font-weight: 600;
 }
+
+/* =========================================
+   ENHANCE PROMPT TAB
+========================================= */
+.enhance-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+@media (max-width: 1024px) {
+    .enhance-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.enhance-card,
+.enhance-result {
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.enhance-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.enhance-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.style-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.style-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--duration-fast) cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-sans);
+}
+
+.style-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.style-btn.active {
+    background: rgba(139, 92, 246, 0.15);
+    /* light purple bg */
+    border-color: rgba(139, 92, 246, 0.4);
+    color: var(--accent-purple);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+}
+
+.style-emoji {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#btn-enhance {
+    margin-top: 10px;
+    padding: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent-purple) 0%, #a855f7 100%);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+    border: none;
+    letter-spacing: 0.5px;
+}
+
+#btn-enhance:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
+}
+
+.enhance-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    margin-top: 20px;
+    color: var(--text-muted);
+    text-align: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.enhance-placeholder svg {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-8px) rotate(2deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+}
+
+.enhanced-prompt {
+    background: rgba(139, 92, 246, 0.03);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.02);
+}
+
+.enhanced-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+}
+
+.enhanced-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+    color: #e9d5ff;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.enhanced-text {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.hidden {
+    display: none !important;
+}
