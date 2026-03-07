@@ -169,12 +169,20 @@
             <div class="sidebar-legal">
                 <a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">DMCA</a> · <a href="#">Refund</a>
             </div>
-            <div class="sidebar-share">
-                <strong>Share KGen</strong>
-                <span>🎁</span>
-                <p>Invite friends, get 200 credits</p>
+            <!-- Sidebar User Stats / Tokens (hidden until logged in/fetched) -->
+            <div class="sidebar-user-stats" id="sidebar-user-stats"
+                style="display:none; padding:12px; border-radius:12px; background:var(--bg-secondary); margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                    <strong style="font-size:0.85rem;" id="sidebar-plan-name">Gói FREE</strong>
+                    <span style="font-size:0.75rem; color:var(--text-tertiary);" id="sidebar-token-count">0 / 10</span>
+                </div>
+                <div style="height:6px; background:var(--bg-tertiary); border-radius:3px; overflow:hidden;">
+                    <div id="sidebar-token-bar"
+                        style="height:100%; background:var(--primary); width:0%; transition: width 0.3s ease;"></div>
+                </div>
             </div>
-            <div class="sidebar-cta-row">
+
+            <div class="sidebar-cta-row" id="sidebar-user-cta">
                 <button class="btn-cta-dark" id="btn-open-login">Get Started</button>
                 <button class="btn-cta-outline" id="mobile-credits-btn-sb">Free Credits Daily</button>
             </div>
@@ -460,135 +468,96 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- Quality -->
-                            <div class="gen-ctrl gen-quality-ctrl">
-                                <button class="gen-ctrl-btn gen-quality-trigger" id="gen-quality-trigger" type="button">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="4.5" />
-                                        <path d="M2 12H7M17 12H22" />
-                                    </svg>
-                                    <span id="gen-quality-label">2K</span>
-                                </button>
-                                <div class="gen-quality-dropdown hidden" id="gen-quality-dropdown">
-                                    <button class="gen-q-opt" data-quality="1K" data-label="1K">1K — Nhanh (18
-                                        credits)</button>
-                                    <button class="gen-q-opt active" data-quality="2K" data-label="2K">2K — Sắc nét (18
-                                        credits)</button>
-                                    <button class="gen-q-opt" data-quality="4K" data-label="4K">4K — Cao nhất (24
-                                        credits)</button>
+                            <!-- 5. Advanced Options (Quality & Model) -->
+                            <div class="gen-setting-group" style="margin-top: 16px;">
+                                <label class="gen-setting-label"
+                                    style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px; display:block;">Chất
+                                    lượng ảnh</label>
+                                <div class="segmented-control glass-panel" id="gen-quality-segment">
+                                    <button type="button" class="segment-btn" data-value="1K">1K Nhanh</button>
+                                    <button type="button" class="segment-btn active" data-value="2K">2K Tiêu
+                                        chuẩn</button>
+                                    <button type="button" class="segment-btn" data-value="4K">4K Sắc nét</button>
                                 </div>
                                 <input type="hidden" id="gen-quality" value="2K">
                             </div>
-                        </div>
 
-                        <!-- 5. Pricing Info -->
-                        <div class="gen-faq-row">
-                            <span class="gen-faq-icon">💰</span>
-                            <span class="gen-faq-label">Giá</span>
-                            <span class="gen-faq-link" style="cursor:default">1K/2K: 18 credits (~$0.09) · 4K: 24
-                                credits (~$0.12)</span>
-                        </div>
-
-                        <!-- 6. Notification Banner -->
-                        <div class="gen-banner" id="gen-banner">
-                            <span>Nanobanana Pro — 2K sắc nét, 4K scaling, text rendering tốt hơn 🎉</span>
-                            <button class="gen-banner-close" id="gen-banner-close" type="button">&times;</button>
-                        </div>
-
-                        <!-- Provider hidden (kie-ai) -->
-                        <input type="hidden" id="gen-provider" value="kie-ai">
-                        <input type="hidden" id="gen-negative" value="">
-
-                        <!-- 7. Model Selector -->
-                        <div class="gen-model-area">
-                            <div class="model-selector" id="model-selector">
-                                <div class="model-selector-btn" id="model-selector-btn">
-                                    <span class="model-sel-icon">
-                                        <span style="font-size:1.1rem">✨</span>
-                                    </span>
-                                    <span class="model-sel-name" id="model-sel-name">Nanobanana Pro</span>
-                                    <span class="model-sel-dot"></span>
-                                    <span class="model-badge new" style="margin-left:8px;font-size:0.65rem;"
-                                        id="model-sel-badge">by Google DeepMind</span>
-                                    <svg class="model-sel-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                        <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" />
-                                    </svg>
-                                </div>
-                                <div class="model-dropdown" id="model-dropdown">
-                                    <div class="model-option active" data-model="nano-banana-pro"
-                                        data-name="Nanobanana Pro" data-badge="by Google DeepMind" data-credits="18">
-                                        <span style="font-size:1rem">✨</span>
-                                        <span class="model-opt-name">Nanobanana Pro</span>
-                                        <span class="model-badge new">PRO</span>
-                                        <span class="model-opt-credits">18 cr</span>
-                                    </div>
-                                    <div class="model-option" data-model="nano-banana-2" data-name="Nano Banana 2"
-                                        data-badge="Google Search" data-credits="18">
-                                        <span style="font-size:1rem">🍌</span>
-                                        <span class="model-opt-name">Nano Banana 2</span>
-                                        <span class="model-badge new" style="background:#3b82f6;">NEW</span>
-                                        <span class="model-opt-credits">18 cr</span>
-                                    </div>
+                            <div class="gen-setting-group" style="margin-top: 16px; margin-bottom: 24px;">
+                                <label class="gen-setting-label"
+                                    style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">
+                                    <span>Mô hình AI</span>
+                                    <span
+                                        style="font-size:0.65rem; color:var(--text-tertiary); background:var(--bg-tertiary); padding:2px 6px; border-radius:4px;">BY
+                                        GOOGLE DEEPMIND</span>
+                                </label>
+                                <div class="segmented-control glass-panel" id="gen-model-segment">
+                                    <button type="button" class="segment-btn active" data-value="nano-banana-pro"
+                                        data-credits="18">Nanobanana Pro</button>
+                                    <button type="button" class="segment-btn" data-value="nano-banana-2"
+                                        data-credits="18" style="position:relative;">Nano Banana 2 <span
+                                            style="position:absolute; top:-4px; right:-4px; font-size:0.55rem; background:#3b82f6; color:#fff; padding:1px 4px; border-radius:10px;">NEW</span></button>
                                 </div>
                                 <input type="hidden" id="gen-model" value="nano-banana-pro">
                             </div>
+
+                            <!-- Provider hidden (kie-ai) -->
+                            <input type="hidden" id="gen-provider" value="kie-ai">
+                            <input type="hidden" id="gen-negative" value="">
+
+
+
+                            <!-- 8. Generate Button -->
+                            <button class="gen-generate-btn" id="btn-generate" type="button">
+                                <span class="gen-btn-text">Generate</span>
+                                <svg class="gen-btn-sparkle" width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                    <path
+                                        d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
+                                        fill="currentColor" />
+                                </svg>
+                                <span class="gen-btn-credits" id="gen-btn-credits">18</span>
+                            </button>
                         </div>
-
-
-
-                        <!-- 8. Generate Button -->
-                        <button class="gen-generate-btn" id="btn-generate" type="button">
-                            <span class="gen-btn-text">Generate</span>
-                            <svg class="gen-btn-sparkle" width="16" height="16" viewBox="0 0 20 20" fill="none">
-                                <path
-                                    d="M11.85 4.22L11.72 3.24C11.69 3 11.49 2.83 11.25 2.83C11.01 2.83 10.81 3 10.78 3.24L10.65 4.22C10.27 7.08 8.01 9.34 5.14 9.72L4.16 9.85C3.93 9.89 3.75 10.09 3.75 10.33C3.75 10.56 3.93 10.77 4.16 10.8L5.14 10.93C8.01 11.31 10.27 13.57 10.65 16.43L10.78 17.41C10.81 17.65 11.01 17.83 11.25 17.83C11.49 17.83 11.69 17.65 11.72 17.41L11.85 16.43C12.23 13.57 14.49 11.31 17.36 10.93L18.34 10.8C18.57 10.77 18.75 10.56 18.75 10.33C18.75 10.09 18.57 9.89 18.34 9.85L17.36 9.72C14.49 9.34 12.23 7.08 11.85 4.22Z"
-                                    fill="currentColor" />
-                            </svg>
-                            <span class="gen-btn-credits" id="gen-btn-credits">18</span>
-                        </button>
                     </div>
-                </div>
 
-                <!-- Generation Result -->
-                <div class="generate-result-container">
-                    <div class="result-card" id="result-card">
-                        <div class="result-placeholder" id="result-placeholder">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                                <rect x="8" y="8" width="64" height="64" rx="16" stroke="currentColor" stroke-width="2"
-                                    opacity="0.2" />
-                                <circle cx="28" cy="28" r="6" stroke="currentColor" stroke-width="1.5" opacity="0.3" />
-                                <path d="M8 56l16-20 12 15 8-10 28 15" stroke="currentColor" stroke-width="1.5"
-                                    opacity="0.25" />
-                            </svg>
-                            <h3>Ảnh của bạn sẽ hiển thị ở đây</h3>
-                            <p>Nhập prompt và nhấn "Generate" để bắt đầu</p>
-                        </div>
-                        <div class="result-image-wrap hidden" id="result-image-wrap">
-                            <img id="result-image" alt="Generated Image">
-                            <div class="result-actions">
-                                <button class="btn btn-sm btn-ghost" id="btn-download-result">⬇️ Tải về</button>
-                                <button class="btn btn-sm btn-ghost" id="btn-copy-url">📋 Sao chép URL</button>
-                                <button class="btn btn-sm btn-ghost" id="btn-use-as-ref">🔗 Dùng làm tham
-                                    chiếu</button>
-                                <button class="btn btn-sm btn-primary" id="btn-save-collection"
-                                    title="Lưu vào bộ sưu tập">❤️ Lưu</button>
+                    <!-- Generation Result -->
+                    <div class="generate-result-container">
+                        <div class="result-card" id="result-card">
+                            <div class="result-placeholder" id="result-placeholder">
+                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                                    <rect x="8" y="8" width="64" height="64" rx="16" stroke="currentColor"
+                                        stroke-width="2" opacity="0.2" />
+                                    <circle cx="28" cy="28" r="6" stroke="currentColor" stroke-width="1.5"
+                                        opacity="0.3" />
+                                    <path d="M8 56l16-20 12 15 8-10 28 15" stroke="currentColor" stroke-width="1.5"
+                                        opacity="0.25" />
+                                </svg>
+                                <h3>Ảnh của bạn sẽ hiển thị ở đây</h3>
+                                <p>Nhập prompt và nhấn "Generate" để bắt đầu</p>
+                            </div>
+                            <div class="result-image-wrap hidden" id="result-image-wrap">
+                                <img id="result-image" alt="Generated Image">
+                                <div class="result-actions">
+                                    <button class="btn btn-sm btn-ghost" id="btn-download-result">⬇️ Tải về</button>
+                                    <button class="btn btn-sm btn-ghost" id="btn-copy-url">📋 Sao chép URL</button>
+                                    <button class="btn btn-sm btn-ghost" id="btn-use-as-ref">🔗 Dùng làm tham
+                                        chiếu</button>
+                                    <button class="btn btn-sm btn-primary" id="btn-save-collection"
+                                        title="Lưu vào bộ sưu tập">❤️ Lưu</button>
+                                </div>
+                            </div>
+                            <div class="result-loading hidden" id="result-loading">
+                                <div class="gen-spinner"></div>
+                                <p>Đang tạo ảnh...</p>
+                                <span class="gen-timer" id="gen-timer">0s</span>
                             </div>
                         </div>
-                        <div class="result-loading hidden" id="result-loading">
-                            <div class="gen-spinner"></div>
-                            <p>Đang tạo ảnh...</p>
-                            <span class="gen-timer" id="gen-timer">0s</span>
+                        <!-- History -->
+                        <div class="gen-history" id="gen-history">
+                            <h3 class="history-title">Lịch sử tạo ảnh</h3>
+                            <div class="history-grid" id="history-grid"></div>
                         </div>
                     </div>
-                    <!-- History -->
-                    <div class="gen-history" id="gen-history">
-                        <h3 class="history-title">Lịch sử tạo ảnh</h3>
-                        <div class="history-grid" id="history-grid"></div>
-                    </div>
                 </div>
-            </div>
         </section>
 
         <!-- ===== ENHANCE TAB ===== -->

@@ -173,6 +173,9 @@ function incrementImageUsage() {
         quota.monthStart = new Date().toISOString();
     }
     saveUserQuota(quota);
+    if (typeof updateSidebarUserStats === 'function') {
+        updateSidebarUserStats();
+    }
 }
 
 function getQuotaDisplay() {
@@ -1723,6 +1726,11 @@ function updateProviderStatus() {
             <span>Chưa cấu hình API key</span>
         `;
     }
+
+    // Also sync the visual sidebar stats whenever auth or settings change
+    if (typeof updateSidebarUserStats === 'function') {
+        updateSidebarUserStats();
+    }
 }
 
 
@@ -2578,38 +2586,32 @@ function setupGenControls() {
         });
     }
 
-    // --- Quality Dropdown ---
-    const qTrigger = document.getElementById('gen-quality-trigger');
-    const qDropdown = document.getElementById('gen-quality-dropdown');
-    const qLabel = document.getElementById('gen-quality-label');
-    const qInput = document.getElementById('gen-quality');
+    // --- Generative Setting Segmented Controls ---
+    const segmentedControls = document.querySelectorAll('.segmented-control');
+    segmentedControls.forEach(control => {
+        const btns = control.querySelectorAll('.segment-btn');
+        // Find the hidden input that follows this control group
+        const hiddenInput = control.parentNode.querySelector('input[type="hidden"]');
 
-    if (qTrigger && qDropdown) {
-        qTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            qDropdown.classList.toggle('hidden');
-            // Close AR if open
-            if (arDropdown) arDropdown.classList.add('hidden');
-        });
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Remove active from all
+                btns.forEach(b => b.classList.remove('active'));
+                // Add active to clicked
+                btn.classList.add('active');
 
-        qDropdown.querySelectorAll('.gen-q-opt').forEach(opt => {
-            opt.addEventListener('click', () => {
-                qDropdown.querySelectorAll('.gen-q-opt').forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                if (qLabel) qLabel.textContent = opt.dataset.label;
-                if (qInput) qInput.value = opt.dataset.quality;
-                qDropdown.classList.add('hidden');
+                if (hiddenInput) {
+                    hiddenInput.value = btn.dataset.value;
+                }
             });
         });
-    }
+    });
 
     // Close all dropdowns on outside click
     document.addEventListener('click', (e) => {
         if (arDropdown && !arDropdown.contains(e.target) && arTrigger && !arTrigger.contains(e.target)) {
             arDropdown.classList.add('hidden');
-        }
-        if (qDropdown && !qDropdown.contains(e.target) && qTrigger && !qTrigger.contains(e.target)) {
-            qDropdown.classList.add('hidden');
         }
     });
 
@@ -2665,47 +2667,71 @@ function setupGenControls() {
             input.click();
         });
     }
+}
 
-    // --- Model Selector Dropdown ---
-    const modelBtn = document.getElementById('model-selector-btn');
-    const modelDropdown = document.getElementById('model-dropdown');
-    const modelInput = document.getElementById('gen-model');
-    const modelNameEl = document.getElementById('model-sel-name');
-    const modelBadgeEl = document.getElementById('model-sel-badge');
+// ============================================================
+// USER SIDEBAR STATS
+// ============================================================
 
-    if (modelBtn && modelDropdown) {
-        modelBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            modelDropdown.classList.toggle('active');
-            // Close other dropdowns
-            if (arDropdown) arDropdown.classList.add('hidden');
-            if (qDropdown) qDropdown.classList.add('hidden');
-        });
+function updateSidebarUserStats() {
+    const statsContainer = document.getElementById('sidebar-user-stats');
+    const ctaContainer = document.getElementById('sidebar-user-cta');
+    const planNameEl = document.getElementById('sidebar-plan-name');
+    const tokenCountEl = document.getElementById('sidebar-token-count');
+    const tokenBarEl = document.getElementById('sidebar-token-bar');
 
-        modelDropdown.querySelectorAll('.model-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                modelDropdown.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                const modelVal = opt.dataset.model;
-                const modelName = opt.dataset.name;
-                const badge = opt.dataset.badge;
-                const credits = opt.dataset.credits;
-                if (modelInput) modelInput.value = modelVal;
-                if (modelNameEl) modelNameEl.textContent = modelName;
-                if (modelBadgeEl) modelBadgeEl.textContent = badge;
-                const creditsEl = document.getElementById('gen-btn-credits');
-                if (creditsEl) creditsEl.textContent = credits;
-                modelDropdown.classList.remove('active');
-            });
-        });
+    // Only show if user has an API configuration or is logged in
+    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
+    const userKieKey = APP_STATE.settings.kieApiKey || '';
+    const adminKieKey = getAdminAPIKey('kie');
 
-        document.addEventListener('click', (e) => {
-            if (!modelBtn.contains(e.target) && !modelDropdown.contains(e.target)) {
-                modelDropdown.classList.remove('active');
-            }
-        });
+    if (!userGoogleKey && !userKieKey && !adminKieKey) {
+        // No keys at all, show promo
+        if (statsContainer) statsContainer.style.display = 'none';
+        if (ctaContainer) ctaContainer.style.display = 'flex';
+        return;
+    }
+
+    if (statsContainer) statsContainer.style.display = 'block';
+    if (ctaContainer) ctaContainer.style.display = 'none';
+
+    if (userGoogleKey) {
+        if (planNameEl) planNameEl.textContent = 'Google API';
+        if (tokenCountEl) tokenCountEl.textContent = '∞ Mức phí';
+        if (tokenBarEl) {
+            tokenBarEl.style.width = '100%';
+            tokenBarEl.style.background = 'var(--success)';
+        }
+        return;
+    }
+
+    // Using KI AI
+    const plan = getUserPlan();
+    const limit = getUserImageLimit();
+    const used = typeof getUserImagesUsed === 'function' ? getUserImagesUsed() : 0;
+
+    if (planNameEl) {
+        planNameEl.textContent = 'Gói ' + plan.toUpperCase();
+    }
+
+    if (tokenCountEl) {
+        tokenCountEl.textContent = `${used} / ${limit}`;
+    }
+
+    if (tokenBarEl) {
+        const percent = Math.min((used / limit) * 100, 100);
+        tokenBarEl.style.width = `${percent}%`;
+        if (percent > 90) {
+            tokenBarEl.style.background = 'var(--error)';
+        } else if (percent > 70) {
+            tokenBarEl.style.background = 'var(--warning)';
+        } else {
+            tokenBarEl.style.background = 'var(--primary)';
+        }
     }
 }
+
+
 
 // ============================================================
 // QUICK API KEY MODAL

@@ -3196,3 +3196,54 @@ button[data-tab="settings"] {
     padding: 2px 8px;
     border-radius: 20px;
 }
+
+/* --- Segmented Controls --- */
+.segmented-control {
+    display: flex;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    width: 100%;
+}
+
+.segmented-control .segment-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.segmented-control .segment-btn:hover {
+    color: var(--text-primary);
+}
+
+.segmented-control .segment-btn.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
+
+/* Optional glass effect for panel */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+    .glass-panel {
+        background: rgba(40, 40, 40, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}
