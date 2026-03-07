@@ -2747,19 +2747,22 @@ function setupPricing() {
     if (!container || typeof PRICING_TIERS === 'undefined') return;
 
     const currentTier = APP_STATE.currentUser?.tier || 'free';
+    const _cp = typeof convertPrice === 'function' ? convertPrice : (v) => v.toLocaleString() + 'đ';
+    const _period = typeof getCurrencyPeriod === 'function' ? getCurrencyPeriod() : '/tháng';
+    const _bpv = typeof BASE_PRICES_VND !== 'undefined' ? BASE_PRICES_VND : { free: 0, pro: 39000, premium: 199000 };
 
     container.innerHTML = `
         <div class="pricing-grid-inline">
             ${PRICING_TIERS.map(tier => `
                 <div class="pricing-card-inline ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}">
-                    ${tier.popular ? '<div class="popular-badge-inline">🔥 Phổ biến nhất</div>' : ''}
+                    ${tier.popular ? '<div class="popular-badge-inline">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
                     <div class="tier-header-inline">
                         <span class="tier-emoji-inline">${tier.emoji}</span>
                         <h3>${tier.name}</h3>
                     </div>
                     <div class="tier-price-inline">
-                        <span class="amount">${tier.price}</span>
-                        <span class="period">${tier.period}</span>
+                        <span class="amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
+                        <span class="period">${_period}</span>
                     </div>
                     <ul class="tier-features-inline">
                         ${tier.features.map(f => `<li>${f}</li>`).join('')}
@@ -2768,14 +2771,14 @@ function setupPricing() {
                     <button class="btn ${tier.buttonClass} tier-btn-inline" 
                         data-tier="${tier.id}"
                         ${currentTier === tier.id ? 'disabled' : ''}>
-                        ${currentTier === tier.id ? '\u2713 Đang sử dụng' : tier.buttonText}
+                        ${currentTier === tier.id ? '\u2713 ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
                     </button>
                 </div>
             `).join('')}
         </div>
         <div class="pricing-footer-inline">
-            <p>\ud83d\udcb3 Thanh toán an toàn qua <strong>Stripe</strong> \u2022 Hủy bất cứ lúc nào</p>
-            <p class="sub-note">Hỗ trợ: MoMo, Visa, Mastercard, JCB \u2022 Hoàn tiền 7 ngày</p>
+            <p>${typeof t === 'function' ? t('pricing.footer') : '\ud83d\udcb3 Thanh toán an toàn qua Stripe'}</p>
+            <p class="sub-note">${typeof t === 'function' ? t('pricing.footer_sub') : 'Hỗ trợ: MoMo, Visa, Mastercard, JCB'}</p>
         </div>
     `;
 

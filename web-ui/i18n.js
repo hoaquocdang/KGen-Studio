@@ -119,98 +119,160 @@ const TRANSLATIONS = {
 };
 
 // ============================================================
-// i18n ENGINE
+// CURRENCY CONVERSION (Frankfurter API — ECB data, free)
 // ============================================================
-const LANG_STORAGE_KEY = 'kgen_lang';
 
-function getCurrentLang() {
-    return localStorage.getItem(LANG_STORAGE_KEY) || 'vi';
-}
+// Base prices in VND
+const BASE_PRICES_VND = {
+    free: 0,
+    pro: 39000,
+    premium: 199000,
+};
 
-function setLang(langCode) {
-    localStorage.setItem(LANG_STORAGE_KEY, langCode);
-    applyTranslations();
-    // Update picker display
-    const picker = document.getElementById('lang-current');
-    if (picker) {
-        const lang = SUPPORTED_LANGS.find(l => l.code === langCode);
-        if (lang) picker.textContent = lang.flag + ' ' + lang.name;
-    }
-}
+// Lang → Currency mapping
+const LANG_CURRENCY = {
+    vi: { code: 'VND', symbol: 'đ', position: 'after', decimals: 0, locale: 'vi-VN' },
+    en: { code: 'USD', symbol: '$', position: 'before', decimals: 2, locale: 'en-US' },
+    ja: { code: 'JPY', symbol: '¥', position: 'before', decimals: 0, locale: 'ja-JP' },
+    es: { code: 'EUR', symbol: '€', position: 'after', decimals: 2, locale: 'es-ES' },
+    hi: { code: 'INR', symbol: '₹', position: 'before', decimals: 0, locale: 'hi-IN' },
+};
 
-function t(key) {
-    const lang = getCurrentLang();
-    const entry = TRANSLATIONS[key];
-    if (!entry) return key;
-    return entry[lang] || entry['en'] || entry['vi'] || key;
-}
+// Fallback rates (VND → X), updated manually as backup
+const FALLBACK_RATES = {
+    VND: 1,
+    USD: 1 / 25500,
+    JPY: 1 / 170,
+    EUR: 1 / 27500,
+    INR: 1 / 305,
+};
 
-function applyTranslations() {
-    // Apply to all elements with data-i18n attribute
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        const translated = t(key);
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            el.placeholder = translated;
-        } else {
-            el.textContent = translated;
+const RATES_CACHE_KEY = 'kgen_fx_rates';
+const RATES_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+let _cachedRates = null;
+
+async function fetchExchangeRates() {
+    // Check cache first
+    try {
+        const cached = JSON.parse(localStorage.getItem(RATES_CACHE_KEY) || 'null');
+        if (cached && (Date.now() - cached.timestamp) < RATES_CACHE_TTL) {
+            _cachedRates = cached.rates;
+            return cached.rates;
         }
-    });
+    } catch (e) { /* ignore */ }
 
-    // Apply to data-i18n-placeholder
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
-    });
-}
+    // Fetch from Frankfurter API (ECB data)
+    try {
+        const res = await fetch('https://api.frankfurter.app/latest?from=VND&to=USD,JPY,EUR');
+        if (res.ok) {
+            const data = await res.json();
+            // Frankfurter doesn't support VND as base, so use USD as base and convert
+            // Alternative: fetch USD-based rates and inverse
+        }
+    } catch (e) { /* API might not support VND directly */ }
 
-function createLangPicker() {
-    const currentLang = getCurrentLang();
-    const lang = SUPPORTED_LANGS.find(l => l.code === currentLang) || SUPPORTED_LANGS[0];
-
-    const picker = document.createElement('div');
-    picker.className = 'lang-picker';
-    picker.innerHTML = `
-        <button class="lang-picker-btn" id="lang-picker-btn" onclick="toggleLangMenu()">
-            <span id="lang-current">${lang.flag} ${lang.name}</span>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
-        <div class="lang-menu" id="lang-menu">
-            ${SUPPORTED_LANGS.map(l => `
-                <button class="lang-option ${l.code === currentLang ? 'active' : ''}" onclick="selectLang('${l.code}')">
-                    <span>${l.flag}</span> ${l.name}
-                </button>
-            `).join('')}
-        </div>
-    `;
-    return picker;
-}
-
-function toggleLangMenu() {
-    const menu = document.getElementById('lang-menu');
-    if (menu) menu.classList.toggle('open');
-}
-
-function selectLang(code) {
-    setLang(code);
-    // Update active state
-    document.querySelectorAll('.lang-option').forEach(opt => {
-        opt.classList.toggle('active', opt.textContent.trim().includes(SUPPORTED_LANGS.find(l => l.code === code)?.name || ''));
-    });
-    toggleLangMenu();
-}
-
-// Close menu when clicking outside
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.lang-picker')) {
-        document.getElementById('lang-menu')?.classList.remove('open');
+    // Better approach: use USD as base (Frankfurter supports it well)
+    try {
+        const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,JPY,INR');
+        if (res.ok) {
+            const data = await res.json();
+            // 1 USD = X of target currency
+            const rates = {
+                VND: 1,
+                USD: 1 / 25500, // VND → USD
+                EUR: (1 / 25500) * data.rates.EUR, // VND → USD → EUR
+                JPY: (1 / 25500) * data.rates.JPY, // VND → USD → JPY
+                INR: (1 / 25500) * data.rates.INR, // VND → USD → INR
+            };
+            _cachedRates = rates;
+            localStorage.setItem(RATES_CACHE_KEY, JSON.stringify({
+                rates,
+                timestamp: Date.now(),
+                source: 'frankfurter.app (ECB)'
+            }));
+            return rates;
+        }
+    } catch (e) {
+        console.warn('FX API unavailable, using fallback rates');
     }
-});
+
+    _cachedRates = FALLBACK_RATES;
+    return FALLBACK_RATES;
+}
+
+function convertPrice(vndAmount) {
+    const lang = getCurrentLang();
+    const currency = LANG_CURRENCY[lang] || LANG_CURRENCY.vi;
+    const rates = _cachedRates || FALLBACK_RATES;
+    const rate = rates[currency.code] || 1;
+
+    const converted = vndAmount * rate;
+
+    // Format number
+    let formatted;
+    if (currency.decimals === 0) {
+        formatted = Math.round(converted).toLocaleString(currency.locale);
+    } else {
+        formatted = converted.toFixed(currency.decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Position symbol
+    if (currency.position === 'before') {
+        return currency.symbol + formatted;
+    } else {
+        return formatted + currency.symbol;
+    }
+}
+
+function getPriceForLang(tierPriceVND) {
+    return convertPrice(tierPriceVND);
+}
+
+function getCurrencyPeriod() {
+    const lang = getCurrentLang();
+    const periods = {
+        vi: '/tháng',
+        en: '/month',
+        ja: '/月',
+        es: '/mes',
+        hi: '/महीना',
+    };
+    return periods[lang] || '/month';
+}
+
+// Update setLang to also refresh pricing
+const _originalSetLang = setLang;
+function setLangWithPricing(langCode) {
+    _originalSetLang(langCode);
+    // Re-render pricing if visible
+    if (typeof setupPricing === 'function') setupPricing();
+    if (typeof renderPricingModal === 'function') {
+        const modal = document.getElementById('pricing-modal-overlay');
+        if (modal) renderPricingModal();
+    }
+}
+
+// Init: fetch rates on load
+fetchExchangeRates();
 
 // Export
 window.t = t;
-window.setLang = setLang;
+window.setLang = setLangWithPricing;
 window.getCurrentLang = getCurrentLang;
 window.applyTranslations = applyTranslations;
 window.createLangPicker = createLangPicker;
 window.toggleLangMenu = toggleLangMenu;
-window.selectLang = selectLang;
+window.selectLang = function (code) {
+    setLangWithPricing(code);
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.textContent.trim().includes(SUPPORTED_LANGS.find(l => l.code === code)?.name || ''));
+    });
+    toggleLangMenu();
+};
+window.convertPrice = convertPrice;
+window.getPriceForLang = getPriceForLang;
+window.getCurrencyPeriod = getCurrencyPeriod;
+window.BASE_PRICES_VND = BASE_PRICES_VND;
+window.LANG_CURRENCY = LANG_CURRENCY;
+window.fetchExchangeRates = fetchExchangeRates;

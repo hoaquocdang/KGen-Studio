@@ -586,6 +586,9 @@ function renderPricingModal() {
     if (existing) existing.remove();
 
     const currentTier = APP_STATE.currentUser?.tier || 'free';
+    const _cp = typeof convertPrice === 'function' ? convertPrice : (v) => v.toLocaleString() + 'đ';
+    const _period = typeof getCurrencyPeriod === 'function' ? getCurrencyPeriod() : '/tháng';
+    const _bpv = typeof BASE_PRICES_VND !== 'undefined' ? BASE_PRICES_VND : { free: 0, pro: 39000, premium: 199000 };
 
     const overlay = document.createElement('div');
     overlay.id = 'pricing-modal-overlay';
@@ -594,20 +597,20 @@ function renderPricingModal() {
         <div class="pricing-modal">
             <button class="modal-close" id="pricing-close">&times;</button>
             <div class="pricing-header">
-                <h2 class="pricing-title">Chọn gói phù hợp</h2>
-                <p class="pricing-subtitle">Mở khóa toàn bộ sức mạnh của KGen Studio</p>
+                <h2 class="pricing-title">${typeof t === 'function' ? t('pricing.title') : 'Chọn gói phù hợp'}</h2>
+                <p class="pricing-subtitle">${typeof t === 'function' ? t('home.subtitle') : 'Mở khóa toàn bộ sức mạnh của KGen Studio'}</p>
             </div>
             <div class="pricing-grid">
                 ${PRICING_TIERS.map(tier => `
                     <div class="pricing-card ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}" data-tier="${tier.id}">
-                        ${tier.popular ? '<div class="popular-badge">🔥 Phổ biến nhất</div>' : ''}
-                        ${currentTier === tier.id ? '<div class="current-badge">✓ Gói hiện tại</div>' : ''}
+                        ${tier.popular ? '<div class="popular-badge">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
+                        ${currentTier === tier.id ? '<div class="current-badge">✓ ' + (typeof t === 'function' ? t('common.save') : 'Gói hiện tại') + '</div>' : ''}
                         <div class="pricing-card-header">
                             <span class="tier-emoji">${tier.emoji}</span>
                             <h3 class="tier-name">${tier.name}</h3>
                             <div class="tier-price">
-                                <span class="price-amount">${tier.price}</span>
-                                <span class="price-period">${tier.period}</span>
+                                <span class="price-amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
+                                <span class="price-period">${_period}</span>
                             </div>
                         </div>
                         <ul class="tier-features">
@@ -617,14 +620,14 @@ function renderPricingModal() {
                         <button class="btn ${tier.buttonClass} pricing-btn" 
                             data-tier="${tier.id}"
                             ${currentTier === tier.id ? 'disabled' : ''}>
-                            ${currentTier === tier.id ? '✓ Đang sử dụng' : tier.buttonText}
+                            ${currentTier === tier.id ? '✓ ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
                         </button>
                     </div>
                 `).join('')}
             </div>
             <div class="pricing-footer">
-                <p>💳 Thanh toán an toàn qua <strong>Stripe</strong> • Hủy bất cứ lúc nào</p>
-                <p style="margin-top:4px;font-size:0.78rem;color:var(--text-tertiary)">Hỗ trợ: MoMo, Visa, Mastercard, JCB</p>
+                <p>${typeof t === 'function' ? t('pricing.footer') : '💳 Thanh toán an toàn qua Stripe'}</p>
+                <p style="margin-top:4px;font-size:0.78rem;color:var(--text-tertiary)">${typeof t === 'function' ? t('pricing.footer_sub') : 'Hỗ trợ: MoMo, Visa, Mastercard, JCB'}</p>
             </div>
         </div>
     `;
