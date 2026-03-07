@@ -1729,11 +1729,15 @@ function renderHistory() {
 // ============================================================
 
 function setupEnhanceEvents() {
-    // Style picker
-    document.querySelectorAll('.style-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    // Style picker (single select per group)
+    ['style-picker', 'mode-picker', 'angle-picker'].forEach(pickerId => {
+        const picker = document.getElementById(pickerId);
+        if (!picker) return;
+        picker.querySelectorAll('.style-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                picker.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
         });
     });
 
@@ -1763,10 +1767,12 @@ function enhancePrompt() {
         return;
     }
 
-    const style = document.querySelector('.style-btn.active')?.dataset.style || 'realistic';
+    const style = document.querySelector('#style-picker .style-btn.active')?.dataset.style || 'realistic';
+    const mode = document.querySelector('#mode-picker .style-btn.active')?.dataset.mode || 'none';
+    const angle = document.querySelector('#angle-picker .style-btn.active')?.dataset.angle || 'none';
 
     // Local enhancement rules
-    const enhanced = localEnhancePrompt(input, style);
+    const enhanced = localEnhancePrompt(input, style, mode, angle);
 
     document.querySelector('.enhance-placeholder')?.classList.add('hidden');
     document.getElementById('enhanced-prompt').classList.remove('hidden');
@@ -1775,7 +1781,7 @@ function enhancePrompt() {
     showToast('✨ Prompt đã được nâng cấp!', 'success');
 }
 
-function localEnhancePrompt(prompt, style) {
+function localEnhancePrompt(prompt, style, mode, angle) {
     const styleGuides = {
         realistic: {
             prefix: '',
@@ -1815,16 +1821,73 @@ function localEnhancePrompt(prompt, style) {
         }
     };
 
+    // Creative mode modifiers
+    const modeGuides = {
+        none: { prefix: '', details: [], suffix: '' },
+        infographic: {
+            prefix: 'Infographic design layout. ',
+            details: [
+                'Clean data visualization with charts and icons',
+                'Organized information hierarchy with sections',
+                'Modern flat design with bold typography',
+                'Color-coded categories and statistics',
+                'Professional business presentation style',
+            ],
+            suffix: 'Infographic poster, data-driven design, clean layout, magazine quality, print-ready'
+        },
+        'remove-bg': {
+            prefix: 'Subject isolated on pure white background. ',
+            details: [
+                'Clean cutout with no background elements',
+                'Pure white (#FFFFFF) seamless backdrop',
+                'Subject perfectly centered and well-lit',
+                'Studio product photography lighting',
+                'No shadows on background, only subtle contact shadow',
+            ],
+            suffix: 'Isolated subject, white background, product photography, transparent background ready'
+        },
+        storyboard: {
+            prefix: 'Storyboard panel sequence. ',
+            details: [
+                'Comic/storyboard multi-panel grid layout (2x3 or 3x2)',
+                'Sequential storytelling frames showing progression',
+                'Clear panel borders with cinematic framing',
+                'Action arrows and movement indicators',
+                'Consistent character design across panels',
+                'Director notes and shot descriptions',
+            ],
+            suffix: 'Storyboard art, sequential panels, cinematic frames, film pre-production, visual narrative'
+        }
+    };
+
+    // Camera angle modifiers
+    const angleGuides = {
+        none: '',
+        front: 'Front-facing shot, eye-level direct view, looking straight at camera, symmetrical composition. ',
+        wide: 'Extreme wide-angle shot, establishing shot showing full environment, vast landscape, panoramic view, small subject in grand scene. ',
+        shoulder: 'Over-the-shoulder shot (OTS), camera positioned behind one character looking past their shoulder, depth perspective, cinematic framing. ',
+        low: 'Low-angle shot, camera looking upward from below, dramatic heroic perspective, subject appears powerful and imposing, sky visible. ',
+        high: 'High-angle bird\'s-eye view shot, camera looking down from above, overhead perspective, subject appears small, top-down dramatic composition. ',
+        behind: 'Rear view shot from behind the subject, back-facing perspective, character looking into the distance, atmospheric depth, mysterious mood. ',
+    };
+
     const guide = styleGuides[style] || styleGuides.realistic;
+    const modeGuide = modeGuides[mode] || modeGuides.none;
+    const anglePrefix = angleGuides[angle] || '';
 
     // Build enhanced prompt
+    const mainPrompt = guide.prefix + modeGuide.prefix + anglePrefix + prompt.charAt(0).toUpperCase() + prompt.slice(1) + '.';
+
+    const allDetails = [...guide.details, ...modeGuide.details];
+    const combinedSuffix = [guide.suffix, modeGuide.suffix].filter(Boolean).join('. ');
+
     const sections = [
-        guide.prefix + prompt.charAt(0).toUpperCase() + prompt.slice(1) + '.',
+        mainPrompt,
         '',
         'Visual Details:',
-        ...guide.details.map(d => `- ${d}`),
+        ...allDetails.map(d => `- ${d}`),
         '',
-        guide.suffix,
+        combinedSuffix,
     ];
 
     return sections.join('\n');
