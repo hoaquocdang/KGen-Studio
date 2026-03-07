@@ -965,24 +965,15 @@ async function generateImage() {
 
 /**
  * Generate image via Google Gemini API (user's own key)
- * Uses gemini-2.0-flash-exp or imagen-3.0-generate-001
+ * Uses gemini-2.0-flash-exp with responseModalities: ["IMAGE"]
+ * This is FREE with AI Studio keys
  */
 async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
-    // Use Imagen 3 for dedicated image generation
-    const model = 'imagen-3.0-generate-001';
+    const model = 'gemini-2.0-flash-exp';
     const baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-    const url = `${baseUrl}/models/${model}:predict?key=${apiKey}`;
+    const url = `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 
-    console.log('🎨 Google Gemini Request:', { model, prompt: prompt.substring(0, 50), aspectRatio, quality });
-
-    // Map aspect ratio
-    const arMap = {
-        '1:1': '1:1',
-        '3:4': '3:4',
-        '4:3': '4:3',
-        '16:9': '16:9',
-        '9:16': '9:16',
-    };
+    console.log('🎨 Google Gemini Request:', { model, prompt: prompt.substring(0, 50), aspectRatio });
 
     let response;
     try {
@@ -990,10 +981,13 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                instances: [{ prompt: prompt }],
-                parameters: {
-                    sampleCount: 1,
-                    aspectRatio: arMap[aspectRatio] || '1:1',
+                contents: [{
+                    parts: [{ text: `Generate an image: ${prompt}` }]
+                }],
+                generationConfig: {
+                    responseModalities: ["IMAGE", "TEXT"],
+                    temperature: 1,
+                    maxOutputTokens: 8192,
                 },
             }),
         });
@@ -1011,8 +1005,11 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
             errMsg = errData.error?.message || errMsg;
         } catch (e) { }
 
-        if (response.status === 400 && errMsg.includes('API key')) {
-            throw new Error('Google API key không hợp lệ. Kiểm tra lại key tại Google AI Studio.');
+        if (response.status === 400) {
+            if (errMsg.includes('API key')) {
+                throw new Error('Google API key không hợp lệ. Kiểm tra lại key tại Google AI Studio.');
+            }
+            throw new Error(`Google API lỗi: ${errMsg}`);
         }
         if (response.status === 403) {
             throw new Error('Google API key không có quyền. Bật Gemini API tại Google Cloud Console.');
@@ -1024,27 +1021,34 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
     }
 
     const data = await response.json();
-    console.log('🎨 Gemini Response:', JSON.stringify(data).substring(0, 500));
+    console.log('🎨 Gemini Response keys:', Object.keys(data));
 
-    // Imagen 3 returns base64 image data
-    const predictions = data.predictions || [];
-    if (predictions.length > 0 && predictions[0].bytesBase64Encoded) {
-        const base64 = predictions[0].bytesBase64Encoded;
-        const mimeType = predictions[0].mimeType || 'image/png';
-        return { imageUrl: `data:${mimeType};base64,${base64}` };
-    }
-
-    // Fallback: try Gemini generateContent format
+    // Parse response - look for inline image data
     const candidates = data.candidates || [];
     if (candidates.length > 0) {
-        for (const part of (candidates[0].content?.parts || [])) {
+        const parts = candidates[0].content?.parts || [];
+        for (const part of parts) {
             if (part.inlineData) {
-                return { imageUrl: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` };
+                const mimeType = part.inlineData.mimeType || 'image/png';
+                const base64 = part.inlineData.data;
+                console.log('🎨 Got image!', mimeType, `${Math.round(base64.length / 1024)}KB`);
+                return { imageUrl: `data:${mimeType};base64,${base64}` };
+            }
+        }
+        // Check if only text was returned (model decided not to generate image)
+        for (const part of parts) {
+            if (part.text) {
+                console.warn('Gemini returned text only:', part.text.substring(0, 200));
             }
         }
     }
 
-    throw new Error('Google API không trả về ảnh. Thử prompt khác hoặc kiểm tra giới hạn API.');
+    // Check for safety block
+    if (data.promptFeedback?.blockReason) {
+        throw new Error(`Prompt bị chặn bởi Google Safety: ${data.promptFeedback.blockReason}. Thử prompt khác.`);
+    }
+
+    throw new Error('Google API không trả về ảnh. Thử prompt khác hoặc mô tả chi tiết hơn.');
 }
 
 /**
