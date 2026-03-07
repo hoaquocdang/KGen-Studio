@@ -1047,41 +1047,67 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
     // Map resolution value
     const resolutionValue = resolution || '2K';
 
-    // Step 1: Create task
-    const createResponse = await fetch(`${baseUrl}/api/v1/jobs/createTask`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
+    const requestBody = {
+        model: model,
+        input: {
+            prompt: prompt,
+            image_input: imageInput.length > 0 ? imageInput : undefined,
+            aspect_ratio: aspectRatio || '1:1',
+            resolution: resolutionValue,
+            output_format: 'png',
         },
-        body: JSON.stringify({
-            model: model,
-            input: {
-                prompt: prompt,
-                image_input: imageInput,
-                aspect_ratio: aspectRatio || '1:1',
-                resolution: resolutionValue,
-                output_format: 'png',
+    };
+
+    console.log('🎨 Kie AI Request:', JSON.stringify(requestBody, null, 2));
+
+    // Step 1: Create task
+    let createResponse;
+    try {
+        createResponse = await fetch(`${baseUrl}/api/v1/jobs/createTask`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
             },
-        }),
-    });
+            body: JSON.stringify(requestBody),
+        });
+    } catch (fetchErr) {
+        console.error('Fetch error:', fetchErr);
+        throw new Error('Không kết nối được tới Kie AI server. Kiểm tra kết nối mạng.');
+    }
+
+    const responseText = await createResponse.text();
+    console.log('🎨 Kie AI Response:', createResponse.status, responseText);
 
     if (!createResponse.ok) {
-        const err = await createResponse.json().catch(() => ({}));
-        const errMsg = err.message || `HTTP ${createResponse.status}`;
-        if (createResponse.status === 401) throw new Error('Kie AI API key không hợp lệ. Kiểm tra lại key tại kie.ai.');
+        let err = {};
+        try { err = JSON.parse(responseText); } catch (e) { }
+        const errMsg = err.message || err.error || responseText || `HTTP ${createResponse.status}`;
+        if (createResponse.status === 401) throw new Error('Kie AI API key không hợp lệ. Kiểm tra lại key.');
         if (createResponse.status === 402) throw new Error('Hết credit Kie AI. Nạp thêm tại kie.ai.');
         if (createResponse.status === 429) throw new Error('Quá nhiều request. Đợi vài giây rồi thử lại.');
-        throw new Error(errMsg);
+        throw new Error(`API Error (${createResponse.status}): ${errMsg}`);
     }
 
-    const createData = await createResponse.json();
-    if (createData.code !== 200) {
-        throw new Error(createData.message || 'Lỗi khi tạo task.');
+    let createData;
+    try {
+        createData = JSON.parse(responseText);
+    } catch (e) {
+        throw new Error('Phản hồi API không hợp lệ: ' + responseText.substring(0, 200));
     }
 
-    const taskId = createData.data?.taskId;
-    if (!taskId) throw new Error('Không nhận được taskId từ server.');
+    // Check for success - handle various response formats
+    if (createData.code && createData.code !== 200 && createData.code !== '200') {
+        throw new Error(createData.message || `API trả về mã lỗi: ${createData.code}`);
+    }
+
+    const taskId = createData.data?.taskId || createData.taskId || createData.data?.task_id;
+    if (!taskId) {
+        console.error('No taskId in response:', createData);
+        throw new Error('Không nhận được taskId. Response: ' + JSON.stringify(createData).substring(0, 300));
+    }
+
+    console.log('🎨 Task created:', taskId);
 
     // Step 2: Poll for result
     const maxWait = 120000; // 2 minutes timeout
@@ -1091,15 +1117,20 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
     while (Date.now() - startTime < maxWait) {
         await new Promise(resolve => setTimeout(resolve, pollInterval));
 
-        const queryResponse = await fetch(`${baseUrl}/api/v1/jobs/queryTask/${taskId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-            },
-        });
+        let queryResponse;
+        try {
+            queryResponse = await fetch(`${baseUrl}/api/v1/jobs/queryTask/${taskId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+            });
+        } catch (e) {
+            console.warn('Poll fetch error:', e);
+            continue;
+        }
 
         if (!queryResponse.ok) {
-            // Server hiccup, continue polling
             console.warn('Poll error:', queryResponse.status);
             continue;
         }
@@ -1107,12 +1138,25 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
         const queryData = await queryResponse.json();
         const taskData = queryData.data || queryData;
 
-        if (taskData.state === 'success') {
+        console.log('🎨 Poll:', taskData.state || taskData.status);
+
+        if (taskData.state === 'success' || taskData.status === 'success') {
             // Parse resultJson to get image URL
             let resultUrls = [];
             try {
-                const resultJson = JSON.parse(taskData.resultJson || '{}');
-                resultUrls = resultJson.resultUrls || [];
+                if (typeof taskData.resultJson === 'string') {
+                    const resultJson = JSON.parse(taskData.resultJson);
+                    resultUrls = resultJson.resultUrls || resultJson.result_urls || resultJson.images || [];
+                } else if (taskData.resultJson) {
+                    resultUrls = taskData.resultJson.resultUrls || taskData.resultJson.result_urls || [];
+                }
+                // Also check output directly
+                if (resultUrls.length === 0 && taskData.output) {
+                    resultUrls = Array.isArray(taskData.output) ? taskData.output : [taskData.output];
+                }
+                if (resultUrls.length === 0 && taskData.result_url) {
+                    resultUrls = [taskData.result_url];
+                }
             } catch (e) {
                 console.warn('Failed to parse resultJson:', e);
             }
@@ -1120,10 +1164,11 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
             if (resultUrls.length > 0) {
                 return { imageUrl: resultUrls[0] };
             } else {
+                console.error('No URLs in task result:', taskData);
                 throw new Error('Tạo ảnh thành công nhưng không có URL ảnh.');
             }
-        } else if (taskData.state === 'fail') {
-            const failMsg = taskData.failMsg || 'Tạo ảnh thất bại.';
+        } else if (taskData.state === 'fail' || taskData.status === 'failed') {
+            const failMsg = taskData.failMsg || taskData.fail_msg || taskData.error || 'Tạo ảnh thất bại.';
             throw new Error(failMsg);
         }
         // else: still processing, continue poll
