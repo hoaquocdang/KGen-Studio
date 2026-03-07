@@ -119,6 +119,85 @@ const TRANSLATIONS = {
 };
 
 // ============================================================
+// i18n ENGINE
+// ============================================================
+const LANG_STORAGE_KEY = 'kgen_lang';
+
+function getCurrentLang() {
+    return localStorage.getItem(LANG_STORAGE_KEY) || 'vi';
+}
+
+function setLang(langCode) {
+    localStorage.setItem(LANG_STORAGE_KEY, langCode);
+    applyTranslations();
+    // Update picker display
+    const picker = document.getElementById('lang-current');
+    if (picker) {
+        const lang = SUPPORTED_LANGS.find(l => l.code === langCode);
+        if (lang) picker.textContent = lang.flag + ' ' + lang.name;
+    }
+}
+
+function t(key) {
+    const lang = getCurrentLang();
+    const entry = TRANSLATIONS[key];
+    if (!entry) return key;
+    return entry[lang] || entry['en'] || entry['vi'] || key;
+}
+
+function applyTranslations() {
+    // Apply to all elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translated = t(key);
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = translated;
+        } else {
+            el.textContent = translated;
+        }
+    });
+
+    // Apply to data-i18n-placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+    });
+}
+
+function createLangPicker() {
+    const currentLang = getCurrentLang();
+    const lang = SUPPORTED_LANGS.find(l => l.code === currentLang) || SUPPORTED_LANGS[0];
+
+    const picker = document.createElement('div');
+    picker.className = 'lang-picker';
+    picker.innerHTML = `
+        <button class="lang-picker-btn" id="lang-picker-btn" onclick="toggleLangMenu()">
+            <span id="lang-current">${lang.flag} ${lang.name}</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div class="lang-menu" id="lang-menu">
+            ${SUPPORTED_LANGS.map(l => `
+                <button class="lang-option ${l.code === currentLang ? 'active' : ''}" onclick="selectLang('${l.code}')">
+                    <span>${l.flag}</span> ${l.name}
+                </button>
+            `).join('')}
+        </div>
+    `;
+    return picker;
+}
+
+function toggleLangMenu() {
+    const menu = document.getElementById('lang-menu');
+    if (menu) menu.classList.toggle('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.lang-picker')) {
+        document.getElementById('lang-menu')?.classList.remove('open');
+    }
+});
+
+// ============================================================
 // CURRENCY CONVERSION (Frankfurter API — ECB data, free)
 // ============================================================
 
