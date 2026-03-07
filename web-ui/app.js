@@ -200,7 +200,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupWorkflowEvents();
     setupSettingsEvents();
     setupModal();
+    setupSearchModal();
     setupPricing();
+
+    loadGenerationHistory();
 
     // Init Supabase if configured
     if (typeof initSupabase === 'function') initSupabase();
@@ -380,6 +383,10 @@ function switchTab(tabName) {
             tab.classList.toggle('active', isActive);
             if (isActive) tab.classList.remove('hidden');
         });
+    }
+
+    if (tabName === 'history') {
+        renderHistoryPage();
     }
 
     // Re-render pricing if switching to pricing tab
@@ -657,6 +664,138 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
+
+// ============================================================
+// SEARCH POPUP
+// ============================================================
+function setupSearchModal() {
+    const btnSearch = document.getElementById('nav-search-modal-btn');
+    const overlay = document.getElementById('search-modal-overlay');
+    const closeBtn = document.getElementById('search-modal-close');
+    const searchInput = document.getElementById('popup-search-input');
+
+    if (btnSearch) {
+        btnSearch.addEventListener('click', (e) => {
+            e.preventDefault();
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.remove('open');
+            const sid_overlay = document.querySelector('.sidebar-overlay');
+            if (sid_overlay) sid_overlay.remove();
+
+            overlay.classList.remove('hidden');
+            searchInput.focus();
+            renderSearchPopupPosts();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            overlay.classList.add('hidden');
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.add('hidden');
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            if (!val) {
+                renderSearchPopupPosts(APP_STATE.prompts);
+                return;
+            }
+            const keywords = val.split(/\\s+/).filter(Boolean);
+            const results = APP_STATE.prompts.map(p => {
+                const searchText = [p.prompt, p.author_name, p.author, ...p.categories].join(' ').toLowerCase();
+                let score = 0;
+                for (const kw of keywords) {
+                    if (searchText.includes(kw)) score += 1;
+                }
+                return { item: p, score };
+            }).filter(r => r.score > 0).sort((a, b) => b.score - a.score).map(r => r.item);
+            renderSearchPopupPosts(results);
+        });
+    }
+
+    // Tabs
+    const tabs = overlay?.querySelectorAll('.search-tab');
+    if (tabs) {
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.style.fontWeight = '500';
+                    t.style.color = 'var(--text-tertiary)';
+                    t.style.borderBottom = 'none';
+                });
+                const t = e.target;
+                t.classList.add('active');
+                t.style.fontWeight = '600';
+                t.style.color = 'var(--text-primary)';
+                t.style.borderBottom = '2px solid var(--text-primary)';
+                // Render based on tab later if needed, currently just empty logic for generations
+            });
+        });
+    }
+}
+
+function renderSearchPopupPosts(posts) {
+    if (!posts) posts = APP_STATE.prompts;
+    const grid = document.getElementById('search-popup-grid');
+    if (!grid) return;
+    grid.innerHTML = posts.slice(0, 20).map(item => `
+        <div class="card" onclick="document.getElementById('search-modal-overlay').classList.add('hidden'); openModal(APP_STATE.prompts.find(p=>p.id==='${item.id}'))" style="border-radius:12px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform 0.2s;">
+            <img src="${item.url}" alt="Post" style="width:100%; display:block; aspect-ratio:3/4; object-fit:cover;">
+        </div>
+    `).join('');
+}
+
+// ============================================================
+// HISTORY PAGE (FULL WIDTH)
+// ============================================================
+function renderHistoryPage() {
+    const empty = document.getElementById('history-page-empty');
+    const grid = document.getElementById('history-page-grid');
+    if (!APP_STATE.generationHistory || APP_STATE.generationHistory.length === 0) {
+        if (empty) empty.classList.remove('hidden');
+        if (grid) grid.classList.add('hidden');
+    } else {
+        if (empty) empty.classList.add('hidden');
+        if (grid) {
+            grid.classList.remove('hidden');
+            grid.innerHTML = APP_STATE.generationHistory.map((item, i) => `
+                <div class="card" onclick="openHistoryModal(${i})" style="break-inside:avoid; margin-bottom:16px; border-radius:12px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform 0.2s;">
+                    <img src="${item.url}" alt="History item" style="width:100%; display:block;">
+                </div>
+            `).join('');
+        }
+    }
+}
+
+function openHistoryModal(index) {
+    const item = APP_STATE.generationHistory[index];
+    if (!item) return;
+    openModal({
+        id: 'hist_' + index,
+        url: item.url,
+        prompt: item.prompt,
+        author_name: APP_STATE.currentUser?.name || 'You',
+        author: 'you',
+        user_avatar: '',
+        model: item.provider === 'kie-ai' ? 'nanobanana' : 'gemini',
+        images: [item.url],
+        categories: ['Generation'],
+        likes: 0,
+        views: 0,
+        rank: '-',
+        date: new Date(item.timestamp).toLocaleDateString(),
+        source_url: '#'
+    });
+}
+
 // ============================================================
 // MODAL
 // ============================================================
@@ -811,7 +950,7 @@ function setupGenerateEvents() {
         const quality = document.getElementById('gen-quality')?.value || '2K';
         const aspectRatio = document.querySelector('.gen-ar-opt.active')?.dataset.ratio || '1:1';
 
-        if (!img?.src || img.src.startsWith('data:')) {
+        if (!img?.src) {
             showToast('Không có ảnh để lưu', 'error');
             return;
         }
@@ -941,14 +1080,20 @@ async function generateImage() {
         let result;
         let provider;
         const selectedModel = document.getElementById('gen-model')?.value || 'nano-banana-pro';
+        const langCode = document.getElementById('gen-text-lang')?.value || 'auto';
+
+        let finalPrompt = prompt;
+        if (langCode !== 'auto') {
+            finalPrompt = `[CRITICAL INSTRUCTION: Any text, typography, fonts, or labels rendered in the image MUST strictly be written in ${langCode} language.]\n\n` + prompt;
+        }
 
         if (useGoogleApi) {
             // Use user's Google Gemini API key
-            result = await generateViaGemini(prompt, aspectRatio, quality, userGoogleKey);
+            result = await generateViaGemini(finalPrompt, aspectRatio, quality, userGoogleKey);
             provider = 'google-gemini';
         } else {
             // Use Kie AI (admin key or user's own Kie key)
-            result = await generateViaKieAI(prompt, aspectRatio, quality, selectedModel);
+            result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel);
             provider = 'kie-ai';
         }
 
@@ -974,7 +1119,9 @@ async function generateImage() {
                 provider: provider,
                 timestamp: new Date().toISOString(),
             });
+            saveGenerationHistory();
             renderHistory();
+            renderHistoryPage();
 
             showToast('🎉 Ảnh đã được tạo thành công!', 'success');
         } else {
@@ -1680,6 +1827,27 @@ function loadSettings() {
         updateProviderStatus();
     } catch (e) {
         console.error('Failed to load settings:', e);
+    }
+}
+
+function loadGenerationHistory() {
+    try {
+        const hist = localStorage.getItem('kgen_history');
+        if (hist) {
+            APP_STATE.generationHistory = JSON.parse(hist);
+        }
+    } catch (e) {
+        console.error('Failed to load history:', e);
+    }
+}
+
+function saveGenerationHistory() {
+    try {
+        const data = JSON.stringify(APP_STATE.generationHistory.slice(0, 50));
+        localStorage.setItem('kgen_history', data);
+    } catch (e) {
+        // Quota error possibly due to data:URIs from Gemini
+        console.warn('Could not save history (possibly too large):', e);
     }
 }
 
