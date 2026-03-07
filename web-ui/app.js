@@ -2604,6 +2604,59 @@ function showGoogleSetupPrompt() {
 // PRICING TAB
 // ============================================================
 
+const PRICING_TIERS = [
+    {
+        id: 'free',
+        name: 'Gói FREE',
+        emoji: '🌱',
+        price: '0đ',
+        period: '/tháng',
+        features: [
+            'Dùng thử trải nghiệm tính năng',
+            'Thêm API Key cá nhân (ẩn giới hạn)',
+            'Khám phá 10% thư viện mẫu'
+        ],
+        limitations: [
+            'Chỉ sử dụng hình ảnh tạo ra cá nhân',
+        ],
+        buttonText: 'Đang sử dụng',
+        buttonClass: 'btn-ghost'
+    },
+    {
+        id: 'pro',
+        name: 'Gói PRO',
+        emoji: '⚡',
+        popular: true,
+        price: '39.000đ',
+        period: '/tháng',
+        features: [
+            '1000 ảnh / tháng (Không cần cấu hình)',
+            'Sử dụng Nanobanana Pro / Gemini Imagen 3',
+            'Mở khoá 100% tài nguyên và 1300+ prompt gốc',
+            'Sever ưu tiên tốc độ cao',
+            'Cho phép sử dụng thương mại'
+        ],
+        limitations: [],
+        buttonText: 'Nâng cấp ngay',
+        buttonClass: 'btn-primary'
+    },
+    {
+        id: 'premium',
+        name: 'Gói PREMIUM',
+        emoji: '🔥',
+        price: '199.000đ',
+        period: '/tháng',
+        features: [
+            '5000 ảnh / tháng (Gói doanh nghiệp/đội nhóm)',
+            'Bao gồm tất cả đặc quyền PRO',
+            'Hỗ trợ khách hàng ưu tiên 24/7'
+        ],
+        limitations: [],
+        buttonText: 'Tạo Premium',
+        buttonClass: 'btn-ghost'
+    }
+];
+
 function setupPricing() {
     const container = document.getElementById('pricing-container');
     if (!container || typeof PRICING_TIERS === 'undefined') return;
