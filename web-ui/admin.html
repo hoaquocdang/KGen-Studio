@@ -259,10 +259,54 @@
                                     id="pl-prem" value="5000" min="0">
                             </div>
                         </div>
+
+                        <!-- PRICING ADJUSTMENT -->
+                        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+                            <div class="card-header" style="padding:0 0 14px 0">
+                                <h2>💰 Điều chỉnh giá</h2>
+                                <span class="badge badge-green" id="price-currency">VND</span>
+                            </div>
+                            <div class="plan-grid">
+                                <div class="plan-card">
+                                    <h3>🌱 Free</h3>
+                                    <div class="plan-limit" style="color:var(--accent-green)">0đ</div>
+                                    <div class="plan-desc">miễn phí</div>
+                                    <div class="plan-desc"
+                                        style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)">
+                                        <span id="ppc-free">0</span>đ / ảnh
+                                    </div>
+                                </div>
+                                <div class="plan-card" style="border-color:var(--accent-purple)">
+                                    <h3>⚡ Pro</h3>
+                                    <div class="plan-limit" id="pd-price-pro" style="color:var(--accent-purple)">39.000đ
+                                    </div>
+                                    <div class="plan-desc">/ tháng</div>
+                                    <input type="number" class="form-input" id="pl-price-pro" value="39000" min="0"
+                                        step="1000" style="margin-top:8px" oninput="updatePriceDisplay()">
+                                    <div class="plan-desc"
+                                        style="margin-top:6px;font-size:0.75rem;color:var(--text-muted)">
+                                        ≈ <span id="ppc-pro">39</span>đ / ảnh
+                                    </div>
+                                </div>
+                                <div class="plan-card" style="border-color:var(--accent-orange)">
+                                    <h3>🔥 Premium</h3>
+                                    <div class="plan-limit" id="pd-price-prem" style="color:var(--accent-orange)">
+                                        199.000đ</div>
+                                    <div class="plan-desc">/ tháng</div>
+                                    <input type="number" class="form-input" id="pl-price-prem" value="199000" min="0"
+                                        step="1000" style="margin-top:8px" oninput="updatePriceDisplay()">
+                                    <div class="plan-desc"
+                                        style="margin-top:6px;font-size:0.75rem;color:var(--text-muted)">
+                                        ≈ <span id="ppc-prem">40</span>đ / ảnh
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <p class="form-hint" style="margin-top:14px">User thêm API key riêng → không giới hạn quota hệ
-                            thống.</p>
-                        <button class="btn btn-primary" style="margin-top:18px" onclick="saveAllSettings()">💾 Lưu
-                            Quota</button>
+                            thống. Giá hiển thị tự động chuyển đổi theo ngôn ngữ user chọn.</p>
+                        <button class="btn btn-primary" style="margin-top:18px" onclick="savePlansAndPricing()">💾 Lưu
+                            Quota & Giá</button>
                     </div>
                 </div>
 
@@ -352,6 +396,14 @@
             });
             updAPI(c.kieApiKey);
             document.getElementById('sys-supa').textContent = (typeof isSupabaseEnabled === 'function' && isSupabaseEnabled()) ? '✅ Đã kết nối' : '❌ Chưa kết nối';
+
+            // Load pricing
+            const pricing = c.pricing || { pro: 39000, premium: 199000 };
+            const elPro = document.getElementById('pl-price-pro');
+            const elPrem = document.getElementById('pl-price-prem');
+            if (elPro) elPro.value = pricing.pro || 39000;
+            if (elPrem) elPrem.value = pricing.premium || 199000;
+            updatePriceDisplay();
         }
 
         function updAPI(k) {
@@ -369,6 +421,55 @@
             sc(c); updAPI(c.kieApiKey);
             if (window.parent && window.parent.SITE_CONFIG) { window.parent.SITE_CONFIG.api = { kieApiKey: c.kieApiKey, kieApiBase: c.kieApiBase, kieModel: c.kieModel }; }
             toast('Đã lưu cài đặt!', 'success');
+        }
+
+        function updatePriceDisplay() {
+            const proPx = +(document.getElementById('pl-price-pro')?.value) || 39000;
+            const premPx = +(document.getElementById('pl-price-prem')?.value) || 199000;
+            const proLimit = +(document.getElementById('pl-pro')?.value) || 1000;
+            const premLimit = +(document.getElementById('pl-prem')?.value) || 5000;
+
+            // Update display
+            const dpPro = document.getElementById('pd-price-pro');
+            const dpPrem = document.getElementById('pd-price-prem');
+            if (dpPro) dpPro.textContent = proPx.toLocaleString('vi') + 'đ';
+            if (dpPrem) dpPrem.textContent = premPx.toLocaleString('vi') + 'đ';
+
+            // Per-image cost
+            const ppcPro = document.getElementById('ppc-pro');
+            const ppcPrem = document.getElementById('ppc-prem');
+            if (ppcPro) ppcPro.textContent = proLimit > 0 ? Math.round(proPx / proLimit).toLocaleString('vi') : '0';
+            if (ppcPrem) ppcPrem.textContent = premLimit > 0 ? Math.round(premPx / premLimit).toLocaleString('vi') : '0';
+        }
+
+        function savePlansAndPricing() {
+            const c = gc();
+            c.plans = {
+                freeLimit: +(document.getElementById('pl-free').value) || 10,
+                proLimit: +(document.getElementById('pl-pro').value) || 1000,
+                premLimit: +(document.getElementById('pl-prem').value) || 5000
+            };
+            c.pricing = {
+                pro: +(document.getElementById('pl-price-pro').value) || 39000,
+                premium: +(document.getElementById('pl-price-prem').value) || 199000
+            };
+            sc(c);
+
+            // Sync to i18n currency system
+            if (typeof BASE_PRICES_VND !== 'undefined') {
+                BASE_PRICES_VND.pro = c.pricing.pro;
+                BASE_PRICES_VND.premium = c.pricing.premium;
+            }
+            // Sync to PRICING_TIERS
+            if (typeof PRICING_TIERS !== 'undefined') {
+                const pro = PRICING_TIERS.find(t => t.id === 'pro');
+                const prem = PRICING_TIERS.find(t => t.id === 'premium');
+                if (pro) pro.price = c.pricing.pro.toLocaleString('vi') + 'đ';
+                if (prem) prem.price = c.pricing.premium.toLocaleString('vi') + 'đ';
+            }
+
+            updatePriceDisplay();
+            toast('💾 Đã lưu Quota & Giá thành công!', 'success');
         }
 
         function changePwd() {
