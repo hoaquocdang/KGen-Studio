@@ -59,17 +59,26 @@ function getSiteConfig() {
         if (storedAdmin) {
             const adminCfg = JSON.parse(storedAdmin);
 
-            // Deep merge api config
+            // Admin panel stores keys at root level OR nested under api
             cfg.api = {
                 ...cfg.api,
-                kieApiKey: adminCfg.api?.kieApiKey || cfg.api?.kieApiKey || '',
-                kieApiBase: adminCfg.api?.kieApiBase || cfg.api?.kieApiBase || 'https://api.kie.ai',
-                kieModel: adminCfg.api?.kieModel || cfg.api?.kieModel || 'nano-banana-pro',
+                kieApiKey: adminCfg.kieApiKey || adminCfg.api?.kieApiKey || cfg.api?.kieApiKey || '',
+                kieApiBase: adminCfg.kieApiBase || adminCfg.api?.kieApiBase || cfg.api?.kieApiBase || 'https://api.kie.ai',
+                kieModel: adminCfg.kieModel || adminCfg.api?.kieModel || cfg.api?.kieModel || 'nano-banana-pro',
             };
 
-            // Merge plans
+            // Merge plans (admin panel uses plans.freeLimit/proLimit/premiumLimit)
             if (adminCfg.plans) {
-                cfg.plans = { ...cfg.plans, ...adminCfg.plans };
+                cfg.plans = cfg.plans || {};
+                if (adminCfg.plans.freeLimit !== undefined) {
+                    cfg.plans.free = { ...(cfg.plans.free || {}), imageLimit: adminCfg.plans.freeLimit };
+                }
+                if (adminCfg.plans.proLimit !== undefined) {
+                    cfg.plans.pro = { ...(cfg.plans.pro || {}), imageLimit: adminCfg.plans.proLimit };
+                }
+                if (adminCfg.plans.premiumLimit !== undefined) {
+                    cfg.plans.premium = { ...(cfg.plans.premium || {}), imageLimit: adminCfg.plans.premiumLimit };
+                }
             }
         }
     } catch (err) {
