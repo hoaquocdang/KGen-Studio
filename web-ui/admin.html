@@ -160,7 +160,27 @@
                                 <option value="active">Active</option>
                                 <option value="banned">Banned</option>
                             </select>
-                            <button class="btn btn-sm" onclick="exportCSV()">📥 Export CSV</button>
+                            <div class="export-dropdown" style="position:relative;display:inline-block">
+                                <button class="btn btn-sm" onclick="toggleExportMenu()" id="export-btn">📥 Xuất dữ liệu
+                                    ▾</button>
+                                <div class="export-menu" id="export-menu"
+                                    style="display:none;position:absolute;top:100%;right:0;margin-top:4px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:220px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
+                                    <button class="export-option" onclick="exportCSV()"
+                                        style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;background:transparent;border-radius:8px;color:var(--text-primary);font-size:0.85rem;cursor:pointer;text-align:left"
+                                        onmouseover="this.style.background='var(--bg-hover)'"
+                                        onmouseout="this.style.background='transparent'">📄 Xuất CSV (Excel)</button>
+                                    <button class="export-option" onclick="exportToGoogleSheets()"
+                                        style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;background:transparent;border-radius:8px;color:var(--text-primary);font-size:0.85rem;cursor:pointer;text-align:left"
+                                        onmouseover="this.style.background='var(--bg-hover)'"
+                                        onmouseout="this.style.background='transparent'">📊 Mở Google Sheets</button>
+                                    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+                                    <button class="export-option" onclick="exportFullBackup()"
+                                        style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;background:transparent;border-radius:8px;color:var(--text-primary);font-size:0.85rem;cursor:pointer;text-align:left"
+                                        onmouseover="this.style.background='var(--bg-hover)'"
+                                        onmouseout="this.style.background='transparent'">💾 Sao lưu toàn bộ
+                                        (JSON)</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="user-table-wrap">
                             <table class="user-table">
@@ -405,13 +425,89 @@
         function chBan(em) { const u = users.find(x => x.email === em); if (!u) return; u.status = u.status === 'active' ? 'banned' : 'active'; saveU(); filterUsers(); renderRecent(); toast(u.status === 'banned' ? `🚫 Banned ${u.name}` : `✅ Unbanned ${u.name}`, u.status === 'banned' ? 'error' : 'success'); }
         function saveU() { localStorage.setItem(UK, JSON.stringify(users)); }
 
+        function toggleExportMenu() {
+            const m = document.getElementById('export-menu');
+            m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.export-dropdown')) {
+                const m = document.getElementById('export-menu');
+                if (m) m.style.display = 'none';
+            }
+        });
+
         function exportCSV() {
-            const h = ['Name', 'Email', 'Tier', 'Images', 'Joined', 'Status'];
-            const rows = filtered.map(u => [u.name, u.email, u.tier, u.imagesCreated, u.createdAt, u.status]);
-            const csv = [h, ...rows].map(r => r.join(',')).join('\n');
-            const b = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = url; a.download = `kgen-users-${new Date().toISOString().split('T')[0]}.csv`; a.click();
-            URL.revokeObjectURL(url); toast('📥 Exported!', 'success');
+            const h = ['Name', 'Email', 'Tier', 'Images Created', 'Joined Date', 'Status'];
+            const rows = filtered.map(u => [
+                `"${(u.name || '').replace(/"/g, '""')}"`,
+                `"${u.email}"`,
+                u.tier.toUpperCase(),
+                u.imagesCreated,
+                `"${fmtDate(u.createdAt)}"`,
+                u.status
+            ]);
+            const bom = '\uFEFF'; // UTF-8 BOM for Excel
+            const csv = bom + [h, ...rows].map(r => r.join(',')).join('\n');
+            const b = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(b);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kgen-users-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            document.getElementById('export-menu').style.display = 'none';
+            toast('📄 Đã xuất file CSV — mở bằng Excel hoặc Google Sheets', 'success');
+        }
+
+        function exportToGoogleSheets() {
+            // Build TSV data for Google Sheets
+            const h = ['Tên', 'Email', 'Gói', 'Số ảnh', 'Ngày tạo', 'Trạng thái'];
+            const rows = filtered.map(u => [
+                u.name || '', u.email || '', u.tier.toUpperCase(),
+                u.imagesCreated || 0, fmtDate(u.createdAt), u.status === 'active' ? 'Active' : 'Banned'
+            ]);
+            const tsv = [h, ...rows].map(r => r.join('\t')).join('\n');
+
+            // Copy to clipboard then open Google Sheets
+            navigator.clipboard.writeText(tsv).then(() => {
+                toast('📋 Đã copy dữ liệu! Paste (Ctrl+V) vào Google Sheets đang mở...', 'success');
+                window.open('https://sheets.new', '_blank');
+            }).catch(() => {
+                // Fallback: download as CSV and tell user to import
+                exportCSV();
+                toast('Mở Google Sheets → File → Import → chọn file CSV vừa tải', 'info');
+            });
+            document.getElementById('export-menu').style.display = 'none';
+        }
+
+        function exportFullBackup() {
+            const backup = {
+                exportDate: new Date().toISOString(),
+                version: 'KGen Admin v7',
+                adminConfig: gc(),
+                users: users,
+                stats: {
+                    totalUsers: users.length,
+                    proUsers: users.filter(u => u.tier === 'pro').length,
+                    premiumUsers: users.filter(u => u.tier === 'premium').length,
+                    bannedUsers: users.filter(u => u.status === 'banned').length,
+                    totalImages: users.reduce((s, u) => s + (u.imagesCreated || 0), 0),
+                },
+                generationHistory: (() => { try { return JSON.parse(localStorage.getItem('kgen_gen_history') || '[]'); } catch { return []; } })(),
+            };
+            // Remove sensitive data
+            if (backup.adminConfig.passwordHash) delete backup.adminConfig.passwordHash;
+
+            const json = JSON.stringify(backup, null, 2);
+            const b = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(b);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kgen-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            document.getElementById('export-menu').style.display = 'none';
+            toast('💾 Đã sao lưu toàn bộ dữ liệu hệ thống!', 'success');
         }
 
         function pgPrev() { if (pg > 1) { pg--; renderTable(); } }
