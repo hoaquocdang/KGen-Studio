@@ -2711,12 +2711,18 @@ function initQuickApiKeyModal() {
         if (e.target === modal) modal.classList.add('hidden');
     });
 
-    // Tab switching (keep for compatibility)
+    // Tab switching
     document.querySelectorAll('.quick-api-tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            document.querySelectorAll('.quick-api-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.quick-api-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'transparent';
+                t.style.fontWeight = '400';
+            });
             document.querySelectorAll('.quick-api-pane').forEach(p => p.classList.add('hidden'));
             tab.classList.add('active');
+            tab.style.background = 'var(--bg-active)';
+            tab.style.fontWeight = '600';
             const pane = document.getElementById('pane-' + tab.dataset.provider);
             if (pane) pane.classList.remove('hidden');
         });
