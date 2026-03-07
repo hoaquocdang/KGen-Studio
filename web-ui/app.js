@@ -3437,4 +3437,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Refresh collection button
     document.getElementById('btn-refresh-collection')?.addEventListener('click', loadCollection);
+
+    // i18n - Language picker & translations
+    if (typeof createLangPicker === 'function') {
+        const container = document.getElementById('lang-picker-container');
+        if (container) container.appendChild(createLangPicker());
+        applyTranslations();
+    }
 });

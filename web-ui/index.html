@@ -77,14 +77,14 @@
                     <path d="M5 8.5V15h8V8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                         stroke-linejoin="round" />
                 </svg>
-                <span>Home</span>
+                <span data-i18n="nav.home">Home</span>
             </button>
             <button class="nav-item" id="nav-search-modal-btn">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.5" />
                     <path d="M12 12l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 </svg>
-                <span>Search</span>
+                <span data-i18n="nav.search">Search</span>
             </button>
             <button class="nav-item" data-tab="history" id="nav-history">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -92,26 +92,26 @@
                         stroke-linejoin="round" />
                     <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" />
                 </svg>
-                <span>History</span>
+                <span data-i18n="nav.history">History</span>
             </button>
             <button class="nav-item" data-tab="enhance" id="nav-enhance">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <path d="M9 2l1.8 3.6L15 6.4l-3 2.9.7 4-3.7-1.9L5.3 13.3l.7-4-3-2.9 4.2-.8L9 2z"
                         stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round" />
                 </svg>
-                <span>Nâng cấp Prompt</span>
+                <span data-i18n="nav.enhance">Nâng cấp Prompt</span>
             </button>
             <button class="nav-item" data-tab="collection" id="nav-collection">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <path d="M9 15.5s-6-4.35-6-8.5A3.5 3.5 0 019 4.03 3.5 3.5 0 0115 7c0 4.15-6 8.5-6 8.5z"
                         stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round" />
                 </svg>
-                <span>My Collection</span>
+                <span data-i18n="nav.collection">My Collection</span>
             </button>
 
             <!-- Categories Section -->
             <div class="sidebar-section">
-                <div class="sidebar-section-label">Categories</div>
+                <div class="sidebar-section-label" data-i18n="nav.categories">Categories</div>
                 <div class="sidebar-tags-list" id="sidebar-tags-list" style="display: none;">
                     <!-- Categories moved to top bar -->
                 </div>
@@ -120,14 +120,14 @@
                         <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" />
                         <path d="M8 5v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
                     </svg>
-                    <span>Recent Updates</span>
+                    <span data-i18n="nav.recent">Recent Updates</span>
                 </button>
                 <button class="nav-item nav-item-sm" id="nav-btn-ai-tools"
                     style="background:transparent; border:none; width:100%; text-align:left;">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M2.5 8h11M8 2.5v11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
                     </svg>
-                    <span>Công cụ AI khác</span>
+                    <span data-i18n="nav.aitools">Công cụ AI khác</span>
                 </button>
                 <a href="https://seo.kgen.cloud" target="_blank" class="nav-item nav-item-sm"
                     style="background:transparent; border:none; width:100%; text-align:left; text-decoration:none;">
@@ -139,25 +139,26 @@
                             d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
                         </path>
                     </svg>
-                    <span>Công cụ SEO - AIO</span>
+                    <span data-i18n="nav.seo">Công cụ SEO - AIO</span>
                 </a>
             </div>
 
             <!-- Hướng dẫn -->
             <div class="sidebar-section">
-                <div class="sidebar-section-label">Hướng dẫn</div>
+                <div class="sidebar-section-label" data-i18n="nav.guide">Hướng dẫn</div>
                 <button class="nav-link-item" id="nav-btn-guide"
                     style="background:transparent; border:none; width:100%; text-align:left; cursor:pointer;">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" />
                         <path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
                     </svg>
-                    <span>Tài liệu hướng dẫn</span>
+                    <span data-i18n="nav.docs">Tài liệu hướng dẫn</span>
                 </button>
             </div>
         </nav>
 
         <div class="sidebar-footer">
+            <div id="lang-picker-container"></div>
             <div class="sidebar-version">
                 <span class="version-badge">V7</span>
                 <span class="version-dot"></span>
@@ -636,13 +637,14 @@
             <div class="enhance-layout">
                 <div class="enhance-card">
                     <div class="enhance-input-section">
-                        <label class="form-label">Ý tưởng của bạn</label>
+                        <label class="form-label" data-i18n="enhance.input_label">Ý tưởng của bạn</label>
                         <textarea id="enhance-input" class="form-textarea" rows="4"
+                            data-i18n-placeholder="enhance.input_placeholder"
                             placeholder="VD: a cat in a garden, sunset portrait, product on marble table..."></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-section">
-                            <label class="form-label">Phong cách</label>
+                            <label class="form-label" data-i18n="enhance.style_label">Phong cách</label>
                             <div class="style-picker" id="style-picker">
                                 <button class="style-btn active" data-style="realistic">
                                     <span class="style-emoji">📷</span>
@@ -661,8 +663,9 @@
                     </div>
                     <div class="form-row">
                         <div class="form-section">
-                            <label class="form-label">Chế độ sáng tạo <span
-                                    style="font-size:0.75rem;color:var(--text-tertiary)">(tuỳ chọn)</span></label>
+                            <label class="form-label"><span data-i18n="enhance.mode_label">Chế độ sáng tạo</span> <span
+                                    style="font-size:0.75rem;color:var(--text-tertiary)"
+                                    data-i18n="enhance.optional">(tuỳ chọn)</span></label>
                             <div class="style-picker" id="mode-picker">
                                 <button class="style-btn" data-mode="none">
                                     <span class="style-emoji">✨</span>
@@ -685,8 +688,9 @@
                     </div>
                     <div class="form-row">
                         <div class="form-section">
-                            <label class="form-label">Góc máy <span
-                                    style="font-size:0.75rem;color:var(--text-tertiary)">(tuỳ chọn)</span></label>
+                            <label class="form-label"><span data-i18n="enhance.angle_label">Góc máy</span> <span
+                                    style="font-size:0.75rem;color:var(--text-tertiary)"
+                                    data-i18n="enhance.optional">(tuỳ chọn)</span></label>
                             <div class="style-picker" id="angle-picker">
                                 <button class="style-btn" data-angle="none">
                                     <span class="style-emoji">🎯</span>
@@ -1485,6 +1489,7 @@
         </div>
     </div>
 
+    <script src="i18n.js?v=20260307"></script>
     <script src="site-config.js?v=20260306_1455"></script>
     <script src="supabase.js?v=20260306_1455"></script>
     <script src="app.js?v=20260306_1455"></script>
