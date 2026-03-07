@@ -856,17 +856,32 @@ async function generateImage() {
         return;
     }
 
-    // Check quota (guests can generate up to free limit)
-    if (!canGenerateImage()) {
-        const plan = getUserPlan();
-        const limit = getUserImageLimit();
-        if (plan === 'free') {
-            showApiKeyGuideModal();
-        } else {
-            showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói để tiếp tục!`, 'error', 5000);
-            switchTab('pricing');
-        }
+    // Determine which API to use: user's Google key or admin's Kie AI key
+    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
+    const adminKieKey = getAdminAPIKey('kie');
+    const userKieKey = APP_STATE.settings.kieApiKey || '';
+
+    const useGoogleApi = !!userGoogleKey;
+    const useKieApi = !!(userKieKey || adminKieKey);
+
+    if (!useGoogleApi && !useKieApi) {
+        showApiKeyGuideModal();
         return;
+    }
+
+    // If using admin key (not user's own key), check quota
+    if (!useGoogleApi && !userKieKey && adminKieKey) {
+        if (!canGenerateImage()) {
+            const plan = getUserPlan();
+            const limit = getUserImageLimit();
+            if (plan === 'free') {
+                showApiKeyGuideModal();
+            } else {
+                showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói để tiếp tục!`, 'error', 5000);
+                switchTab('pricing');
+            }
+            return;
+        }
     }
 
     const quality = document.getElementById('gen-quality').value;
@@ -885,7 +900,19 @@ async function generateImage() {
     }, 1000);
 
     try {
-        const result = await generateViaKieAI(prompt, aspectRatio, quality);
+        let result;
+        let provider;
+        const selectedModel = document.getElementById('gen-model')?.value || 'nano-banana-pro';
+
+        if (useGoogleApi) {
+            // Use user's Google Gemini API key
+            result = await generateViaGemini(prompt, aspectRatio, quality, userGoogleKey);
+            provider = 'google-gemini';
+        } else {
+            // Use Kie AI (admin key or user's own Kie key)
+            result = await generateViaKieAI(prompt, aspectRatio, quality, selectedModel);
+            provider = 'kie-ai';
+        }
 
         // Show result
         clearInterval(timerInterval);
@@ -897,14 +924,16 @@ async function generateImage() {
 
             document.getElementById('result-image-wrap').classList.remove('hidden');
 
-            // Track usage quota
-            incrementImageUsage();
+            // Track usage quota (only for admin key usage)
+            if (!useGoogleApi && !userKieKey) {
+                incrementImageUsage();
+            }
 
             // Add to history
             APP_STATE.generationHistory.unshift({
                 url: result.imageUrl,
                 prompt,
-                provider: 'kie-ai',
+                provider: provider,
                 timestamp: new Date().toISOString(),
             });
             renderHistory();
@@ -923,6 +952,90 @@ async function generateImage() {
 
         console.error('Generation error:', error);
     }
+}
+
+/**
+ * Generate image via Google Gemini API (user's own key)
+ * Uses gemini-2.0-flash-exp or imagen-3.0-generate-001
+ */
+async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
+    // Use Imagen 3 for dedicated image generation
+    const model = 'imagen-3.0-generate-001';
+    const baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+    const url = `${baseUrl}/models/${model}:predict?key=${apiKey}`;
+
+    console.log('🎨 Google Gemini Request:', { model, prompt: prompt.substring(0, 50), aspectRatio, quality });
+
+    // Map aspect ratio
+    const arMap = {
+        '1:1': '1:1',
+        '3:4': '3:4',
+        '4:3': '4:3',
+        '16:9': '16:9',
+        '9:16': '9:16',
+    };
+
+    let response;
+    try {
+        response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                instances: [{ prompt: prompt }],
+                parameters: {
+                    sampleCount: 1,
+                    aspectRatio: arMap[aspectRatio] || '1:1',
+                },
+            }),
+        });
+    } catch (fetchErr) {
+        console.error('Gemini fetch error:', fetchErr);
+        throw new Error('Không kết nối được tới Google API. Kiểm tra kết nối mạng.');
+    }
+
+    if (!response.ok) {
+        const errText = await response.text();
+        console.error('Gemini error:', response.status, errText);
+        let errMsg = `Google API Error (${response.status})`;
+        try {
+            const errData = JSON.parse(errText);
+            errMsg = errData.error?.message || errMsg;
+        } catch (e) { }
+
+        if (response.status === 400 && errMsg.includes('API key')) {
+            throw new Error('Google API key không hợp lệ. Kiểm tra lại key tại Google AI Studio.');
+        }
+        if (response.status === 403) {
+            throw new Error('Google API key không có quyền. Bật Gemini API tại Google Cloud Console.');
+        }
+        if (response.status === 429) {
+            throw new Error('Quá giới hạn Google API. Đợi vài giây rồi thử lại.');
+        }
+        throw new Error(errMsg);
+    }
+
+    const data = await response.json();
+    console.log('🎨 Gemini Response:', JSON.stringify(data).substring(0, 500));
+
+    // Imagen 3 returns base64 image data
+    const predictions = data.predictions || [];
+    if (predictions.length > 0 && predictions[0].bytesBase64Encoded) {
+        const base64 = predictions[0].bytesBase64Encoded;
+        const mimeType = predictions[0].mimeType || 'image/png';
+        return { imageUrl: `data:${mimeType};base64,${base64}` };
+    }
+
+    // Fallback: try Gemini generateContent format
+    const candidates = data.candidates || [];
+    if (candidates.length > 0) {
+        for (const part of (candidates[0].content?.parts || [])) {
+            if (part.inlineData) {
+                return { imageUrl: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` };
+            }
+        }
+    }
+
+    throw new Error('Google API không trả về ảnh. Thử prompt khác hoặc kiểm tra giới hạn API.');
 }
 
 /**
@@ -1030,32 +1143,46 @@ function showGenerationError(message) {
 }
 
 /**
- * Generate image via Kie AI API (Nanobanana Pro)
- * Step 1: Create task via POST /api/v1/jobs/createTask
- * Step 2: Poll for result via GET /api/v1/jobs/queryTask/{taskId}
+ * Generate image via Kie AI API
+ * Supports: nano-banana-pro and nano-banana-2
+ * nano-banana-pro: Poll via GET /api/v1/jobs/queryTask/{taskId}
+ * nano-banana-2:   Poll via GET /api/v1/jobs/recordInfo?taskId={taskId}
  */
-async function generateViaKieAI(prompt, aspectRatio, resolution) {
+async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) {
     const apiKey = APP_STATE.settings.kieApiKey || getAdminAPIKey('kie');
     if (!apiKey) throw new Error('Kie AI API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
 
     const baseUrl = getAdminAPIKey('kieBase') || 'https://api.kie.ai';
-    const model = getAdminAPIKey('kieModel') || 'nano-banana-pro';
+    const model = selectedModel || getAdminAPIKey('kieModel') || 'nano-banana-pro';
+    const isNB2 = model === 'nano-banana-2';
 
     // Collect reference images if any
-    const imageInput = APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages.slice(0, 8) : [];
+    const maxRefs = isNB2 ? 14 : 8;
+    const imageInput = APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages.slice(0, maxRefs) : [];
 
     // Map resolution value
-    const resolutionValue = resolution || '2K';
+    const resolutionValue = resolution || (isNB2 ? '1K' : '2K');
+
+    const inputParams = {
+        prompt: prompt,
+        aspect_ratio: aspectRatio || (isNB2 ? 'auto' : '1:1'),
+        resolution: resolutionValue,
+        output_format: 'png',
+    };
+
+    // Only include image_input if there are images
+    if (imageInput.length > 0) {
+        inputParams.image_input = imageInput;
+    }
+
+    // Nano Banana 2 supports google_search
+    if (isNB2) {
+        inputParams.google_search = false;
+    }
 
     const requestBody = {
         model: model,
-        input: {
-            prompt: prompt,
-            image_input: imageInput.length > 0 ? imageInput : undefined,
-            aspect_ratio: aspectRatio || '1:1',
-            resolution: resolutionValue,
-            output_format: 'png',
-        },
+        input: inputParams,
     };
 
     console.log('🎨 Kie AI Request:', JSON.stringify(requestBody, null, 2));
@@ -1098,7 +1225,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
 
     // Check for success - handle various response formats
     if (createData.code && createData.code !== 200 && createData.code !== '200') {
-        throw new Error(createData.message || `API trả về mã lỗi: ${createData.code}`);
+        throw new Error(createData.message || createData.msg || `API trả về mã lỗi: ${createData.code}`);
     }
 
     const taskId = createData.data?.taskId || createData.taskId || createData.data?.task_id;
@@ -1107,11 +1234,17 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
         throw new Error('Không nhận được taskId. Response: ' + JSON.stringify(createData).substring(0, 300));
     }
 
-    console.log('🎨 Task created:', taskId);
+    console.log('🎨 Task created:', taskId, '| Model:', model);
 
     // Step 2: Poll for result
-    const maxWait = 120000; // 2 minutes timeout
-    const pollInterval = 2000; // Poll every 2 seconds
+    // nano-banana-pro: GET /api/v1/jobs/queryTask/{taskId}
+    // nano-banana-2:   GET /api/v1/jobs/recordInfo?taskId={taskId}
+    const pollUrl = isNB2
+        ? `${baseUrl}/api/v1/jobs/recordInfo?taskId=${taskId}`
+        : `${baseUrl}/api/v1/jobs/queryTask/${taskId}`;
+
+    const maxWait = 120000; // 2 minutes
+    const pollInterval = 2000;
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWait) {
@@ -1119,11 +1252,9 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
 
         let queryResponse;
         try {
-            queryResponse = await fetch(`${baseUrl}/api/v1/jobs/queryTask/${taskId}`, {
+            queryResponse = await fetch(pollUrl, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                },
+                headers: { 'Authorization': `Bearer ${apiKey}` },
             });
         } catch (e) {
             console.warn('Poll fetch error:', e);
@@ -1141,7 +1272,6 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
         console.log('🎨 Poll:', taskData.state || taskData.status);
 
         if (taskData.state === 'success' || taskData.status === 'success') {
-            // Parse resultJson to get image URL
             let resultUrls = [];
             try {
                 if (typeof taskData.resultJson === 'string') {
@@ -1150,7 +1280,6 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
                 } else if (taskData.resultJson) {
                     resultUrls = taskData.resultJson.resultUrls || taskData.resultJson.result_urls || [];
                 }
-                // Also check output directly
                 if (resultUrls.length === 0 && taskData.output) {
                     resultUrls = Array.isArray(taskData.output) ? taskData.output : [taskData.output];
                 }
@@ -1171,7 +1300,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution) {
             const failMsg = taskData.failMsg || taskData.fail_msg || taskData.error || 'Tạo ảnh thất bại.';
             throw new Error(failMsg);
         }
-        // else: still processing, continue poll
+        // else: waiting/processing, continue poll
     }
 
     throw new Error('Quá thời gian chờ (2 phút). Vui lòng thử lại.');
@@ -2483,7 +2612,6 @@ function setupGenControls() {
     const describeCard = document.getElementById('gen-describe-card');
     if (describeCard) {
         describeCard.addEventListener('click', () => {
-            // Trigger a file input for image-to-prompt
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/jpeg,image/png,image/webp';
@@ -2491,12 +2619,51 @@ function setupGenControls() {
                 const file = e.target.files[0];
                 if (!file) return;
                 showToast('Đang phân tích ảnh...', 'info');
-                // For demo, just show that we received the file
                 setTimeout(() => {
                     showToast('Tính năng Describe Image sẽ tự động tạo prompt từ ảnh', 'info');
                 }, 1500);
             };
             input.click();
+        });
+    }
+
+    // --- Model Selector Dropdown ---
+    const modelBtn = document.getElementById('model-selector-btn');
+    const modelDropdown = document.getElementById('model-dropdown');
+    const modelInput = document.getElementById('gen-model');
+    const modelNameEl = document.getElementById('model-sel-name');
+    const modelBadgeEl = document.getElementById('model-sel-badge');
+
+    if (modelBtn && modelDropdown) {
+        modelBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            modelDropdown.classList.toggle('active');
+            // Close other dropdowns
+            if (arDropdown) arDropdown.classList.add('hidden');
+            if (qDropdown) qDropdown.classList.add('hidden');
+        });
+
+        modelDropdown.querySelectorAll('.model-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                modelDropdown.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                const modelVal = opt.dataset.model;
+                const modelName = opt.dataset.name;
+                const badge = opt.dataset.badge;
+                const credits = opt.dataset.credits;
+                if (modelInput) modelInput.value = modelVal;
+                if (modelNameEl) modelNameEl.textContent = modelName;
+                if (modelBadgeEl) modelBadgeEl.textContent = badge;
+                const creditsEl = document.getElementById('gen-btn-credits');
+                if (creditsEl) creditsEl.textContent = credits;
+                modelDropdown.classList.remove('active');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!modelBtn.contains(e.target) && !modelDropdown.contains(e.target)) {
+                modelDropdown.classList.remove('active');
+            }
         });
     }
 }
@@ -2519,7 +2686,11 @@ function initQuickApiKeyModal() {
     fab.addEventListener('click', () => {
         modal.classList.remove('hidden');
         updateQuickApiStatus();
-        // Pre-fill existing key
+        // Pre-fill existing keys
+        const googleKey = APP_STATE.settings.googleApiKey || '';
+        const googleEl = document.getElementById('qk-google');
+        if (googleEl && googleKey) googleEl.value = googleKey;
+
         const kieKey = APP_STATE.settings.kieApiKey || getAdminAPIKey('kie');
         const kieEl = document.getElementById('qk-kie');
         if (kieEl && kieKey) kieEl.value = kieKey;
@@ -2547,7 +2718,7 @@ function updateApiKeyFabState() {
     const btn = document.getElementById('btn-quick-api');
     if (!btn) return;
 
-    const hasKey = !!(APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
+    const hasKey = !!(APP_STATE.settings.googleApiKey || APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
 
     const miniIcon = document.getElementById('api-key-mini-icon');
     const okIcon = document.getElementById('api-key-ok-icon');
@@ -2572,21 +2743,33 @@ function updateQuickApiStatus() {
     const container = document.getElementById('quick-api-status');
     if (!container) return;
 
-    const hasKey = !!(APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
+    const hasGoogle = !!APP_STATE.settings.googleApiKey;
+    const hasKie = !!(APP_STATE.settings.kieApiKey || getAdminAPIKey('kie'));
 
-    if (!hasKey) { container.innerHTML = ''; return; }
+    if (!hasGoogle && !hasKie) { container.innerHTML = ''; return; }
 
-    container.innerHTML = `
-        <div class="qk-status-row">
+    let html = '';
+    if (hasGoogle) {
+        html += `<div class="qk-status-row">
             <span class="qk-status-dot on"></span>
-            <span>Kie AI (Nanobanana Pro): ✅ Đã cấu hình</span>
-        </div>
-    `;
+            <span>Google Gemini (Imagen 3): ✅ Đã cấu hình — Miễn phí</span>
+        </div>`;
+    }
+    if (hasKie) {
+        html += `<div class="qk-status-row">
+            <span class="qk-status-dot on"></span>
+            <span>Kie AI: ✅ Đã cấu hình</span>
+        </div>`;
+    }
+    container.innerHTML = html;
 }
 
 function saveQuickKey(provider) {
-    if (provider === 'kie' || provider === 'gemini') {
-        // Accept both 'kie' and 'gemini' for backward compatibility
+    if (provider === 'google') {
+        const key = document.getElementById('qk-google')?.value.trim();
+        if (!key) { showToast('Vui lòng nhập Google API Key', 'error'); return; }
+        APP_STATE.settings.googleApiKey = key;
+    } else if (provider === 'kie' || provider === 'gemini') {
         const key = (document.getElementById('qk-kie') || document.getElementById('qk-gemini'))?.value.trim();
         if (!key) { showToast('Vui lòng nhập Kie AI API Key', 'error'); return; }
         APP_STATE.settings.kieApiKey = key;
@@ -2604,7 +2787,12 @@ function saveQuickKey(provider) {
     updateApiKeyFabState();
 
     document.getElementById('quick-api-modal')?.classList.add('hidden');
-    showToast('✅ API key đã được lưu! Bạn có thể tạo ảnh không giới hạn ngay bây giờ.', 'success', 4000);
+
+    if (provider === 'google') {
+        showToast('✅ Google API Key đã lưu! Bạn có thể tạo ảnh miễn phí không giới hạn.', 'success', 4000);
+    } else {
+        showToast('✅ Kie AI Key đã lưu! Bạn có thể tạo ảnh ngay.', 'success', 4000);
+    }
 }
 window.saveQuickKey = saveQuickKey;
 

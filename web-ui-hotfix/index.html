@@ -500,18 +500,37 @@
                         <input type="hidden" id="gen-provider" value="kie-ai">
                         <input type="hidden" id="gen-negative" value="">
 
-                        <!-- 7. Model Display (Nanobanana Pro only) -->
+                        <!-- 7. Model Selector -->
                         <div class="gen-model-area">
                             <div class="model-selector" id="model-selector">
-                                <div class="model-selector-btn" id="model-selector-btn"
-                                    style="cursor:default;pointer-events:none;">
+                                <div class="model-selector-btn" id="model-selector-btn">
                                     <span class="model-sel-icon">
                                         <span style="font-size:1.1rem">✨</span>
                                     </span>
                                     <span class="model-sel-name" id="model-sel-name">Nanobanana Pro</span>
                                     <span class="model-sel-dot"></span>
-                                    <span class="model-badge new" style="margin-left:8px;font-size:0.65rem;">by Google
-                                        DeepMind</span>
+                                    <span class="model-badge new" style="margin-left:8px;font-size:0.65rem;"
+                                        id="model-sel-badge">by Google DeepMind</span>
+                                    <svg class="model-sel-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                        <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </div>
+                                <div class="model-dropdown" id="model-dropdown">
+                                    <div class="model-option active" data-model="nano-banana-pro"
+                                        data-name="Nanobanana Pro" data-badge="by Google DeepMind" data-credits="18">
+                                        <span style="font-size:1rem">✨</span>
+                                        <span class="model-opt-name">Nanobanana Pro</span>
+                                        <span class="model-badge new">PRO</span>
+                                        <span class="model-opt-credits">18 cr</span>
+                                    </div>
+                                    <div class="model-option" data-model="nano-banana-2" data-name="Nano Banana 2"
+                                        data-badge="Google Search" data-credits="18">
+                                        <span style="font-size:1rem">🍌</span>
+                                        <span class="model-opt-name">Nano Banana 2</span>
+                                        <span class="model-badge new" style="background:#3b82f6;">NEW</span>
+                                        <span class="model-opt-credits">18 cr</span>
+                                    </div>
                                 </div>
                                 <input type="hidden" id="gen-model" value="nano-banana-pro">
                             </div>
@@ -1221,15 +1240,46 @@
             <div class="quick-api-header">
                 <div class="quick-api-icon">🔑</div>
                 <div>
-                    <h3>Nhập API Key</h3>
-                    <p>Thêm key của bạn để tạo ảnh miễn phí không giới hạn</p>
+                    <h3>API Key của bạn</h3>
+                    <p>Thêm key để tạo ảnh không giới hạn</p>
                 </div>
                 <button class="quick-api-close" id="quick-api-close">&times;</button>
             </div>
 
+            <!-- Tab switcher -->
+            <div class="quick-api-tabs" style="display:flex;gap:4px;padding:0 16px;margin-bottom:8px;">
+                <button class="quick-api-tab active" data-provider="google"
+                    style="flex:1;padding:8px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-active);cursor:pointer;font-size:0.82rem;font-weight:600;font-family:var(--font-sans);">
+                    🌐 Google (Miễn phí)
+                </button>
+                <button class="quick-api-tab" data-provider="kie"
+                    style="flex:1;padding:8px;border:1px solid var(--border-color);border-radius:8px;background:transparent;cursor:pointer;font-size:0.82rem;font-family:var(--font-sans);">
+                    ✨ Kie AI (Nâng cao)
+                </button>
+            </div>
+
             <div class="quick-api-body">
-                <!-- Kie AI -->
-                <div class="quick-api-pane active" id="pane-kie">
+                <!-- Google Gemini (Primary for users - FREE) -->
+                <div class="quick-api-pane active" id="pane-google">
+                    <p class="quick-api-hint">
+                        <strong>Google Gemini API</strong> — Tạo ảnh bằng Imagen 3 (Google DeepMind).
+                        <span style="color:var(--accent-green,#22c55e);font-weight:600;">Miễn phí hoàn toàn!</span>
+                    </p>
+                    <div class="quick-api-input-row">
+                        <input type="password" id="qk-google" placeholder="Nhập Google API Key..."
+                            class="quick-api-input" autocomplete="off">
+                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-google')">👁</button>
+                    </div>
+                    <a href="https://aistudio.google.com/apikey" target="_blank" class="quick-api-link">→ Lấy key miễn
+                        phí tại Google AI Studio</a>
+                    <div style="margin:8px 0;font-size:0.78rem;color:var(--text-secondary,#888);">
+                        ✅ Miễn phí • ✅ Không giới hạn ảnh • ✅ Imagen 3 chất lượng cao
+                    </div>
+                    <button class="quick-api-save-btn" onclick="saveQuickKey('google')">✅ Lưu & Kích hoạt</button>
+                </div>
+
+                <!-- Kie AI (Secondary - paid) -->
+                <div class="quick-api-pane hidden" id="pane-kie">
                     <p class="quick-api-hint">Model: <strong>Nanobanana Pro</strong> (Google DeepMind). 2K sắc nét, 4K
                         scaling.</p>
                     <div class="quick-api-input-row">
@@ -1240,7 +1290,7 @@
                     <a href="https://kie.ai" target="_blank" class="quick-api-link">→ Lấy key tại kie.ai</a>
                     <div style="margin:8px 0;font-size:0.78rem;color:var(--text-secondary,#888);">💰 1K/2K: 18 credits
                         (~$0.09) · 4K: 24 credits (~$0.12)</div>
-                    <button class="quick-api-save-btn" onclick="saveQuickKey('kie')">✅ Lưu &amp; Kích hoạt</button>
+                    <button class="quick-api-save-btn" onclick="saveQuickKey('kie')">✅ Lưu & Kích hoạt</button>
                 </div>
             </div>
 
