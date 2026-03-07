@@ -251,11 +251,8 @@ async function loadPromptLibrary() {
         if (gallerySub) gallerySub.textContent = `${APP_STATE.prompts.length.toLocaleString()} prompt được tuyển chọn`;
 
         barFill.style.width = '100%';
-
-        setTimeout(() => {
-            splash.classList.add('fade-out');
-            setTimeout(() => splash.remove(), 600);
-        }, 500);
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.remove(), 600);
 
         renderGallery(true);
     } catch (error) {
