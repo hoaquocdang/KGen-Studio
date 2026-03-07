@@ -965,11 +965,11 @@ async function generateImage() {
 
 /**
  * Generate image via Google Gemini API (user's own key)
- * Uses gemini-2.0-flash-exp with responseModalities: ["IMAGE"]
+ * Uses gemini-2.5-flash-preview-image-generation (Nano Banana)
  * This is FREE with AI Studio keys
  */
 async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
-    const model = 'gemini-2.0-flash-exp';
+    const model = 'gemini-2.5-flash-preview-image-generation';
     const baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
     const url = `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 
