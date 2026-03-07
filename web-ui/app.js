@@ -238,7 +238,8 @@ async function loadPromptLibrary() {
 
         if (!response.ok) throw new Error('Failed to load prompts');
 
-        APP_STATE.prompts = await response.json();
+        let rawData = await response.json();
+        APP_STATE.prompts = shuffleArray(rawData);
         APP_STATE.filteredPrompts = [...APP_STATE.prompts];
 
         barFill.style.width = '90%';
