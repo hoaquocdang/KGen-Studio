@@ -108,17 +108,21 @@ function serveStatic(filePath, res) {
     const ext = path.extname(fullPath);
 
     // Block site-config.js from being served (security!)
-    if (filePath.includes('site-config.js')) {
+    const basename = path.basename(filePath);
+    if (basename === 'site-config.js' || filePath.includes('site-config')) {
+        console.log(`🔐 Blocked site-config.js request: ${filePath}`);
         // Serve a sanitized version without the API key
-        res.writeHead(200, { 'Content-Type': 'application/javascript' });
-        res.end(`
-            window.SITE_CONFIG = {
-                api: { kieApiKey: '', kieApiBase: '', kieModel: 'nano-banana-pro' },
-                plans: ${JSON.stringify(SITE_CONFIG.plans || {})},
-                useProxy: true,
-                version: '2.1.0',
-            };
-        `);
+        const safePlans = JSON.stringify(SITE_CONFIG.plans || {});
+        res.writeHead(200, {
+            'Content-Type': 'application/javascript',
+            'Cache-Control': 'no-cache',
+        });
+        res.end(`window.SITE_CONFIG = {
+    api: { kieApiKey: '', kieApiBase: '', kieModel: '${SITE_CONFIG.api?.kieModel || 'nano-banana-pro'}' },
+    plans: ${safePlans},
+    useProxy: true,
+    version: '2.1.0',
+};`);
         return;
     }
 
