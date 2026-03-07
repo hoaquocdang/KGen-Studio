@@ -951,9 +951,9 @@ function openModal(item) {
     document.getElementById('modal-rank').textContent = `#${item.rank}`;
     document.getElementById('modal-author').textContent = item.author_name;
     document.getElementById('modal-model').textContent = item.model;
-    document.getElementById('modal-likes').textContent = `?? ${formatNumber(item.likes)}`;
+    document.getElementById('modal-likes').textContent = `❤️ ${formatNumber(item.likes)}`;
     document.getElementById('modal-views').textContent = `👁️ ${formatNumber(item.views)}`;
-    document.getElementById('modal-date').textContent = `?? ${item.date}`;
+    document.getElementById('modal-date').textContent = `📅 ${item.date}`;
     document.getElementById('modal-source-link').href = item.source_url;
 
     // Store full prompt

@@ -956,6 +956,39 @@
                                 <span id="modal-date">📅 -</span>
                             </div>
                         </div>
+                        <div class="modal-bottom-actions"
+                            style="margin-bottom:16px; display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-primary" id="btn-use-prompt"
+                                    style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+                                    Dùng prompt này
+                                </button>
+                                <button class="btn btn-ghost" id="btn-copy-prompt"
+                                    style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--border-color);">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Copy prompt
+                                </button>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <a class="btn btn-ghost" id="modal-source-link" href="#" target="_blank"
+                                    style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border:1px solid var(--border-color); width: 100%;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                    </svg>
+                                    Nguồn
+                                </a>
+                            </div>
+                        </div>
                         <div class="modal-prompt-section"
                             style="background:var(--bg-secondary); border-radius:var(--radius-lg); padding:16px;">
                             <label class="form-label" style="margin-bottom:8px; display:block;">Prompt</label>
@@ -982,44 +1015,10 @@
                         </div>
                     </div>
 
-                    <div style="flex-grow:1;"></div>
-
-                    <div class="modal-bottom-actions"
-                        style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn btn-primary" id="btn-use-prompt"
-                                style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                </svg>
-                                Dùng prompt này
-                            </button>
-                            <button class="btn btn-ghost" id="btn-copy-prompt"
-                                style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--border-color);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                                Copy prompt
-                            </button>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <a class="btn btn-ghost" id="modal-source-link" href="#" target="_blank"
-                                style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border:1px solid var(--border-color);">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                </svg>
-                                Nguồn
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- ===== AUTH MODAL ===== -->
