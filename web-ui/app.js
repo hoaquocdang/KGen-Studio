@@ -438,13 +438,20 @@ function setupGalleryEvents() {
         });
     });
 
-    // Sidebar tag-items
+    // Sidebar tag-items (now hidden but logic kept if needed)
     document.querySelectorAll('.tag-item').forEach(tag => {
         tag.addEventListener('click', () => {
             document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
             tag.classList.add('active');
             const cat = tag.dataset.category;
             APP_STATE.currentCategory = cat;
+
+            // Sync new top-bar model pills
+            document.querySelectorAll('.model-pill').forEach(pill => {
+                pill.classList.remove('active');
+                if (pill.dataset.category === cat) pill.classList.add('active');
+            });
+
             // Sync hidden chip filter
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             const matchChip = document.querySelector(`.chip[data-category="${cat}"]`);
@@ -482,12 +489,24 @@ function setupGalleryEvents() {
         showToast('Shuffled!', 'info');
     });
 
-    // Model pills
+    // Top-bar category pills (formerly model pills)
     document.querySelectorAll('.model-pill').forEach(pill => {
         pill.addEventListener('click', () => {
             document.querySelectorAll('.model-pill').forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
-            // Model filtering is decorative for now (all prompts shown)
+
+            const cat = pill.dataset.category;
+            if (cat) {
+                APP_STATE.currentCategory = cat;
+
+                // Sync with sidebar if applicable
+                document.querySelectorAll('.tag-item').forEach(t => {
+                    t.classList.remove('active');
+                    if (t.dataset.category === cat) t.classList.add('active');
+                });
+
+                filterAndRender();
+            }
         });
     });
 
@@ -510,6 +529,8 @@ function setupGalleryEvents() {
         document.querySelector('.chip[data-category="all"]')?.classList.add('active');
         document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
         document.querySelector('.tag-item[data-category="all"]')?.classList.add('active');
+        document.querySelectorAll('.model-pill').forEach(p => p.classList.remove('active'));
+        document.querySelector('.model-pill[data-category="all"]')?.classList.add('active');
         filterAndRender();
     });
 }
@@ -550,7 +571,12 @@ function filterAndRender() {
                 case 'likes': return b.likes - a.likes;
                 case 'views': return b.views - a.views;
                 case 'date': return b.date.localeCompare(a.date);
-                default: return a.rank - b.rank;
+                default:
+                    // Featured sort: Shuffle if 'all' category
+                    if (APP_STATE.currentCategory === 'all') {
+                        return Math.random() - 0.5;
+                    }
+                    return a.rank - b.rank;
             }
         });
     }

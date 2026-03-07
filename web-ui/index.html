@@ -114,23 +114,8 @@
             <!-- Categories Section -->
             <div class="sidebar-section">
                 <div class="sidebar-section-label">Categories</div>
-                <div class="sidebar-tags-header" id="tags-toggle">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" stroke-width="1.5"
-                            stroke-linecap="round" />
-                    </svg>
-                    <span>Tags</span>
-                    <svg class="tags-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                    </svg>
-                </div>
-                <div class="sidebar-tags-list" id="sidebar-tags-list">
-                    <button class="tag-item active" data-category="all">All</button>
-                    <button class="tag-item" data-category="Product">Product & Brand</button>
-                    <button class="tag-item" data-category="Photograph">Photography</button>
-                    <button class="tag-item" data-category="3D">Illustration & 3D</button>
-                    <button class="tag-item" data-category="Food">Food & Drink</button>
-                    <button class="tag-item" data-category="Girl">Girl</button>
+                <div class="sidebar-tags-list" id="sidebar-tags-list" style="display: none;">
+                    <!-- Categories moved to top bar -->
                 </div>
                 <button class="nav-item nav-item-sm" data-tab="gallery" id="nav-recent">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -234,17 +219,13 @@
         <section id="tab-gallery" class="tab-content active">
             <!-- Top Model Filter Bar -->
             <div class="gallery-topbar">
-                <div class="model-filters">
-                    <button class="model-pill active" data-model="all">All</button>
-                    <button class="model-pill" data-model="nanobanana-pro">
-                        <span class="model-dot gemini"></span> Nanobanana Pro
-                    </button>
-                    <button class="model-pill" data-model="image-1.5">
-                        <span class="model-dot openai"></span> Image 1.5
-                    </button>
-                    <button class="model-pill" data-model="midjourney">
-                        <span class="model-dot mj"></span> Midjourney
-                    </button>
+                <div class="model-filters" id="top-category-filters">
+                    <button class="model-pill active" data-category="all">All</button>
+                    <button class="model-pill" data-category="Product">Product &amp; Brand</button>
+                    <button class="model-pill" data-category="Photograph">Photography</button>
+                    <button class="model-pill" data-category="3D">Illustration &amp; 3D</button>
+                    <button class="model-pill" data-category="Food">Food &amp; Drink</button>
+                    <button class="model-pill" data-category="Girl">Girl</button>
                 </div>
                 <div class="sort-tabs">
                     <button class="sort-tab active" data-sort="rank">Featured</button>
