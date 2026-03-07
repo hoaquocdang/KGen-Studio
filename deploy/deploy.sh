@@ -21,7 +21,7 @@ fi
 if [ -d "$APP_DIR/.git" ]; then
     echo "📥 Pulling code mới nhất..."
     cd "$APP_DIR"
-    git pull origin main
+    git pull origin master
 else
     echo "📥 Cloning repository..."
     git clone "$REPO_URL" "$APP_DIR"
