@@ -1,0 +1,6 @@
+FROM node:20-slim
+WORKDIR /app
+COPY server.js ./
+COPY web-ui/ ./web-ui/
+EXPOSE 3456
+CMD ["node", "server.js"]

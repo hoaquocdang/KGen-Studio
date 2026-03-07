@@ -1154,14 +1154,30 @@ function showGenerationError(message) {
 /**
  * Generate image via Kie AI API
  * Supports: nano-banana-pro and nano-banana-2
- * nano-banana-pro: Poll via GET /api/v1/jobs/queryTask/{taskId}
- * nano-banana-2:   Poll via GET /api/v1/jobs/recordInfo?taskId={taskId}
+ * If useProxy=true, calls server proxy (admin key hidden server-side)
  */
 async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) {
-    const apiKey = APP_STATE.settings.kieApiKey || getAdminAPIKey('kie');
-    if (!apiKey) throw new Error('Kie AI API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
+    const cfg = getSiteConfig();
+    const useProxy = cfg.useProxy === true;
+    const userKieKey = APP_STATE.settings.kieApiKey || '';
+    const adminKieKey = getAdminAPIKey('kie');
 
-    const baseUrl = getAdminAPIKey('kieBase') || 'https://api.kie.ai';
+    // Determine if we use proxy or direct
+    const directKey = userKieKey || adminKieKey;
+
+    if (!useProxy && !directKey) {
+        throw new Error('Kie AI API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
+    }
+
+    // If using proxy, base URL is same origin; if direct, use Kie AI base
+    const baseUrl = useProxy && !userKieKey
+        ? (window.location.origin + '/api/proxy')
+        : (getAdminAPIKey('kieBase') || 'https://api.kie.ai');
+    const apiKey = userKieKey || adminKieKey;
+    const authHeaders = useProxy && !userKieKey
+        ? {} // proxy adds auth header server-side
+        : { 'Authorization': `Bearer ${apiKey}` };
+
     const model = selectedModel || getAdminAPIKey('kieModel') || 'nano-banana-pro';
     const isNB2 = model === 'nano-banana-2';
 
@@ -1197,13 +1213,18 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     console.log('🎨 Kie AI Request:', JSON.stringify(requestBody, null, 2));
 
     // Step 1: Create task
+    // Proxy mode: /api/proxy/createTask | Direct: /api/v1/jobs/createTask
+    const createUrl = useProxy && !userKieKey
+        ? `${baseUrl}/createTask`
+        : `${baseUrl}/api/v1/jobs/createTask`;
+
     let createResponse;
     try {
-        createResponse = await fetch(`${baseUrl}/api/v1/jobs/createTask`, {
+        createResponse = await fetch(createUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
+                ...authHeaders,
             },
             body: JSON.stringify(requestBody),
         });
@@ -1246,11 +1267,16 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     console.log('🎨 Task created:', taskId, '| Model:', model);
 
     // Step 2: Poll for result
-    // nano-banana-pro: GET /api/v1/jobs/queryTask/{taskId}
-    // nano-banana-2:   GET /api/v1/jobs/recordInfo?taskId={taskId}
-    const pollUrl = isNB2
-        ? `${baseUrl}/api/v1/jobs/recordInfo?taskId=${taskId}`
-        : `${baseUrl}/api/v1/jobs/queryTask/${taskId}`;
+    let pollUrl;
+    if (useProxy && !userKieKey) {
+        pollUrl = isNB2
+            ? `${baseUrl}/recordInfo?taskId=${taskId}`
+            : `${baseUrl}/queryTask/${taskId}`;
+    } else {
+        pollUrl = isNB2
+            ? `${baseUrl}/api/v1/jobs/recordInfo?taskId=${taskId}`
+            : `${baseUrl}/api/v1/jobs/queryTask/${taskId}`;
+    }
 
     const maxWait = 120000; // 2 minutes
     const pollInterval = 2000;
@@ -1263,7 +1289,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         try {
             queryResponse = await fetch(pollUrl, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${apiKey}` },
+                headers: { ...authHeaders },
             });
         } catch (e) {
             console.warn('Poll fetch error:', e);
