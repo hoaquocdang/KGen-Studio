@@ -772,7 +772,7 @@ function renderSearchPopupPosts(posts) {
     if (!grid) return;
     grid.innerHTML = posts.slice(0, 20).map(item => `
         <div class="card" onclick="document.getElementById('search-modal-overlay').classList.add('hidden'); openModal(APP_STATE.prompts.find(p=>p.id==='${item.id}'))" style="border-radius:12px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform 0.2s;">
-            <img src="${item.url}" alt="Post" style="width:100%; display:block; aspect-ratio:3/4; object-fit:cover;">
+            <img src="${item.image || item.url}" alt="Post" style="width:100%; display:block; aspect-ratio:3/4; object-fit:cover;">
         </div>
     `).join('');
 }
