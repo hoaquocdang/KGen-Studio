@@ -229,20 +229,43 @@ async function loadPromptLibrary() {
     const statusText = document.querySelector('.splash-status');
 
     try {
-        barFill.style.width = '20%';
+        barFill.style.width = '30%';
         statusText.textContent = 'Đang tải thư viện prompt...';
 
-        const response = await fetch('./data/trending-prompts.json');
-        barFill.style.width = '60%';
+        // Phase 1: Load lightweight gallery index (~374KB instead of 4MB)
+        const indexResponse = await fetch('./data/gallery-index.json');
+        barFill.style.width = '70%';
+
+        if (!indexResponse.ok) {
+            // Fallback to full file if index doesn't exist
+            return await loadPromptLibraryFull(splash, barFill, statusText);
+        }
+
+        const indexData = await indexResponse.json();
+        barFill.style.width = '90%';
         statusText.textContent = 'Đang xử lý dữ liệu...';
 
-        if (!response.ok) throw new Error('Failed to load prompts');
+        // Convert slim format to normal format for gallery cards
+        const slimPrompts = indexData.map(item => ({
+            id: item.i,
+            rank: item.r,
+            image: item.g,
+            images: [item.g], // placeholder until full data loads
+            model: item.m,
+            likes: item.l,
+            views: item.v,
+            author_name: item.a,
+            author: item.a,
+            categories: item.c,
+            date: item.d,
+            prompt: '', // loaded later
+            source_url: '',
+            _slim: true // flag: full data not yet loaded
+        }));
 
-        let rawData = await response.json();
-        APP_STATE.prompts = shuffleArray(rawData);
+        APP_STATE.prompts = shuffleArray(slimPrompts);
         APP_STATE.filteredPrompts = [...APP_STATE.prompts];
 
-        barFill.style.width = '90%';
         statusText.textContent = `Đã tải ${APP_STATE.prompts.length.toLocaleString()} prompts!`;
 
         const galleryCount = document.getElementById('gallery-count');
@@ -255,8 +278,12 @@ async function loadPromptLibrary() {
         setTimeout(() => splash.remove(), 600);
 
         renderGallery(true);
+
+        // Phase 2: Load full data in background (non-blocking)
+        loadFullPromptsInBackground();
+
     } catch (error) {
-        statusText.textContent = 'Lỗi tải dữ liệu � thử lại...';
+        statusText.textContent = 'Lỗi tải dữ liệu — thử lại...';
         console.error('Failed to load prompts:', error);
         showToast('Không thể tải thư viện prompt', 'error');
 
@@ -264,6 +291,56 @@ async function loadPromptLibrary() {
             splash.classList.add('fade-out');
             setTimeout(() => splash.remove(), 600);
         }, 2000);
+    }
+}
+
+// Fallback: load the full JSON directly (if gallery-index.json doesn't exist)
+async function loadPromptLibraryFull(splash, barFill, statusText) {
+    const response = await fetch('./data/trending-prompts.json');
+    barFill.style.width = '80%';
+    if (!response.ok) throw new Error('Failed to load prompts');
+    let rawData = await response.json();
+    APP_STATE.prompts = shuffleArray(rawData);
+    APP_STATE.filteredPrompts = [...APP_STATE.prompts];
+    barFill.style.width = '100%';
+    statusText.textContent = `Đã tải ${APP_STATE.prompts.length.toLocaleString()} prompts!`;
+    const galleryCount = document.getElementById('gallery-count');
+    if (galleryCount) galleryCount.textContent = APP_STATE.prompts.length.toLocaleString();
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 600);
+    renderGallery(true);
+}
+
+// Background loader: merges full prompt data into already-displayed cards
+async function loadFullPromptsInBackground() {
+    try {
+        const response = await fetch('./data/trending-prompts.json');
+        if (!response.ok) return;
+        const fullData = await response.json();
+
+        // Create lookup map by ID
+        const fullMap = {};
+        fullData.forEach(item => { fullMap[item.id] = item; });
+
+        // Merge full data into existing prompts
+        APP_STATE.prompts.forEach((p, idx) => {
+            const full = fullMap[p.id];
+            if (full) {
+                APP_STATE.prompts[idx] = { ...full, _slim: false };
+            }
+        });
+
+        // Also update filteredPrompts
+        APP_STATE.filteredPrompts.forEach((p, idx) => {
+            const full = fullMap[p.id];
+            if (full) {
+                APP_STATE.filteredPrompts[idx] = { ...full, _slim: false };
+            }
+        });
+
+        console.log('✅ Full prompt data loaded in background');
+    } catch (e) {
+        console.warn('Background full data load failed:', e);
     }
 }
 
@@ -938,6 +1015,12 @@ function openModal(item) {
     const promptEl = document.getElementById('modal-prompt');
     const lockOverlay = document.getElementById('prompt-lock-overlay');
 
+    // If this is slim data, try to find the full version first
+    if (item._slim) {
+        const fullItem = APP_STATE.prompts.find(p => p.id === item.id && !p._slim);
+        if (fullItem) item = fullItem;
+    }
+
     // Populate images
     const imagesContainer = document.getElementById('modal-images');
     imagesContainer.innerHTML = item.images.map((url, i) =>
@@ -951,13 +1034,17 @@ function openModal(item) {
     document.getElementById('modal-likes').textContent = `❤️ ${formatNumber(item.likes)}`;
     document.getElementById('modal-views').textContent = `👁️ ${formatNumber(item.views)}`;
     document.getElementById('modal-date').textContent = `📅 ${item.date}`;
-    document.getElementById('modal-source-link').href = item.source_url;
+    document.getElementById('modal-source-link').href = item.source_url || '#';
 
     // Store full prompt
-    promptEl.dataset.fullPrompt = item.prompt;
+    promptEl.dataset.fullPrompt = item.prompt || '';
 
-    // Show full prompt to everyone
-    promptEl.textContent = item.prompt;
+    // Show prompt or loading state
+    if (item.prompt) {
+        promptEl.textContent = item.prompt;
+    } else {
+        promptEl.textContent = '⏳ Đang tải nội dung prompt...';
+    }
     lockOverlay.classList.add('unlocked');
 
     // Categories
