@@ -1329,7 +1329,64 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
     const baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
     const url = `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 
-    console.log('🎨 Google Gemini Request:', { model, prompt: prompt.substring(0, 50), aspectRatio });
+    console.log('🎨 Google Gemini Request:', { model, prompt: prompt.substring(0, 50), aspectRatio, refImages: APP_STATE.referenceImages.length });
+
+    // Build content parts: text + reference images
+    const parts = [];
+
+    // Add reference images first (if any)
+    if (APP_STATE.referenceImages.length > 0) {
+        for (const refUrl of APP_STATE.referenceImages) {
+            try {
+                let base64Data, mimeType;
+
+                if (refUrl.startsWith('data:')) {
+                    // Already base64 data URL (from file upload)
+                    const match = refUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+                    if (match) {
+                        mimeType = match[1];
+                        base64Data = match[2];
+                    }
+                } else if (refUrl.startsWith('http')) {
+                    // Remote URL — fetch and convert to base64
+                    try {
+                        const imgResponse = await fetch(refUrl);
+                        const blob = await imgResponse.blob();
+                        mimeType = blob.type || 'image/jpeg';
+                        const arrayBuffer = await blob.arrayBuffer();
+                        const uint8Array = new Uint8Array(arrayBuffer);
+                        let binary = '';
+                        uint8Array.forEach(b => binary += String.fromCharCode(b));
+                        base64Data = btoa(binary);
+                    } catch (fetchErr) {
+                        console.warn('Could not fetch reference image:', refUrl, fetchErr);
+                        continue;
+                    }
+                }
+
+                if (base64Data && mimeType) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: mimeType,
+                            data: base64Data,
+                        }
+                    });
+                    console.log('🖼️ Added reference image:', mimeType, `${Math.round(base64Data.length / 1024)}KB`);
+                }
+            } catch (err) {
+                console.warn('Error processing reference image:', err);
+            }
+        }
+    }
+
+    // Add text prompt — include instruction about references if we have any
+    let textPrompt;
+    if (parts.length > 0) {
+        textPrompt = `Generate an image based on the following prompt while using the provided reference image(s) as visual guidance for style, composition, subject, or setting:\n\n${prompt}`;
+    } else {
+        textPrompt = `Generate an image: ${prompt}`;
+    }
+    parts.push({ text: textPrompt });
 
     let response;
     try {
@@ -1338,7 +1395,7 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: `Generate an image: ${prompt}` }]
+                    parts: parts
                 }],
                 generationConfig: {
                     responseModalities: ["IMAGE", "TEXT"],
@@ -1382,8 +1439,8 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
     // Parse response - look for inline image data
     const candidates = data.candidates || [];
     if (candidates.length > 0) {
-        const parts = candidates[0].content?.parts || [];
-        for (const part of parts) {
+        const respParts = candidates[0].content?.parts || [];
+        for (const part of respParts) {
             if (part.inlineData) {
                 const mimeType = part.inlineData.mimeType || 'image/png';
                 const base64 = part.inlineData.data;
@@ -1392,7 +1449,7 @@ async function generateViaGemini(prompt, aspectRatio, quality, apiKey) {
             }
         }
         // Check if only text was returned (model decided not to generate image)
-        for (const part of parts) {
+        for (const part of respParts) {
             if (part.text) {
                 console.warn('Gemini returned text only:', part.text.substring(0, 200));
             }
@@ -3079,13 +3136,15 @@ function setupGenControls() {
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    const thumb = document.createElement('div');
-                    thumb.className = 'ref-preview-thumb';
-                    thumb.innerHTML = '<img src="' + ev.target.result + '" alt="ref"><button class="ref-remove-btn" onclick="this.parentElement.remove()">&times;</button>';
-                    if (refPreviewList) refPreviewList.appendChild(thumb);
+                    // Store base64 data URL into APP_STATE so it's sent to API
+                    APP_STATE.referenceImages.push(ev.target.result);
+                    renderRefPreviews();
+                    showToast('✅ Đã thêm ảnh tham chiếu', 'success');
                 };
                 reader.readAsDataURL(file);
             });
+            // Reset input so same file can be selected again
+            refFileInput.value = '';
         });
     }
 
@@ -3096,13 +3155,92 @@ function setupGenControls() {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/jpeg,image/png,image/webp';
-            input.onchange = (e) => {
+            input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                showToast('Đang phân tích ảnh...', 'info');
-                setTimeout(() => {
-                    showToast('Tính năng Describe Image sẽ tự động tạo prompt từ ảnh', 'info');
-                }, 1500);
+
+                // Check for API key
+                const userGoogleKey = APP_STATE.settings.googleApiKey || '';
+                const adminKieKey = getAdminAPIKey('kie');
+                const userKieKey = APP_STATE.settings.kieApiKey || '';
+
+                if (!userGoogleKey) {
+                    showToast('⚠️ Cần Google API Key để phân tích ảnh. Vào Cài đặt API Key để thêm.', 'error', 4000);
+                    return;
+                }
+
+                showToast('🔍 Đang phân tích ảnh...', 'info', 5000);
+
+                // Read file as base64
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    const dataUrl = ev.target.result;
+                    const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+                    if (!match) {
+                        showToast('❌ Không đọc được ảnh', 'error');
+                        return;
+                    }
+
+                    const mimeType = match[1];
+                    const base64Data = match[2];
+
+                    try {
+                        const geminiModel = 'gemini-2.0-flash';
+                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
+
+                        const response = await fetch(geminiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [
+                                        {
+                                            inlineData: {
+                                                mimeType: mimeType,
+                                                data: base64Data,
+                                            }
+                                        },
+                                        {
+                                            text: `Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.`
+                                        }
+                                    ]
+                                }],
+                                generationConfig: {
+                                    temperature: 0.7,
+                                    maxOutputTokens: 2048,
+                                },
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            const errText = await response.text();
+                            console.error('Describe error:', response.status, errText);
+                            throw new Error(`API Error ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        const candidates = data.candidates || [];
+                        let resultText = '';
+                        if (candidates.length > 0) {
+                            const parts = candidates[0].content?.parts || [];
+                            for (const part of parts) {
+                                if (part.text) resultText += part.text;
+                            }
+                        }
+
+                        if (resultText.trim()) {
+                            document.getElementById('gen-prompt').value = resultText.trim();
+                            updateCharCount();
+                            showToast('✅ Phân tích ảnh xong! Prompt đã được tạo.', 'success');
+                        } else {
+                            showToast('⚠️ Không phân tích được ảnh. Thử ảnh khác.', 'error');
+                        }
+                    } catch (err) {
+                        console.error('Describe image error:', err);
+                        showToast('❌ Lỗi phân tích ảnh: ' + err.message, 'error');
+                    }
+                };
+                reader.readAsDataURL(file);
             };
             input.click();
         });
