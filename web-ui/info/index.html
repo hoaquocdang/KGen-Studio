@@ -358,13 +358,83 @@
 
     <main>
         <div class="hero-text">
-            <div class="hero-line muted">MAKING</div>
-            <div class="hero-line accent">GOOD</div>
-            <div class="hero-line accent">SHIT</div>
-            <div class="hero-line"><span class="dot"></span>SINCE</div>
-            <div class="hero-line muted">2024</div>
+            <div class="hero-line muted">THAY ĐỔI</div>
+            <div class="hero-line accent"><span class="dot"></span>ĐỂ</div>
+            <div class="hero-line accent">PHÁT TRIỂN</div>
+
+            <div class="ecosystem">
+                <div class="eco-brand">KGEN</div>
+                <div class="eco-separator">/</div>
+                <div class="eco-brand">KUDOMAX</div>
+                <div class="eco-separator">/</div>
+                <div class="eco-brand accent">HOAREVIEWAZ</div>
+            </div>
         </div>
     </main>
+
+    <style>
+        .hero-text {
+            font-size: clamp(5rem, 11vw, 13rem);
+        }
+
+        .ecosystem {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(10px, 2vw, 24px);
+            margin-top: 6vh;
+            font-family: var(--font-sans);
+            font-size: clamp(1rem, 2vw, 1.8rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            text-transform: none;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0.6s;
+        }
+
+        .eco-brand {
+            color: var(--text-main);
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .eco-brand:hover {
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .eco-brand.accent {
+            color: var(--text-accent);
+        }
+
+        .eco-brand.accent:hover {
+            text-shadow: 0 0 20px rgba(240, 84, 69, 0.4);
+        }
+
+        .eco-separator {
+            color: var(--text-muted);
+            font-weight: 400;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .ecosystem {
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 4vh;
+            }
+
+            .eco-separator {
+                display: none;
+            }
+
+            .hero-text {
+                font-size: clamp(4rem, 14vw, 8rem);
+            }
+        }
+    </style>
 
     <script>
         // Simple interactive parallax effect for the hero text
