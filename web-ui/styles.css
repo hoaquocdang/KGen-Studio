@@ -982,6 +982,8 @@ a {
 }
 
 .gen-history {
+    display: none !important;
+    /* Hidden as per user request to look more professional */
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 20px;
