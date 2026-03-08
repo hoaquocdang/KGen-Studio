@@ -8,19 +8,51 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;1,400&family=Outfit:wght@300;400;600;800&display=swap"
-        rel="stylesheet">
 
     <style>
+        @font-face {
+            font-family: 'Phudu';
+            src: url('/font/Phudu-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Phudu';
+            src: url('/font/Phudu-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Phudu';
+            src: url('/font/Phudu-SemiBold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Phudu';
+            src: url('/font/Phudu-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Phudu';
+            src: url('/font/Phudu-ExtraBold.ttf') format('truetype');
+            font-weight: 800;
+            font-style: normal;
+        }
+
         :root {
             --bg-color: #0a0a0c;
             --text-main: #f3f4f6;
             --text-accent: #ff4747;
             /* Vibrant KGen-like red */
             --text-muted: #9ca3af;
-            --font-heading: 'Outfit', sans-serif;
-            --font-sans: 'Inter', sans-serif;
+            --font-heading: 'Phudu', sans-serif;
+            --font-sans: 'Phudu', sans-serif;
             --accent-gradient: linear-gradient(135deg, #ff4747 0%, #ff8a66 100%);
         }
 
@@ -126,6 +158,7 @@
         .nav-links {
             display: flex;
             gap: 24px;
+            align-items: center;
         }
 
         .nav-links a {
@@ -140,6 +173,25 @@
 
         .nav-links a:hover {
             color: var(--text-main);
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
         /* --- SIDEBARS --- */
@@ -285,7 +337,7 @@
             margin: 0 auto 50px auto;
             opacity: 0;
             animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;
-            font-weight: 300;
+            font-weight: 400;
         }
 
         .philosophy p {
@@ -298,7 +350,7 @@
 
         .philosophy strong {
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -488,8 +540,9 @@
         <div class="brand-name">KGen Ecosystem</div>
 
         <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="mailto:admin@kgen.cloud">Contact</a>
+            <a href="/" data-i18n="home">Home</a>
+            <a href="mailto:admin@kgen.cloud" data-i18n="contact">Contact</a>
+            <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">🇻🇳 Tiếng Việt</button>
         </div>
     </nav>
 
@@ -524,27 +577,30 @@
         <div class="portfolio-center">
 
             <div class="port-header">
-                <h1 class="name">Hoà Quốc Đặng</h1>
+                <h1 class="name" id="ui-name">Hoà Quốc Đặng</h1>
                 <div class="title">
-                    <span>AI Strategist</span>
+                    <span id="ui-title-1">AI Strategist</span>
                     <span class="dot"></span>
-                    <span>System Builder</span>
+                    <span id="ui-title-2">System Builder</span>
                 </div>
             </div>
 
             <div class="slogan-container">
-                <h2 class="slogan">Giữ Nhân – Thuận Đạo – Khai Trí.</h2>
+                <h2 class="slogan" id="ui-slogan">Giữ Nhân – Thuận Đạo – Khai Trí.</h2>
             </div>
 
             <div class="philosophy">
-                <p>Tôi tin rằng mọi thời đại đều có một công cụ thay đổi thế giới.<br>Thời đại này, công cụ đó là
-                    <strong>AI</strong>.</p>
-                <p>Tôi nghiên cứu quy luật vận hành của công nghệ, con người và thị trường.<br>Sau đó xây những hệ thống
+                <p id="ui-phil-1">Tôi tin rằng mọi thời đại đều có một công cụ thay đổi thế giới.<br>Thời đại này, công
+                    cụ đó là
+                    <strong>AI</strong>.
+                </p>
+                <p id="ui-phil-2">Tôi nghiên cứu quy luật vận hành của công nghệ, con người và thị trường.<br>Sau đó xây
+                    những hệ thống
                     AI giúp ý tưởng trở thành giá trị thực.</p>
             </div>
 
             <div class="ecosystem-container">
-                <div class="ecosystem-title">Our Ecosystem</div>
+                <div class="ecosystem-title" id="ui-eco-title">Our Ecosystem</div>
                 <div class="ecosystem">
                     <a href="https://kgen.cloud" target="_blank" class="eco-brand kgen">
                         <img src="/logo.png" alt="KGEN Logo" class="eco-brand-img">
@@ -566,7 +622,7 @@
         </div>
     </main>
 
-    <footer class="copyright-footer">
+    <footer class="copyright-footer" id="ui-copyright">
         Bản quyền và thiết kế bởi hoaquocdang
     </footer>
 
@@ -591,6 +647,66 @@
             content.style.transform = `translate(0px, 0px)`;
             content.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
         });
+
+        // Language toggle
+        const translations = {
+            vi: {
+                flag: "🇻🇳 Tiếng Việt",
+                home: "Trang chủ",
+                contact: "Liên hệ",
+                slogan: "Giữ Nhân – Thuận Đạo – Khai Trí.",
+                phil_1: 'Tôi tin rằng mọi thời đại đều có một công cụ thay đổi thế giới.<br>Thời đại này, công cụ đó là <strong>AI</strong>.',
+                phil_2: 'Tôi nghiên cứu quy luật vận hành của công nghệ, con người và thị trường.<br>Sau đó xây những hệ thống AI giúp ý tưởng trở thành giá trị thực.',
+                eco_title: "Hệ sinh thái",
+                copyright: "Bản quyền và thiết kế bởi hoaquocdang"
+            },
+            en: {
+                flag: "🇬🇧 English",
+                home: "Home",
+                contact: "Contact",
+                slogan: "Preserve Humanity – Follow the Way – Open the Mind.",
+                phil_1: 'I believe every era has a tool that changes the world.<br>In this era, that tool is <strong>AI</strong>.',
+                phil_2: 'I study the operational laws of technology, humans, and markets.<br>Then, I build AI systems to turn ideas into real value.',
+                eco_title: "Our Ecosystem",
+                copyright: "Copyright & Design by hoaquocdang"
+            }
+        };
+
+        let currentLang = 'vi';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'vi' ? 'en' : 'vi';
+            const dict = translations[currentLang];
+
+            document.getElementById('lang-btn').innerText = dict.flag;
+            document.querySelector('[data-i18n="home"]').innerText = dict.home;
+            document.querySelector('[data-i18n="contact"]').innerText = dict.contact;
+
+            // Fade effect for text change
+            const elementsToUpdate = [
+                { id: 'ui-slogan', key: 'slogan' },
+                { id: 'ui-phil-1', key: 'phil_1', isHTML: true },
+                { id: 'ui-phil-2', key: 'phil_2', isHTML: true },
+                { id: 'ui-eco-title', key: 'eco_title' },
+                { id: 'ui-copyright', key: 'copyright' }
+            ];
+
+            elementsToUpdate.forEach(item => {
+                const el = document.getElementById(item.id);
+                if (el) {
+                    el.style.opacity = 0;
+                    setTimeout(() => {
+                        if (item.isHTML) {
+                            el.innerHTML = dict[item.key];
+                        } else {
+                            el.innerText = dict[item.key];
+                        }
+                        el.style.opacity = 1;
+                        el.style.transition = 'opacity 0.4s ease';
+                    }, 200);
+                }
+            });
+        }
     </script>
 </body>
 
