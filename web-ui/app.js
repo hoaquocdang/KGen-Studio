@@ -349,40 +349,62 @@ async function loadFullPromptsInBackground() {
 function checkSharedPrompt() {
     const urlParams = new URLSearchParams(window.location.search);
     const shareId = urlParams.get('share');
-    if (shareId && APP_STATE.prompts) {
-        const item = APP_STATE.prompts.find(p => p.id === shareId);
-        if (item) {
-            // Found it! Clean up the URL first
-            const newUrl = new URL(window.location.href);
-            newUrl.searchParams.delete('share');
-            window.history.replaceState({}, '', newUrl);
+    const sharedText = urlParams.get('txt');
 
-            // Populate prompt text
-            document.getElementById('gen-prompt').value = item.prompt;
-            if (typeof updateCharCount === 'function') updateCharCount();
+    let item = null;
 
-            // Populate reference image if available
-            if (item.image || (item.images && item.images[0])) {
-                const imgUrl = item.image || item.images[0];
-                // Clear existing refs first to avoid piling up
-                APP_STATE.referenceImages = [];
-                APP_STATE.referenceImages.push(imgUrl);
-                if (typeof renderRefPreviews === 'function') renderRefPreviews();
+    if (shareId) {
+        // 1. Try finding in Global Gallery
+        if (APP_STATE.prompts) {
+            item = APP_STATE.prompts.find(p => p.id === shareId);
+        }
+
+        // 2. Try finding in Local History (if user clicked their own share link)
+        if (!item && shareId.startsWith('hist_') && APP_STATE.generationHistory) {
+            const idx = parseInt(shareId.split('_')[1]);
+            const histItem = APP_STATE.generationHistory[idx];
+            if (histItem) {
+                item = { prompt: histItem.prompt, image: histItem.url };
             }
+        }
+    }
 
-            // Switch to generation tab
-            if (typeof switchTab === 'function') switchTab('generate');
+    // 3. Fallback to Prompt Text encoded in URL (if someone else clicked a history link)
+    if (!item && sharedText) {
+        item = { prompt: decodeURIComponent(sharedText) };
+    }
 
-            // Authenticate & Auto-generate
-            if (!isLoggedIn()) {
-                showToast('🔒 Vui lòng đăng nhập để tạo ảnh từ prompt được chia sẻ', 'error');
-                if (typeof openAuthModal === 'function') openAuthModal();
-            } else {
-                showToast('🚀 Đang tự động tạo ảnh từ liên kết chia sẻ...', 'success');
-                setTimeout(() => {
-                    document.getElementById('btn-generate')?.click();
-                }, 800);
-            }
+    if (item) {
+        // Clean up the URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('share');
+        newUrl.searchParams.delete('txt');
+        window.history.replaceState({}, '', newUrl);
+
+        // Populate prompt text
+        document.getElementById('gen-prompt').value = item.prompt || '';
+        if (typeof updateCharCount === 'function') updateCharCount();
+
+        // Populate reference image if available
+        if (item.image || (item.images && item.images[0])) {
+            const imgUrl = item.image || item.images[0];
+            APP_STATE.referenceImages = [];
+            APP_STATE.referenceImages.push(imgUrl);
+            if (typeof renderRefPreviews === 'function') renderRefPreviews();
+        }
+
+        // Switch to generation tab
+        if (typeof switchTab === 'function') switchTab('generate');
+
+        // Authenticate & Auto-generate
+        if (!isLoggedIn()) {
+            showToast('🔒 Vui lòng đăng nhập để tạo ảnh từ prompt được chia sẻ', 'error');
+            if (typeof openAuthModal === 'function') openAuthModal();
+        } else {
+            showToast('🚀 Đang tự động tạo ảnh từ liên kết chia sẻ...', 'success');
+            setTimeout(() => {
+                document.getElementById('btn-generate')?.click();
+            }, 800);
         }
     }
 }
@@ -1158,8 +1180,16 @@ function setupModal() {
 
         const url = new URL(window.location.href);
         url.searchParams.set('share', item.id);
+
+        // Include the encoded prompt as fallback for history items
+        // Since local history IDs don't exist in other users' browsers
+        const promptText = document.getElementById('modal-prompt').dataset.fullPrompt || item.prompt;
+        if (promptText) {
+            url.searchParams.set('txt', encodeURIComponent(promptText.substring(0, 1500))); // Max 1500 chars for URL
+        }
+
         copyToClipboard(url.toString());
-        showToast('🔗 Đã copy link chia sẻ, bạn có thể gửi cho người khác!', 'success');
+        showToast('🔗 Đã copy link chia sẻ!', 'success');
     });
 
     // Login from modal lock
