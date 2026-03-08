@@ -2324,33 +2324,118 @@ function loadSettings() {
     }
 }
 
+// ============================================================
+// INDEXED_DB STORAGE (to bypass localStorage 5MB limit and store 10 days of history)
+// ============================================================
+const DB_NAME = 'kgen_history_db';
+const DB_VERSION = 1;
+
+function getHistoryDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('history')) {
+                db.createObjectStore('history', { keyPath: 'id' });
+            }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
 function loadGenerationHistory() {
-    try {
-        const hist = localStorage.getItem('kgen_history');
-        if (hist) {
-            APP_STATE.generationHistory = JSON.parse(hist);
-        }
-    } catch (e) {
-        console.error('Failed to load history:', e);
-    }
+    getHistoryDB().then(db => {
+        const tx = db.transaction('history', 'readonly');
+        const store = tx.objectStore('history');
+        const req = store.getAll();
+
+        req.onsuccess = () => {
+            let history = req.result || [];
+            const idsToDelete = [];
+            const validHistory = [];
+            const tenDaysAgo = Date.now() - (10 * 24 * 60 * 60 * 1000);
+
+            // Legacy localStorage migration
+            try {
+                const legacy = localStorage.getItem('kgen_history');
+                if (legacy) {
+                    const legacyItems = JSON.parse(legacy);
+                    if (Array.isArray(legacyItems)) {
+                        history = history.concat(legacyItems);
+                    }
+                    localStorage.removeItem('kgen_history');
+                }
+            } catch (err) {
+                console.warn('Error migrating legacy history', err);
+            }
+
+            history.forEach(item => {
+                if (!item.id) item.id = 'hist_' + Math.random().toString(36).substr(2, 9);
+                if (!item.timestamp) item.timestamp = Date.now();
+
+                if (item.timestamp >= tenDaysAgo) {
+                    // Check for duplicates
+                    if (!validHistory.some(existing => existing.id === item.id || existing.url === item.url)) {
+                        validHistory.push(item);
+                    }
+                } else {
+                    idsToDelete.push(item.id);
+                }
+            });
+
+            validHistory.sort((a, b) => b.timestamp - a.timestamp);
+            APP_STATE.generationHistory = validHistory;
+
+            // Render it if UI is ready
+            if (typeof renderHistory === 'function') renderHistory();
+            if (typeof renderHistoryPage === 'function' && APP_STATE.currentTab === 'history') renderHistoryPage();
+
+            db.close();
+
+            // Sync any missing or new valid history to DB asynchronously
+            if (validHistory.length > 0) saveGenerationHistory();
+
+            // Clean up old ones asynchronously
+            if (idsToDelete.length > 0) {
+                getHistoryDB().then(db2 => {
+                    const txDel = db2.transaction('history', 'readwrite');
+                    const storeDel = txDel.objectStore('history');
+                    idsToDelete.forEach(id => storeDel.delete(id));
+                    db2.close();
+                }).catch(e => console.error('Cleanup DB error', e));
+            }
+        };
+    }).catch(e => {
+        console.error('Failed to init IndexedDB:', e);
+        // Fallback
+        try {
+            const hist = localStorage.getItem('kgen_history');
+            if (hist) APP_STATE.generationHistory = JSON.parse(hist);
+        } catch (e) { }
+    });
 }
 
 function saveGenerationHistory() {
-    let limit = 50;
-    let saved = false;
+    getHistoryDB().then(db => {
+        const tx = db.transaction('history', 'readwrite');
+        const store = tx.objectStore('history');
 
-    while (!saved && limit > 0) {
+        store.clear();
+
+        APP_STATE.generationHistory.forEach(item => {
+            if (!item.id) item.id = 'hist_' + Math.random().toString(36).substr(2, 9);
+            if (!item.timestamp) item.timestamp = Date.now();
+            store.put(item);
+        });
+
+        tx.oncomplete = () => db.close();
+    }).catch(e => {
+        console.warn('Could not save to IndexedDB, falling back to localStorage:', e);
         try {
-            const data = JSON.stringify(APP_STATE.generationHistory.slice(0, limit));
-            localStorage.setItem('kgen_history', data);
-            saved = true;
-        } catch (e) {
-            limit -= 5;
-            if (limit <= 0) {
-                console.warn('Could not save history (quota exceeded even with few items):', e);
-            }
-        }
-    }
+            localStorage.setItem('kgen_history', JSON.stringify(APP_STATE.generationHistory.slice(0, 5)));
+        } catch (fallbackErr) { }
+    });
 }
 
 function saveSettings() {

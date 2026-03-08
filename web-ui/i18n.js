@@ -147,7 +147,7 @@ const TRANSLATIONS = {
     'legal.refund.p2': { vi: 'Do bản chất của dịch vụ kỹ thuật số và nội dung do AI tạo ra, chúng tôi thường không hoàn tiền sau khi dịch vụ đã được sử dụng.', en: 'Due to the nature of digital services and AI-generated content, refunds are generally not provided once the service has been used.' },
     'legal.refund.p3': { vi: 'Nếu bạn gặp vấn đề kỹ thuật hoặc lỗi thanh toán, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi để được trợ giúp.', en: 'If you experience technical issues or billing errors, please contact our support team for assistance.' },
     'legal.refund.p4': { vi: 'Chúng tôi sẽ xem xét từng yêu cầu riêng biệt và có thể hoàn tiền trong các trường hợp ngoại lệ.', en: 'We will review each request individually and may provide a refund in exceptional circumstances.' },
-    'legal.copyright': { vi: 'Bản quyền và thiết kế bởi hoaquocdang', en: 'Copyright and design by hoaquocdang', ja: '著作権とデザイン: hoaquocdang', es: 'Derechos de autor y diseño de hoaquocdang', hi: 'कॉपीराइट और डिजाइन: hoaquocdang' },
+    'legal.copyright': { vi: 'Thiết kế bởi hoaquocdang', en: 'Design by hoaquocdang', ja: 'デザイン: hoaquocdang', es: 'Diseño de hoaquocdang', hi: 'डिजाइन: hoaquocdang' },
 };
 
 // ============================================================
