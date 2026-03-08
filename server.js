@@ -104,8 +104,7 @@ function proxyToKieAI(reqPath, method, body, res) {
 
 // Serve static files
 function serveStatic(filePath, res) {
-    const fullPath = path.join(STATIC_DIR, filePath === '/' ? 'index.html' : filePath);
-    const ext = path.extname(fullPath);
+    let fullPath = path.join(STATIC_DIR, filePath === '/' ? 'index.html' : filePath);
 
     // Block site-config.js from being served (security!)
     const basename = path.basename(filePath);
@@ -126,14 +125,29 @@ function serveStatic(filePath, res) {
         return;
     }
 
-    fs.readFile(fullPath, (err, data) => {
+    fs.stat(fullPath, (err, stats) => {
         if (err) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('Not Found');
             return;
         }
-        res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
-        res.end(data);
+
+        // If directory, serve index.html inside it
+        if (stats.isDirectory()) {
+            fullPath = path.join(fullPath, 'index.html');
+        }
+
+        const ext = path.extname(fullPath);
+
+        fs.readFile(fullPath, (readErr, data) => {
+            if (readErr) {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('Not Found');
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+            res.end(data);
+        });
     });
 }
 
