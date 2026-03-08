@@ -131,14 +131,14 @@
             height: 40px;
         }
 
-        .logo svg {
+        .logo img {
             width: 100%;
             height: 100%;
-            fill: var(--text-main);
+            object-fit: contain;
             transition: transform 0.3s ease;
         }
 
-        .logo:hover svg {
+        .logo:hover img {
             transform: scale(1.1);
         }
 
@@ -589,10 +589,7 @@
 
     <nav>
         <div class="logo">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm4 0h-2v-2h2v2zm-2-4H9V8h4v4z" />
-            </svg>
+            <img src="/logo.png" alt="KGen Logo">
         </div>
 
         <div class="brand-name">KGen Ecosystem</div>
