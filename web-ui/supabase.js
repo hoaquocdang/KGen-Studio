@@ -432,88 +432,96 @@ async function isInCollection(imageUrl) {
 
 
 // ============================================================
-// STRIPE PAYMENT
+// VIETQR PAYMENT
 // ============================================================
 
-const STRIPE_CONFIG = {
-    publishableKey: '', // From settings
-    proPriceId: '', // Stripe Price ID for Pro plan
-    premiumPriceId: '', // Stripe Price ID for Premium plan
-};
-
-function getStripeConfig() {
-    const settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
-    return {
-        publishableKey: settings.stripePublishableKey || '',
-        proPriceId: settings.stripePriceIdPro || '',
-        premiumPriceId: settings.stripePriceIdPremium || '',
-    };
-}
-
-async function createCheckoutSession(tier) {
-    const config = getStripeConfig();
-
-    if (!config.publishableKey) {
-        showPricingSetupPrompt();
-        return;
-    }
-
-    const priceId = tier === 'pro' ? config.proPriceId : config.premiumPriceId;
-    if (!priceId) {
-        showToast('Chưa cấu hình Stripe Price ID', 'error');
-        return;
-    }
-
-    // For production, this should call a backend API
-    // For now, redirect to Stripe Checkout via Payment Links
-    const user = isSupabaseEnabled() ? await supabaseGetUser() :
-        JSON.parse(localStorage.getItem('kgen_session') || 'null');
+function createCheckoutSession(tier) {
+    const pCfg = (window.SITE_CONFIG && window.SITE_CONFIG.payment) || { bankId: 'MB', accountNo: '3333333333', accountName: 'TEST' };
+    const user = APP_STATE.currentUser;
 
     if (!user) {
-        showToast('Vui lòng đăng nhập trước khi nâng cấp', 'error');
+        showToast('Vui lòng đăng nhập trước khi mua gói', 'error');
         openAuthModal();
         return;
     }
 
-    // Use Stripe Payment Links (no backend needed)
-    const paymentLink = tier === 'pro' ? config.proPriceId : config.premiumPriceId;
+    const priceVnd = tier === 'pro' ? 39000 : 199000;
+    const rndCode = Math.floor(Math.random() * 90000) + 10000;
+    const orderCode = `KGEN ${tier.toUpperCase()} ${rndCode}`;
+    const qrUrl = `https://img.vietqr.io/image/${pCfg.bankId}-${pCfg.accountNo}-compact2.png?amount=${priceVnd}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(pCfg.accountName)}`;
 
-    // If it's a payment link URL, redirect
-    if (paymentLink.startsWith('http')) {
-        window.open(`${paymentLink}?prefilled_email=${encodeURIComponent(user.email)}`, '_blank');
-    } else {
-        // Show instructions to set up Stripe
-        showPricingSetupPrompt();
-    }
-}
+    // Generate Modal HTML
+    const existing = document.getElementById('qr-modal-overlay');
+    if (existing) existing.remove();
 
-function showPricingSetupPrompt() {
-    const infoDiv = document.createElement('div');
-    infoDiv.id = 'stripe-setup-info';
-    infoDiv.innerHTML = `
-        <div style="padding:20px 24px">
-            <h3>💳 Cấu hình Stripe Payment</h3>
-            <p style="margin:8px 0;color:var(--text-secondary)">Để nhận thanh toán, bạn cần:</p>
-            <ol style="margin:8px 0;padding-left:20px;font-size:0.85rem;color:var(--text-secondary);line-height:1.8">
-                <li>Tạo tài khoản tại <a href="https://dashboard.stripe.com" target="_blank" style="color:var(--accent-blue)">Stripe Dashboard</a></li>
-                <li>Tạo 2 Products (Pro & Premium) với giá tương ứng</li>
-                <li>Tạo Payment Links cho mỗi sản phẩm</li>
-                <li>Dán Payment Link URLs vào <strong>Cài đặt</strong></li>
-            </ol>
-            <div style="display:flex;gap:8px;margin-top:12px">
-                <button class="btn btn-primary btn-sm" onclick="this.closest('#stripe-setup-info').remove();switchTab('settings')">⚙️ Mở Cài đặt</button>
-                <button class="btn btn-ghost btn-sm" onclick="this.closest('#stripe-setup-info').remove()">Đóng</button>
+    const overlay = document.createElement('div');
+    overlay.id = 'qr-modal-overlay';
+    overlay.className = 'pricing-overlay'; // reuse styling
+    overlay.style.zIndex = '10000';
+
+    overlay.innerHTML = `
+        <div class="pricing-modal" style="max-width:400px; text-align:center;">
+            <button class="modal-close" id="qr-close">&times;</button>
+            <div class="pricing-header" style="margin-bottom:16px;">
+                <h2 class="pricing-title">Thanh Toán VietQR</h2>
+                <p class="pricing-subtitle" style="margin-top:8px;">Gói <strong>${tier.toUpperCase()}</strong> - ${priceVnd.toLocaleString('vi')}đ</p>
             </div>
+            
+            <div style="background:white; padding:16px; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+                <img src="${qrUrl}" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; border-radius:8px;" alt="VietQR">
+            </div>
+
+            <div style="background:var(--bg-elevated); padding:16px; border-radius:12px; margin-bottom:20px; text-align:left; border:1px solid var(--border-color);">
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:4px;">Ngân hàng: <strong style="color:var(--text-primary);">${pCfg.bankId}</strong></div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:4px;">Số tài khoản: <strong style="color:var(--text-primary);">${pCfg.accountNo}</strong></div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">Chủ TK: <strong style="color:var(--text-primary);">${pCfg.accountName}</strong></div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center;">
+                    <span>Lời nhắn: <strong id="qr-order-code" style="color:var(--accent-blue); font-size:1rem;">${orderCode}</strong></span>
+                    <button class="btn btn-sm btn-ghost" onclick="navigator.clipboard.writeText('${orderCode}'); showToast('Đã copy mã đơn', 'success')" style="padding:4px 8px;">Copy</button>
+                </div>
+            </div>
+
+            <p style="font-size:0.85rem; color:var(--text-tertiary); margin-bottom:16px;">
+                Vui lòng <strong>giữ nguyên lời nhắn</strong> (${orderCode}) khi chuyển khoản.
+            </p>
+
+            <button class="btn btn-primary" id="btn-confirm-paid" style="width:100%;">
+                Tôi đã thanh toán
+            </button>
         </div>
     `;
-    infoDiv.style.cssText = `
-        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-        background:var(--bg-elevated);border:1px solid var(--border-color);
-        border-radius:16px;max-width:480px;width:90%;z-index:1001;
-        box-shadow:0 8px 40px rgba(0,0,0,0.4);animation:toastIn 0.3s var(--ease-spring);
-    `;
-    document.body.appendChild(infoDiv);
-    setTimeout(() => infoDiv.remove(), 20000);
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('qr-close').addEventListener('click', () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 300);
+    });
+
+    document.getElementById('btn-confirm-paid').addEventListener('click', () => {
+        // Save local order to simulate for admin check
+        const orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+        orders.push({
+            user: user.email,
+            orderCode,
+            tier,
+            amount: priceVnd,
+            date: new Date().toISOString(),
+            status: 'pending'
+        });
+        localStorage.setItem('kgen_orders', JSON.stringify(orders));
+
+        overlay.innerHTML = `
+            <div class="pricing-modal" style="max-width:400px; text-align:center; padding:40px 20px;">
+                <div style="font-size:48px; margin-bottom:16px;">⏳</div>
+                <h2 style="margin-bottom:16px;">Đang xác nhận thanh toán</h2>
+                <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:24px;">Hệ thống đã ghi nhận mã <strong>${orderCode}</strong>. Quản trị viên sẽ kích hoạt gói <strong>${tier.toUpperCase()}</strong> cho tài khoản <strong>${user.email}</strong> trong vài phút nữa.</p>
+                <button class="btn btn-primary" onclick="window.location.reload()" style="width:100%">Đóng</button>
+            </div>
+        `;
+    });
+
+    requestAnimationFrame(() => overlay.classList.add('active'));
 }
 
 // ============================================================
@@ -594,7 +602,7 @@ function renderPricingModal() {
     overlay.id = 'pricing-modal-overlay';
     overlay.className = 'pricing-overlay';
     overlay.innerHTML = `
-        <div class="pricing-modal">
+            < div class="pricing-modal" >
             <button class="modal-close" id="pricing-close">&times;</button>
             <div class="pricing-header">
                 <h2 class="pricing-title">${typeof t === 'function' ? t('pricing.title') : 'Chọn gói phù hợp'}</h2>
@@ -629,8 +637,8 @@ function renderPricingModal() {
                 <p>${typeof t === 'function' ? t('pricing.footer') : '💳 Thanh toán an toàn qua Stripe'}</p>
                 <p style="margin-top:4px;font-size:0.78rem;color:var(--text-tertiary)">${typeof t === 'function' ? t('pricing.footer_sub') : 'Hỗ trợ: MoMo, Visa, Mastercard, JCB'}</p>
             </div>
-        </div>
-    `;
+        </div >
+            `;
 
     document.body.appendChild(overlay);
 
@@ -674,7 +682,7 @@ async function handleUpgrade(tier) {
         await createCheckoutSession(tier);
     } else {
         // Demo mode: simulate upgrade
-        showToast(`🎉 Demo: Đã nâng cấp lên ${tier.toUpperCase()}! (Cấu hình Stripe/Supabase để thanh toán thật)`, 'success');
+        showToast(`🎉 Demo: Đã nâng cấp lên ${tier.toUpperCase()} !(Cấu hình Stripe / Supabase để thanh toán thật)`, 'success');
         APP_STATE.currentUser.tier = tier;
         localStorage.setItem('kgen_session', JSON.stringify(APP_STATE.currentUser));
         closePricingModal();
