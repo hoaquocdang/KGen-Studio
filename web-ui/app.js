@@ -673,10 +673,20 @@ function filterAndRender() {
     renderGallery(true);
 }
 
-function renderGallery(reset) {
+let isRenderingGallery = false;
+let currentRenderId = 0;
+
+async function renderGallery(reset) {
+    if (isRenderingGallery && !reset) return;
+
+    // Increment render sequence to abort previous async renders if changed
+    const renderId = ++currentRenderId;
+    isRenderingGallery = true;
+
     const grid = document.getElementById('gallery-grid');
     const loadMoreContainer = document.getElementById('load-more-container');
     const emptyState = document.getElementById('gallery-empty');
+    const btnLoadMore = document.getElementById('btn-load-more');
 
     if (reset) {
         grid.innerHTML = '';
@@ -690,25 +700,58 @@ function renderGallery(reset) {
     if (APP_STATE.filteredPrompts.length === 0) {
         emptyState.classList.remove('hidden');
         loadMoreContainer.classList.add('hidden');
+        isRenderingGallery = false;
         return;
     }
 
     emptyState.classList.add('hidden');
 
-    batch.forEach((item, idx) => {
-        const card = createGalleryCard(item, start + idx);
-        grid.appendChild(card);
+    // Show spinner if loading more (not initial/reset)
+    const origBtnHtml = btnLoadMore ? btnLoadMore.innerHTML : '';
+    if (btnLoadMore && !reset) {
+        btnLoadMore.innerHTML = '<div class="gen-spinner" style="width:16px;height:16px;margin-right:8px;display:inline-block;vertical-align:middle;border-color:currentColor;border-bottom-color:transparent;"></div> Đang tải mượt...';
+        btnLoadMore.disabled = true;
+    }
 
-        // Stagger animation
-        requestAnimationFrame(() => {
-            card.style.animationDelay = `${idx * 30}ms`;
-            card.classList.add('card-enter');
+    try {
+        // Pre-fetch all images so they have dimensions before DOM insertion
+        // This completely eliminates CSS Columns masonry jumping effect!
+        await Promise.allSettled(batch.map(item => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = resolve; // Ignore 404s, resolve immediately
+                img.src = item.image || (item.images && item.images[0]);
+            });
+        }));
+
+        if (renderId !== currentRenderId) return; // Abort if another render started
+
+        batch.forEach((item, idx) => {
+            const card = createGalleryCard(item, start + idx);
+            grid.appendChild(card);
+
+            // Stagger animation organically
+            requestAnimationFrame(() => {
+                card.style.animationDelay = `${idx * 25}ms`;
+                card.classList.add('card-enter');
+            });
         });
-    });
 
-    APP_STATE.displayedCount = end;
+        APP_STATE.displayedCount = end;
 
-    loadMoreContainer.classList.toggle('hidden', end >= APP_STATE.filteredPrompts.length);
+    } catch (e) {
+        console.error('Gallery render error:', e);
+    } finally {
+        if (btnLoadMore && !reset && renderId === currentRenderId) {
+            btnLoadMore.innerHTML = origBtnHtml;
+            btnLoadMore.disabled = false;
+        }
+        if (renderId === currentRenderId) {
+            loadMoreContainer.classList.toggle('hidden', end >= APP_STATE.filteredPrompts.length);
+            isRenderingGallery = false;
+        }
+    }
 }
 
 function createGalleryCard(item, index) {
