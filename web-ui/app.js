@@ -960,17 +960,26 @@ function showAIToolsModal() {
                     </button>
                 </div>
                 <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                    <div style="border:1px solid var(--border-light);padding:16px;border-radius:12px;background:var(--bg-tertiary);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)';" onmouseout="this.style.borderColor='var(--border-light)';">
-                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-primary);">📊 Tạo Infographic</h3>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">Tự động tạo layout, biểu đồ và nội dung thông tin bài giảng chuẩn trực quan.</p>
+                    <div style="border:1px dashed var(--border-color);padding:16px;border-radius:12px;background:var(--bg-secondary);opacity:0.8;cursor:not-allowed;" title="Tính năng này đang được phát triển và sẽ ra mắt sớm nhất">
+                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-secondary);display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+                            <span>🔒 Tạo Infographic</span>
+                            <span style="font-size:0.65rem;background:var(--bg-active);color:var(--accent-orange);padding:2px 6px;border-radius:6px;font-weight:600;border:1px solid var(--border-light);letter-spacing:0.02em;">Đang phát triển, sẽ update sớm nhất</span>
+                        </h3>
+                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Tự động tạo layout, biểu đồ và nội dung thông tin bài giảng chuẩn trực quan.</p>
                     </div>
-                    <div style="border:1px solid var(--border-light);padding:16px;border-radius:12px;background:var(--bg-tertiary);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)';" onmouseout="this.style.borderColor='var(--border-light)';">
-                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-primary);">🕵️ Check văn AI</h3>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">Phân tích, đánh giá, phát hiện đạo văn hoặc văn bản được tạo ra bởi AI.</p>
+                    <div style="border:1px dashed var(--border-color);padding:16px;border-radius:12px;background:var(--bg-secondary);opacity:0.8;cursor:not-allowed;" title="Tính năng này đang được phát triển và sẽ ra mắt sớm nhất">
+                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-secondary);display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+                            <span>🔒 Check văn AI</span>
+                            <span style="font-size:0.65rem;background:var(--bg-active);color:var(--accent-orange);padding:2px 6px;border-radius:6px;font-weight:600;border:1px solid var(--border-light);letter-spacing:0.02em;">Đang phát triển, sẽ update sớm nhất</span>
+                        </h3>
+                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Phân tích, đánh giá, phát hiện đạo văn hoặc văn bản được tạo ra bởi AI.</p>
                     </div>
-                    <div style="grid-column:1/-1;border:1px solid var(--border-light);padding:16px;border-radius:12px;background:var(--bg-tertiary);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)';" onmouseout="this.style.borderColor='var(--border-light)';">
-                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-primary);">🎬 Tạo kịch bản Video Veo 3</h3>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">Trích xuất nội dung từ sách, tài liệu thành Format Video Veo 3 hấp dẫn học sinh.</p>
+                    <div style="grid-column:1/-1;border:1px dashed var(--border-color);padding:16px;border-radius:12px;background:var(--bg-secondary);opacity:0.8;cursor:not-allowed;" title="Tính năng này đang được phát triển và sẽ ra mắt sớm nhất">
+                        <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-secondary);display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+                            <span>🔒 Tạo kịch bản Video Veo 3</span>
+                            <span style="font-size:0.65rem;background:var(--bg-active);color:var(--accent-orange);padding:2px 6px;border-radius:6px;font-weight:600;border:1px solid var(--border-light);letter-spacing:0.02em;">Đang phát triển, sẽ update sớm nhất</span>
+                        </h3>
+                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Trích xuất nội dung từ sách, tài liệu thành Format Video Veo 3 hấp dẫn học sinh.</p>
                     </div>
                     <div style="grid-column:1/-1;border:1px solid var(--border-light);padding:16px;border-radius:12px;background:var(--bg-tertiary);transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)';" onmouseout="this.style.borderColor='var(--border-light)';">
                         <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-primary);">🚀 Workflow tạo video - Podcasts - quảng cáo</h3>
