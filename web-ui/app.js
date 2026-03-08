@@ -309,6 +309,7 @@ async function loadPromptLibraryFull(splash, barFill, statusText) {
     splash.classList.add('fade-out');
     setTimeout(() => splash.remove(), 600);
     renderGallery(true);
+    checkSharedPrompt();
 }
 
 // Background loader: merges full prompt data into already-displayed cards
@@ -339,8 +340,50 @@ async function loadFullPromptsInBackground() {
         });
 
         console.log('✅ Full prompt data loaded in background');
+        checkSharedPrompt();
     } catch (e) {
         console.warn('Background full data load failed:', e);
+    }
+}
+
+function checkSharedPrompt() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareId = urlParams.get('share');
+    if (shareId && APP_STATE.prompts) {
+        const item = APP_STATE.prompts.find(p => p.id === shareId);
+        if (item) {
+            // Found it! Clean up the URL first
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('share');
+            window.history.replaceState({}, '', newUrl);
+
+            // Populate prompt text
+            document.getElementById('gen-prompt').value = item.prompt;
+            if (typeof updateCharCount === 'function') updateCharCount();
+
+            // Populate reference image if available
+            if (item.image || (item.images && item.images[0])) {
+                const imgUrl = item.image || item.images[0];
+                // Clear existing refs first to avoid piling up
+                APP_STATE.referenceImages = [];
+                APP_STATE.referenceImages.push(imgUrl);
+                if (typeof renderRefPreviews === 'function') renderRefPreviews();
+            }
+
+            // Switch to generation tab
+            if (typeof switchTab === 'function') switchTab('generate');
+
+            // Authenticate & Auto-generate
+            if (!isLoggedIn()) {
+                showToast('🔒 Vui lòng đăng nhập để tạo ảnh từ prompt được chia sẻ', 'error');
+                if (typeof openAuthModal === 'function') openAuthModal();
+            } else {
+                showToast('🚀 Đang tự động tạo ảnh từ liên kết chia sẻ...', 'success');
+                setTimeout(() => {
+                    document.getElementById('btn-generate')?.click();
+                }, 800);
+            }
+        }
     }
 }
 
@@ -1107,6 +1150,16 @@ function setupModal() {
     document.getElementById('btn-copy-prompt').addEventListener('click', () => {
         const promptText = document.getElementById('modal-prompt').dataset.fullPrompt || document.getElementById('modal-prompt').textContent;
         copyToClipboard(promptText);
+    });
+
+    document.getElementById('btn-share-prompt')?.addEventListener('click', () => {
+        const item = window.__currentModalItem;
+        if (!item || !item.id) return;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('share', item.id);
+        copyToClipboard(url.toString());
+        showToast('🔗 Đã copy link chia sẻ, bạn có thể gửi cho người khác!', 'success');
     });
 
     // Login from modal lock
