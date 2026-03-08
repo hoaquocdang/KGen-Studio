@@ -479,6 +479,7 @@
 
             main {
                 padding: 0 20px;
+                margin-top: 60px;
             }
 
             .social-sidebar {
@@ -496,28 +497,86 @@
                 transform: none;
                 display: none;
             }
+
+            .philosophy br {
+                display: none;
+            }
         }
 
         @media (max-width: 600px) {
+            nav {
+                padding: 20px;
+                justify-content: center;
+            }
+
+            .brand-name {
+                display: none;
+                /* Hide brand name on very small screens to save space */
+            }
+
+            main {
+                margin-top: 40px;
+            }
+
+            .portfolio-center {
+                padding-bottom: 120px;
+                /* Space for absolute social menu */
+            }
+
+            .port-header {
+                margin-bottom: 24px;
+            }
+
+            .name {
+                font-size: 2.5rem;
+            }
+
+            .title {
+                font-size: 0.8rem;
+                flex-direction: column;
+                gap: 6px;
+                letter-spacing: 0.15em;
+            }
+
+            .title .dot {
+                display: none;
+            }
+
+            .slogan-container {
+                margin-bottom: 24px;
+            }
+
+            .slogan {
+                font-size: 1.5rem;
+            }
+
+            .philosophy {
+                font-size: 0.95rem;
+                margin-bottom: 30px;
+                text-align: center;
+            }
+
             .ecosystem {
                 flex-direction: column;
                 border-radius: 20px;
-                padding: 24px;
-                gap: 20px;
+                padding: 20px 24px;
+                gap: 16px;
+            }
+
+            .eco-brand {
+                font-size: 1rem;
+                justify-content: flex-start;
+                width: 100%;
             }
 
             .eco-separator {
                 display: none;
             }
 
-            .title {
-                flex-direction: column;
-                gap: 4px;
-                letter-spacing: 0.1em;
-            }
-
-            .title .dot {
-                display: none;
+            body {
+                overflow-y: auto;
+                /* allow scrolling on tiny mobile screens if contents overflow */
+                justify-content: flex-start;
             }
         }
     </style>
