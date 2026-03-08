@@ -363,11 +363,27 @@
             <div class="hero-line accent">PHÁT TRIỂN</div>
 
             <div class="ecosystem">
-                <a href="https://kgen.cloud" target="_blank" class="eco-brand">KGEN</a>
+                <a href="https://kgen.cloud" target="_blank" class="eco-brand">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="eco-brand-svg">
+                        <path d="M4 2H8V22H4V2ZM10 12L20 2H24L14 12L24 22H20L10 12Z" />
+                    </svg>
+                    KGEN
+                </a>
                 <div class="eco-separator">/</div>
-                <a href="https://kudomax.vn" target="_blank" class="eco-brand">KUDOMAX</a>
+                <a href="https://kudomax.vn" target="_blank" class="eco-brand">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="eco-brand-svg">
+                        <path d="M12 2L2 22H7.5L12 13L16.5 22H22L12 2Z" />
+                    </svg>
+                    KUDOMAX
+                </a>
                 <div class="eco-separator">/</div>
-                <a href="https://hoareviewaz.com" target="_blank" class="eco-brand accent">HOAREVIEWAZ</a>
+                <a href="https://hoareviewaz.com" target="_blank" class="eco-brand accent">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="eco-brand-svg">
+                        <path
+                            d="M12 2C12 7.52 16.48 12 22 12C16.48 12 12 16.48 12 22C12 16.48 7.52 12 2 12C7.52 12 12 7.52 12 2Z" />
+                    </svg>
+                    HOAREVIEWAZ
+                </a>
             </div>
         </div>
     </main>
@@ -395,15 +411,28 @@
         }
 
         .eco-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             color: var(--text-main);
             transition: color 0.3s, text-shadow 0.3s;
             cursor: pointer;
             text-decoration: none;
         }
 
+        .eco-brand-svg {
+            width: clamp(20px, 4vw, 36px);
+            height: clamp(20px, 4vw, 36px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s;
+        }
+
         .eco-brand:hover {
             color: #fff;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .eco-brand:hover .eco-brand-svg {
+            transform: scale(1.15) rotate(5deg);
         }
 
         .eco-brand.accent {
@@ -412,6 +441,10 @@
 
         .eco-brand.accent:hover {
             text-shadow: 0 0 20px rgba(240, 84, 69, 0.4);
+        }
+
+        .eco-brand.accent:hover .eco-brand-svg {
+            transform: scale(1.15) rotate(180deg);
         }
 
         .eco-separator {
