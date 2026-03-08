@@ -24,6 +24,7 @@ const TRANSLATIONS = {
     'nav.docs': { vi: 'Tài liệu hướng dẫn', en: 'Documentation', ja: 'ドキュメント', es: 'Documentación', hi: 'दस्तावेज़' },
     'nav.categories': { vi: 'DANH MỤC', en: 'CATEGORIES', ja: 'カテゴリー', es: 'CATEGORÍAS', hi: 'श्रेणियाँ' },
     'nav.guide': { vi: 'HƯỚNG DẪN', en: 'GUIDE', ja: 'ガイド', es: 'GUÍA', hi: 'गाइड' },
+    'nav.portfolio': { vi: 'Danh thiếp (Info)', en: 'Portfolio (Info)', ja: 'ポートフォリオ', es: 'Portafolio', hi: 'पोर्टफोलियो' },
 
     // ===== HOME TAB =====
     'home.title': { vi: 'AI Prompt', en: 'AI Prompt', ja: 'AIプロンプト', es: 'AI Prompt', hi: 'AI प्रॉम्प्ट' },

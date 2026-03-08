@@ -357,10 +357,57 @@
     </aside>
 
     <main>
-        <div class="hero-text">
-            <div class="hero-line muted">THAY ĐỔI</div>
-            <div class="hero-line accent"><span class="dot"></span>ĐỂ</div>
-            <div class="hero-line accent">PHÁT TRIỂN</div>
+        <div class="portfolio-content"
+            style="padding-left: clamp(20px, 8vw, 120px); padding-right: 40px; margin-top: 4vh; width: 100%;">
+            <div class="port-section"
+                style="margin-bottom: clamp(40px, 6vh, 56px); opacity: 0; animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s;">
+                <div class="port-label"
+                    style="font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; position: relative; display: inline-block;">
+                    Tên
+                    <div
+                        style="position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); width: 30px; height: 1px; background: rgba(255,255,255,0.15);">
+                    </div>
+                </div>
+                <h1 class="port-title"
+                    style="font-family: var(--font-display); font-size: clamp(3.5rem, 8vw, 6.5rem); line-height: 0.9; margin: 0; color: #fff; letter-spacing: 0.01em;">
+                    Hoà Quốc Đặng</h1>
+                <div class="port-subtitle"
+                    style="font-family: var(--font-sans); font-size: clamp(1rem, 2vw, 1.25rem); color: var(--text-accent); margin-top: 16px; font-weight: 500; letter-spacing: 0.05em;">
+                    AI Strategist &bull; System Builder</div>
+            </div>
+
+            <div class="port-section"
+                style="margin-bottom: clamp(40px, 6vh, 56px); opacity: 0; animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s;">
+                <div class="port-label"
+                    style="font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; position: relative; display: inline-block;">
+                    Khẩu hiệu
+                    <div
+                        style="position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); width: 30px; height: 1px; background: rgba(255,255,255,0.15);">
+                    </div>
+                </div>
+                <h2 class="port-slogan"
+                    style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4rem); line-height: 1.1; margin: 0; color: #d8d3c9; letter-spacing: 0.02em;">
+                    Giữ Nhân – Thuận Đạo – Khai Trí.</h2>
+            </div>
+
+            <div class="port-section"
+                style="margin-bottom: clamp(40px, 6vh, 56px); opacity: 0; animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;">
+                <div class="port-label"
+                    style="font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; position: relative; display: inline-block;">
+                    Triết lý
+                    <div
+                        style="position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); width: 30px; height: 1px; background: rgba(255,255,255,0.15);">
+                    </div>
+                </div>
+                <div class="port-philosophy"
+                    style="font-family: var(--font-sans); font-size: clamp(1rem, 1.8vw, 1.15rem); line-height: 1.8; color: #a19d94; max-width: 650px;">
+                    <p style="margin: 0 0 20px 0;">Tôi tin rằng mọi thời đại đều có một công cụ thay đổi thế
+                        giới.<br>Thời đại này, công cụ đó là <strong style="color: #fff; font-weight: 600;">AI</strong>.
+                    </p>
+                    <p style="margin: 0;">Tôi nghiên cứu quy luật vận hành của công nghệ, con người và thị
+                        trường.<br>Sau đó xây những hệ thống AI giúp ý tưởng trở thành giá trị thực.</p>
+                </div>
+            </div>
 
             <div class="ecosystem">
                 <a href="https://kgen.cloud" target="_blank" class="eco-brand">
@@ -382,25 +429,24 @@
     </main>
 
     <style>
-        .hero-text {
-            font-size: clamp(5rem, 11vw, 13rem);
+        main {
+            justify-content: flex-start !important;
         }
 
         .ecosystem {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: clamp(10px, 2vw, 24px);
-            margin-top: 6vh;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: clamp(12px, 2vw, 24px);
             font-family: var(--font-sans);
-            font-size: clamp(1rem, 2vw, 1.8rem);
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
             font-weight: 600;
-            letter-spacing: -0.02em;
-            text-transform: none;
+            letter-spacing: 0.02em;
             opacity: 0;
             transform: translateY(20px);
             animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            animation-delay: 0.6s;
+            animation-delay: 0.7s;
         }
 
         .eco-brand {
@@ -461,19 +507,34 @@
             pointer-events: none;
         }
 
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 768px) {
+            main {
+                align-items: flex-start !important;
+                padding-top: 80px;
+                padding-bottom: 100px;
+            }
+
             .ecosystem {
                 flex-direction: column;
-                gap: 8px;
+                align-items: flex-start;
+                gap: 12px;
                 margin-top: 4vh;
             }
 
             .eco-separator {
                 display: none;
-            }
-
-            .hero-text {
-                font-size: clamp(4rem, 14vw, 8rem);
             }
 
             .copyright-footer {
@@ -488,18 +549,20 @@
     </footer>
 
     <script>
-        // Simple interactive parallax effect for the hero text
+        // Simple interactive parallax effect for the portfolio content
         document.addEventListener('mousemove', (e) => {
-            const heroText = document.querySelector('.hero-text');
-            const x = (e.clientX / window.innerWidth - 0.5) * 20; // max 20px movement
-            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            const heroText = document.querySelector('.portfolio-content');
+            if (!heroText) return;
+            const x = (e.clientX / window.innerWidth - 0.5) * 10; // max 10px movement
+            const y = (e.clientY / window.innerHeight - 0.5) * 10;
 
             heroText.style.transform = `translate(${x}px, ${y}px)`;
             heroText.style.transition = 'none';
         });
 
         document.addEventListener('mouseleave', () => {
-            const heroText = document.querySelector('.hero-text');
+            const heroText = document.querySelector('.portfolio-content');
+            if (!heroText) return;
             heroText.style.transform = `translate(0px, 0px)`;
             heroText.style.transition = 'transform 0.5s ease-out';
         });
