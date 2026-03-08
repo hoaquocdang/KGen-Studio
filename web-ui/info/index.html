@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portfolio | KGen</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-main: #e8e3d9;
+            --text-accent: #f05445;
+            --text-muted: #888888;
+            --bg-gradient-center: rgba(40, 40, 40, 0.4);
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            height: 100vh;
+            overflow: hidden;
+            /* Prevent scrolling for the full-screen effect */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-image: radial-gradient(circle at 50% 50%, var(--bg-gradient-center) 0%, transparent 60%);
+        }
+
+        /* Subtle noise texture overlay */
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.6;
+        }
+
+        /* Background Silhouette placeholder (optional, since it's an admin portfolio) */
+        .hero-bg-image {
+            position: absolute;
+            bottom: 0;
+            right: 15%;
+            height: 85vh;
+            width: auto;
+            opacity: 0.3;
+            z-index: 0;
+            pointer-events: none;
+            filter: grayscale(100%) contrast(120%);
+            mix-blend-mode: luminosity;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--text-main);
+        }
+
+        .brand-name {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        /* --- SIDEBARS --- */
+        .social-sidebar {
+            position: absolute;
+            left: 40px;
+            top: 60%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            z-index: 10;
+        }
+
+        .social-sidebar a {
+            color: var(--text-muted);
+            transition: color 0.3s, transform 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .social-sidebar a:hover {
+            color: var(--text-main);
+            transform: scale(1.1);
+        }
+
+        .social-sidebar svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .sound-sidebar {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            transform-origin: right bottom;
+            transform: rotate(-90deg) translateX(100%);
+            z-index: 10;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .sound-sidebar:hover {
+            color: var(--text-main);
+        }
+
+        /* --- MAIN HERO CONTENT --- */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 5;
+        }
+
+        .hero-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: var(--font-display);
+            text-align: center;
+            line-height: 0.8;
+            font-size: clamp(6rem, 12vw, 14rem);
+            /* Responsive fluid typography */
+            letter-spacing: 0.02em;
+        }
+
+        .hero-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .accent {
+            color: var(--text-accent);
+        }
+
+        .dot {
+            display: inline-block;
+            width: clamp(30px, 5vw, 60px);
+            height: clamp(30px, 5vw, 60px);
+            background-color: var(--text-accent);
+            border-radius: 50%;
+            margin-right: clamp(10px, 2vw, 24px);
+            transform: translateY(-10%);
+            /* optical vertical alignment */
+            box-shadow: 0 0 20px rgba(240, 84, 69, 0.4);
+            /* subtle glow */
+        }
+
+        .muted {
+            color: #d8d3c9;
+            /* slightly dimmer than main white */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            nav {
+                padding: 20px;
+            }
+
+            .social-sidebar {
+                left: 20px;
+                top: auto;
+                bottom: 30px;
+                flex-direction: row;
+                transform: none;
+            }
+
+            .brand-name {
+                display: none;
+                /* Hide on mobile to save space */
+            }
+
+            .sound-sidebar {
+                right: 20px;
+                bottom: calc(100vh - 50px);
+                transform: none;
+            }
+
+            .hero-text {
+                font-size: clamp(4.5rem, 15vw, 8rem);
+                margin-top: -10vh;
+                /* slightly shift up on mobile */
+            }
+
+            .hero-bg-image {
+                right: -20%;
+                height: 60vh;
+                opacity: 0.15;
+            }
+        }
+
+        /* Animation Intro */
+        .hero-line {
+            opacity: 0;
+            transform: translateY(40px);
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .hero-line:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .hero-line:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .hero-line:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .hero-line:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .hero-line:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Optional: Add an admin photo URL here if you have one.
+         <img src="/path-to-admin-photo.png" class="hero-bg-image" alt="Admin"> 
+    -->
+
+    <nav>
+        <div class="logo">
+            <!-- Simple generic cat-like / geometric logo to match the vibe -->
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm4 0h-2v-2h2v2zm-2-4H9V8h4v4z" />
+            </svg>
+        </div>
+
+        <div class="brand-name">KGen Admin</div>
+
+        <div class="nav-links">
+            <a href="/">Home App</a>
+            <a href="#">About</a>
+            <a href="#">Work</a>
+            <a href="mailto:admin@kgen.cloud">Contact</a>
+        </div>
+    </nav>
+
+    <aside class="social-sidebar">
+        <a href="#" aria-label="Dribbble">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.72 6.42c.8 1.05 1.28 2.38 1.28 3.82 0 1.2-.35 2.34-.94 3.32-.42-1.89-1.92-3.41-3.66-3.87.5-.72.84-1.55.97-2.45 1.01.21 1.83.65 2.35.82zM12 20.5c-2.09 0-3.99-.76-5.46-2.02 1.3-1.07 3.03-1.68 4.67-1.68 1.45 0 2.82.44 3.99 1.18-.84 1.54-2.43 2.52-4.2 2.52zm-6.91-4.8c-.37-.8-.59-1.69-.59-2.62 0-1.78.74-3.4 1.94-4.56.76.62 1.74 1.2 2.76 1.6-1.15 2.45-2.05 4.39-2.5 5.23-.5-.48-1.12-1-1.61-1.65zm9.51-6.44c-.16.92-.5 1.76-.99 2.49-1.39.44-3.52 1.63-4.59 2.59-1.3-2.31-2.03-3.6-2.49-4.14-1.04-.3-2.04-.69-2.91-1.1.27-.47.57-.93.9-1.37 1.77.37 3.65.25 5.3-.35 1.13.7 2.15 1.48 3.14 2.19.08.06.13.13.14.2zM12 3.5c1.65 0 3.19.47 4.5 1.3-.96-.64-1.96-1.17-2.99-1.57-.49-.19-1.01-.23-1.51-.23z" />
+            </svg>
+        </a>
+        <a href="#" aria-label="Instagram">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8A5.8 5.8 0 012 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.4 5.6 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.6 18.4 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 011.25 1.25A1.25 1.25 0 0117.25 8 1.25 1.25 0 0116 6.75a1.25 1.25 0 011.25-1.25M12 7a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z" />
+            </svg>
+        </a>
+        <a href="#" aria-label="Video">
+            <svg viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+            </svg>
+        </a>
+        <a href="#" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+            </svg>
+        </a>
+    </aside>
+
+    <aside class="sound-sidebar">
+        SOUND ON <div
+            style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#f05445; margin-left: 4px;">
+        </div>
+    </aside>
+
+    <main>
+        <div class="hero-text">
+            <div class="hero-line muted">MAKING</div>
+            <div class="hero-line accent">GOOD</div>
+            <div class="hero-line accent">SHIT</div>
+            <div class="hero-line"><span class="dot"></span>SINCE</div>
+            <div class="hero-line muted">2024</div>
+        </div>
+    </main>
+
+    <script>
+        // Simple interactive parallax effect for the hero text
+        document.addEventListener('mousemove', (e) => {
+            const heroText = document.querySelector('.hero-text');
+            const x = (e.clientX / window.innerWidth - 0.5) * 20; // max 20px movement
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+            heroText.style.transform = `translate(${x}px, ${y}px)`;
+            heroText.style.transition = 'none';
+        });
+
+        document.addEventListener('mouseleave', () => {
+            const heroText = document.querySelector('.hero-text');
+            heroText.style.transform = `translate(0px, 0px)`;
+            heroText.style.transition = 'transform 0.5s ease-out';
+        });
+    </script>
+</body>
+
+</html>
