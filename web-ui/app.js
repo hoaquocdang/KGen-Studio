@@ -1025,8 +1025,40 @@ function setupModal() {
         document.getElementById('gen-prompt').value = promptText;
         updateCharCount();
         closeModal();
-        switchTab('generate');
         showToast('✨ Prompt đã được chuyển sang tab Tạo ảnh', 'success');
+    });
+
+    document.getElementById('btn-favorite-prompt').addEventListener('click', async () => {
+        const item = window.__currentModalItem;
+        if (!item) return;
+
+        const btn = document.getElementById('btn-favorite-prompt');
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '⏳ Đang lưu...';
+        btn.disabled = true;
+
+        try {
+            await window.saveToCollection({
+                imageUrl: item.image || item.images[0],
+                prompt: item.prompt,
+                model: item.model,
+                quality: 'Gallery',
+                aspectRatio: 'Original'
+            });
+            btn.innerHTML = '❤️ Đã lưu';
+            showToast('Đã thêm vào bộ sưu tập yêu thích!', 'success');
+        } catch (err) {
+            console.error('Lỗi khi lưu:', err);
+            showToast('Lỗi khi lưu: ' + err.message, 'error');
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        } finally {
+            // Restore button visual after success
+            setTimeout(() => {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }, 3000);
+        }
     });
 
     document.getElementById('btn-copy-prompt').addEventListener('click', () => {
@@ -1051,6 +1083,8 @@ function openModal(item) {
         const fullItem = APP_STATE.prompts.find(p => p.id === item.id && !p._slim);
         if (fullItem) item = fullItem;
     }
+
+    window.__currentModalItem = item;
 
     // Populate images
     const imagesContainer = document.getElementById('modal-images');
@@ -2176,12 +2210,20 @@ function loadGenerationHistory() {
 }
 
 function saveGenerationHistory() {
-    try {
-        const data = JSON.stringify(APP_STATE.generationHistory.slice(0, 50));
-        localStorage.setItem('kgen_history', data);
-    } catch (e) {
-        // Quota error possibly due to data:URIs from Gemini
-        console.warn('Could not save history (possibly too large):', e);
+    let limit = 50;
+    let saved = false;
+
+    while (!saved && limit > 0) {
+        try {
+            const data = JSON.stringify(APP_STATE.generationHistory.slice(0, limit));
+            localStorage.setItem('kgen_history', data);
+            saved = true;
+        } catch (e) {
+            limit -= 5;
+            if (limit <= 0) {
+                console.warn('Could not save history (quota exceeded even with few items):', e);
+            }
+        }
     }
 }
 

@@ -315,23 +315,39 @@ async function saveToCollection(item) {
         saved_at: new Date().toISOString(),
     };
 
+    function saveToLocal(entryObj) {
+        let collection = JSON.parse(localStorage.getItem('kgen_collection') || '[]');
+        collection.unshift(entryObj);
+
+        let saved = false;
+        // Limit base64 images aggressively to 5 items, normal URLs to 100
+        const maxItems = (entryObj.image_url && entryObj.image_url.startsWith('data:')) ? 5 : 100;
+
+        while (!saved && collection.length > 0) {
+            if (collection.length > maxItems) {
+                collection.length = maxItems;
+            }
+            try {
+                localStorage.setItem('kgen_collection', JSON.stringify(collection));
+                saved = true;
+            } catch (e) {
+                // Remove oldest item on quota exception and try again
+                collection.pop();
+            }
+        }
+        if (collection.length === 0) {
+            throw new Error('Bộ nhớ trình duyệt đầy, vui lòng đăng nhập để lưu trực tuyến.');
+        }
+    }
+
     if (!isSupabaseEnabled()) {
-        // localStorage fallback
-        const collection = JSON.parse(localStorage.getItem('kgen_collection') || '[]');
-        collection.unshift(entry);
-        // Keep max 100 items
-        if (collection.length > 100) collection.length = 100;
-        localStorage.setItem('kgen_collection', JSON.stringify(collection));
+        saveToLocal(entry);
         return entry;
     }
 
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
-        // Fallback if not logged in
-        const collection = JSON.parse(localStorage.getItem('kgen_collection') || '[]');
-        collection.unshift(entry);
-        if (collection.length > 100) collection.length = 100;
-        localStorage.setItem('kgen_collection', JSON.stringify(collection));
+        saveToLocal(entry);
         return entry;
     }
 
@@ -346,10 +362,7 @@ async function saveToCollection(item) {
 
     if (error) {
         console.error('Supabase save error:', error);
-        // Fallback to localStorage
-        const collection = JSON.parse(localStorage.getItem('kgen_collection') || '[]');
-        collection.unshift(entry);
-        localStorage.setItem('kgen_collection', JSON.stringify(collection));
+        saveToLocal(entry);
     }
 
     return data || entry;
