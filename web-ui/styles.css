@@ -58,6 +58,11 @@ html {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Remove white background of the KGen logo dynamically */
+img[src*="logo.png"] {
+    mix-blend-mode: multiply;
+}
+
 body {
     font-family: var(--font-sans);
     /* Vibrant ambient gradient background */
