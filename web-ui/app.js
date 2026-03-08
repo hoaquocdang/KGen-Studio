@@ -709,7 +709,7 @@ async function renderGallery(reset) {
     // Show spinner if loading more (not initial/reset)
     const origBtnHtml = btnLoadMore ? btnLoadMore.innerHTML : '';
     if (btnLoadMore && !reset) {
-        btnLoadMore.innerHTML = '<div class="gen-spinner" style="width:16px;height:16px;margin-right:8px;display:inline-block;vertical-align:middle;border-color:currentColor;border-bottom-color:transparent;"></div> Đang tải mượt...';
+        btnLoadMore.innerHTML = '<div class="gen-spinner" style="width:16px;height:16px;margin-right:8px;display:inline-block;vertical-align:middle;border-color:currentColor;border-bottom-color:transparent;"></div> Loading...';
         btnLoadMore.disabled = true;
     }
 
