@@ -4,22 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portfolio | KGen</title>
+    <title>Hoà Quốc Đặng | AI Strategist</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;1,400&family=Outfit:wght@300;400;600;800&display=swap"
         rel="stylesheet">
 
     <style>
         :root {
-            --bg-color: #121212;
-            --text-main: #e8e3d9;
-            --text-accent: #f05445;
-            --text-muted: #888888;
-            --bg-gradient-center: rgba(40, 40, 40, 0.4);
-            --font-display: 'Bebas Neue', sans-serif;
+            --bg-color: #0a0a0c;
+            --text-main: #f3f4f6;
+            --text-accent: #ff4747;
+            /* Vibrant KGen-like red */
+            --text-muted: #9ca3af;
+            --font-heading: 'Outfit', sans-serif;
             --font-sans: 'Inter', sans-serif;
+            --accent-gradient: linear-gradient(135deg, #ff4747 0%, #ff8a66 100%);
         }
 
         * {
@@ -34,37 +36,47 @@
             font-family: var(--font-sans);
             height: 100vh;
             overflow: hidden;
-            /* Prevent scrolling for the full-screen effect */
             display: flex;
             flex-direction: column;
             position: relative;
-            background-image: radial-gradient(circle at 50% 50%, var(--bg-gradient-center) 0%, transparent 60%);
         }
 
-        /* Subtle noise texture overlay */
+        /* Ambient Glow in the background */
         body::before {
             content: "";
             position: absolute;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(255, 71, 71, 0.05) 0%, rgba(10, 10, 12, 0) 70%);
             pointer-events: none;
             z-index: 1;
-            opacity: 0.6;
         }
 
-        /* Background Image (dimmed and slightly blurred) */
+        /* Subtle noise texture */
+        body::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Background Image */
         .full-bg-image {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.12;
-            /* Very subtle */
+            opacity: 0.2;
             z-index: 0;
             pointer-events: none;
-            filter: grayscale(60%) blur(4px);
-            mix-blend-mode: luminosity;
+            filter: grayscale(80%) blur(8px);
+            mix-blend-mode: overlay;
         }
 
         /* --- NAVIGATION --- */
@@ -73,7 +85,10 @@
             justify-content: space-between;
             align-items: center;
             padding: 30px 40px;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             z-index: 10;
         }
 
@@ -89,32 +104,37 @@
             width: 100%;
             height: 100%;
             fill: var(--text-main);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover svg {
+            transform: scale(1.1);
         }
 
         .brand-name {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             letter-spacing: 0.3em;
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
             color: var(--text-muted);
+            font-family: var(--font-heading);
         }
 
         .nav-links {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 8px;
+            gap: 24px;
         }
 
         .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
+            font-weight: 500;
             transition: color 0.3s;
         }
 
@@ -126,7 +146,7 @@
         .social-sidebar {
             position: absolute;
             left: 40px;
-            top: 60%;
+            top: 50%;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
@@ -144,12 +164,12 @@
 
         .social-sidebar a:hover {
             color: var(--text-main);
-            transform: scale(1.1);
+            transform: scale(1.2);
         }
 
         .social-sidebar svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             fill: currentColor;
         }
 
@@ -168,13 +188,14 @@
             gap: 12px;
             cursor: pointer;
             transition: color 0.3s;
+            font-weight: 500;
         }
 
         .sound-sidebar:hover {
             color: var(--text-main);
         }
 
-        /* --- MAIN HERO CONTENT --- */
+        /* --- MAIN PORTFOLIO CONTENT --- */
         main {
             flex: 1;
             display: flex;
@@ -182,119 +203,270 @@
             justify-content: center;
             position: relative;
             z-index: 5;
+            padding: 0 80px;
         }
 
-        .hero-text {
+        .portfolio-center {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: var(--font-display);
             text-align: center;
-            line-height: 0.8;
-            font-size: clamp(6rem, 12vw, 14rem);
-            /* Responsive fluid typography */
-            letter-spacing: 0.02em;
+            max-width: 900px;
+            width: 100%;
         }
 
-        .hero-line {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
+        /* Name & Title */
+        .port-header {
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s;
+        }
+
+        .name {
+            font-family: var(--font-heading);
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 16px;
+            background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-transform: uppercase;
         }
 
-        .accent {
+        .title {
+            font-family: var(--font-sans);
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
             color: var(--text-accent);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
         }
 
-        .dot {
-            display: inline-block;
-            width: clamp(30px, 5vw, 60px);
-            height: clamp(30px, 5vw, 60px);
+        .title .dot {
+            width: 4px;
+            height: 4px;
             background-color: var(--text-accent);
             border-radius: 50%;
-            margin-right: clamp(10px, 2vw, 24px);
-            transform: translateY(-10%);
-            /* optical vertical alignment */
-            box-shadow: 0 0 20px rgba(240, 84, 69, 0.4);
-            /* subtle glow */
+            display: inline-block;
         }
 
-        .muted {
-            color: #d8d3c9;
-            /* slightly dimmer than main white */
+        /* Slogan */
+        .slogan-container {
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s;
+            position: relative;
+            padding: 0 20px;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            nav {
-                padding: 20px;
+        .slogan {
+            font-family: var(--font-heading);
+            font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+            font-weight: 400;
+            line-height: 1.2;
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Philosophy */
+        .philosophy {
+            font-family: var(--font-sans);
+            font-size: clamp(1rem, 1.5vw, 1.15rem);
+            line-height: 1.8;
+            color: #d1d5db;
+            max-width: 700px;
+            margin: 0 auto 50px auto;
+            opacity: 0;
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;
+            font-weight: 300;
+        }
+
+        .philosophy p {
+            margin-bottom: 20px;
+        }
+
+        .philosophy p:last-child {
+            margin-bottom: 0;
+        }
+
+        .philosophy strong {
+            color: #fff;
+            font-weight: 600;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Ecosystem Brands */
+        .ecosystem-container {
+            opacity: 0;
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.7s;
+        }
+
+        .ecosystem-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .ecosystem {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: clamp(16px, 3vw, 32px);
+            padding: 16px 32px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 100px;
+            backdrop-filter: blur(10px);
+        }
+
+        .eco-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-main);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .eco-brand-img {
+            width: clamp(24px, 4vw, 32px);
+            height: clamp(24px, 4vw, 32px);
+            object-fit: contain;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .eco-brand.kgen {
+            color: #f3f4f6;
+        }
+
+        .eco-brand.kudomax {
+            color: #4facfe;
+        }
+
+        /* Blue tone for distinction */
+        .eco-brand.hoareviewaz {
+            color: #ff4747;
+        }
+
+        .eco-brand:hover {
+            transform: translateY(-2px);
+        }
+
+        .eco-brand.kgen:hover {
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .eco-brand.kudomax:hover {
+            text-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .eco-brand.hoareviewaz:hover {
+            text-shadow: 0 0 15px rgba(255, 71, 71, 0.4);
+        }
+
+        .eco-brand:hover .eco-brand-img {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .eco-separator {
+            width: 4px;
+            height: 4px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .copyright-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .nav-links {
+                display: none;
+            }
+
+            main {
+                padding: 0 20px;
             }
 
             .social-sidebar {
-                left: 20px;
+                left: 50%;
                 top: auto;
-                bottom: 30px;
+                bottom: 80px;
+                transform: translateX(-50%);
                 flex-direction: row;
-                transform: none;
-            }
-
-            .brand-name {
-                display: none;
-                /* Hide on mobile to save space */
+                gap: 30px;
             }
 
             .sound-sidebar {
                 right: 20px;
-                bottom: calc(100vh - 50px);
+                bottom: 30px;
                 transform: none;
-            }
-
-            .hero-text {
-                font-size: clamp(4.5rem, 15vw, 8rem);
-                margin-top: -10vh;
-                /* slightly shift up on mobile */
-            }
-
-            .hero-bg-image {
-                right: -20%;
-                height: 60vh;
-                opacity: 0.15;
+                display: none;
             }
         }
 
-        /* Animation Intro */
-        .hero-line {
-            opacity: 0;
-            transform: translateY(40px);
-            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        @media (max-width: 600px) {
+            .ecosystem {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 24px;
+                gap: 20px;
+            }
 
-        .hero-line:nth-child(1) {
-            animation-delay: 0.1s;
-        }
+            .eco-separator {
+                display: none;
+            }
 
-        .hero-line:nth-child(2) {
-            animation-delay: 0.2s;
-        }
+            .title {
+                flex-direction: column;
+                gap: 4px;
+                letter-spacing: 0.1em;
+            }
 
-        .hero-line:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .hero-line:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .hero-line:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        @keyframes slideUpFade {
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .title .dot {
+                display: none;
             }
         }
     </style>
@@ -302,24 +474,21 @@
 
 <body>
 
-    <!-- Muted Background Image (User provided) -->
-    <img src="/info/bg.webp" class="full-bg-image" alt="Tech Abstract Background">
+    <!-- Background Layer -->
+    <img src="/info/bg.webp" class="full-bg-image" alt="Tech Background">
 
     <nav>
         <div class="logo">
-            <!-- Simple generic cat-like / geometric logo to match the vibe -->
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm4 0h-2v-2h2v2zm-2-4H9V8h4v4z" />
             </svg>
         </div>
 
-        <div class="brand-name">KGen Admin</div>
+        <div class="brand-name">KGen Ecosystem</div>
 
         <div class="nav-links">
-            <a href="/">Home App</a>
-            <a href="#">About</a>
-            <a href="#">Work</a>
+            <a href="/">Home</a>
             <a href="mailto:admin@kgen.cloud">Contact</a>
         </div>
     </nav>
@@ -337,11 +506,6 @@
                     d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8A5.8 5.8 0 012 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.4 5.6 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.6 18.4 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 011.25 1.25A1.25 1.25 0 0117.25 8 1.25 1.25 0 0116 6.75a1.25 1.25 0 011.25-1.25M12 7a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z" />
             </svg>
         </a>
-        <a href="#" aria-label="Video">
-            <svg viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-            </svg>
-        </a>
         <a href="#" aria-label="LinkedIn">
             <svg viewBox="0 0 24 24">
                 <path
@@ -352,219 +516,80 @@
 
     <aside class="sound-sidebar">
         SOUND ON <div
-            style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#f05445; margin-left: 4px;">
+            style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--text-accent); margin-left: 4px;">
         </div>
     </aside>
 
     <main>
-        <div class="portfolio-content"
-            style="padding-left: clamp(20px, 8vw, 120px); padding-right: 40px; margin-top: 4vh; width: 100%;">
-            <div class="port-section"
-                style="margin-bottom: clamp(40px, 6vh, 56px); opacity: 0; animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s;">
-                <div class="port-label"
-                    style="font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; position: relative; display: inline-block;">
-                    Tên
-                    <div
-                        style="position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); width: 30px; height: 1px; background: rgba(255,255,255,0.15);">
-                    </div>
-                </div>
-                <h1 class="port-title"
-                    style="font-family: var(--font-display); font-size: clamp(3.5rem, 8vw, 6.5rem); line-height: 0.9; margin: 0; color: #fff; letter-spacing: 0.01em;">
-                    Hoà Quốc Đặng</h1>
-                <div class="port-subtitle"
-                    style="font-family: var(--font-sans); font-size: clamp(1rem, 2vw, 1.25rem); color: var(--text-accent); margin-top: 16px; font-weight: 500; letter-spacing: 0.05em;">
-                    AI Strategist &bull; System Builder</div>
-            </div>
+        <div class="portfolio-center">
 
-            <div class="port-section"
-                style="margin-bottom: clamp(40px, 6vh, 56px); opacity: 0; animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s;">
-                <div class="port-label"
-                    style="font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; position: relative; display: inline-block;">
-                    Khẩu hiệu
-                    <div
-                        style="position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); width: 30px; height: 1px; background: rgba(255,255,255,0.15);">
-                    </div>
-                </div>
-                <h2 class="port-slogan"
-                    style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4rem); line-height: 1.1; margin: 0; color: #d8d3c9; letter-spacing: 0.02em;">
-                    Giữ Nhân – Thuận Đạo – Khai Trí.</h2>
-            </div>
-
-            <div class="port-section"
-                style="margin-bottom: clamp(40px, 6vh, 56px); opacity: 0; animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;">
-                <div class="port-label"
-                    style="font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; position: relative; display: inline-block;">
-                    Triết lý
-                    <div
-                        style="position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); width: 30px; height: 1px; background: rgba(255,255,255,0.15);">
-                    </div>
-                </div>
-                <div class="port-philosophy"
-                    style="font-family: var(--font-sans); font-size: clamp(1rem, 1.8vw, 1.15rem); line-height: 1.8; color: #a19d94; max-width: 650px;">
-                    <p style="margin: 0 0 20px 0;">Tôi tin rằng mọi thời đại đều có một công cụ thay đổi thế
-                        giới.<br>Thời đại này, công cụ đó là <strong style="color: #fff; font-weight: 600;">AI</strong>.
-                    </p>
-                    <p style="margin: 0;">Tôi nghiên cứu quy luật vận hành của công nghệ, con người và thị
-                        trường.<br>Sau đó xây những hệ thống AI giúp ý tưởng trở thành giá trị thực.</p>
+            <div class="port-header">
+                <h1 class="name">Hoà Quốc Đặng</h1>
+                <div class="title">
+                    <span>AI Strategist</span>
+                    <span class="dot"></span>
+                    <span>System Builder</span>
                 </div>
             </div>
 
-            <div class="ecosystem">
-                <a href="https://kgen.cloud" target="_blank" class="eco-brand">
-                    <img src="/logo.png" alt="KGEN Logo" class="eco-brand-img">
-                    KGEN
-                </a>
-                <div class="eco-separator">/</div>
-                <a href="https://kudomax.vn" target="_blank" class="eco-brand">
-                    <img src="/logo_kudomax.png" alt="KUDOMAX Logo" class="eco-brand-img">
-                    KUDOMAX
-                </a>
-                <div class="eco-separator">/</div>
-                <a href="https://hoareviewaz.com" target="_blank" class="eco-brand accent">
-                    <img src="/logo_hoareviewaz.png" alt="HOAREVIEWAZ Logo" class="eco-brand-img">
-                    HOAREVIEWAZ
-                </a>
+            <div class="slogan-container">
+                <h2 class="slogan">Giữ Nhân – Thuận Đạo – Khai Trí.</h2>
             </div>
+
+            <div class="philosophy">
+                <p>Tôi tin rằng mọi thời đại đều có một công cụ thay đổi thế giới.<br>Thời đại này, công cụ đó là
+                    <strong>AI</strong>.</p>
+                <p>Tôi nghiên cứu quy luật vận hành của công nghệ, con người và thị trường.<br>Sau đó xây những hệ thống
+                    AI giúp ý tưởng trở thành giá trị thực.</p>
+            </div>
+
+            <div class="ecosystem-container">
+                <div class="ecosystem-title">Our Ecosystem</div>
+                <div class="ecosystem">
+                    <a href="https://kgen.cloud" target="_blank" class="eco-brand kgen">
+                        <img src="/logo.png" alt="KGEN Logo" class="eco-brand-img">
+                        KGEN
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://kudomax.vn" target="_blank" class="eco-brand kudomax">
+                        <img src="/logo_kudomax.png" alt="KUDOMAX Logo" class="eco-brand-img">
+                        KUDOMAX
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://hoareviewaz.com" target="_blank" class="eco-brand hoareviewaz">
+                        <img src="/logo_hoareviewaz.png" alt="HOAREVIEWAZ Logo" class="eco-brand-img">
+                        HOAREVIEWAZ
+                    </a>
+                </div>
+            </div>
+
         </div>
     </main>
-
-    <style>
-        main {
-            justify-content: flex-start !important;
-        }
-
-        .ecosystem {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            gap: clamp(12px, 2vw, 24px);
-            font-family: var(--font-sans);
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            animation-delay: 0.7s;
-        }
-
-        .eco-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-main);
-            transition: color 0.3s, text-shadow 0.3s;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .eco-brand-img {
-            width: clamp(20px, 4vw, 36px);
-            height: clamp(20px, 4vw, 36px);
-            object-fit: contain;
-            border-radius: 4px;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s;
-        }
-
-        .eco-brand:hover {
-            color: #fff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-        }
-
-        .eco-brand:hover .eco-brand-img {
-            transform: scale(1.15) rotate(5deg);
-        }
-
-        .eco-brand.accent {
-            color: var(--text-accent);
-        }
-
-        .eco-brand.accent:hover {
-            text-shadow: 0 0 20px rgba(240, 84, 69, 0.4);
-        }
-
-        .eco-brand.accent:hover .eco-brand-img {
-            transform: scale(1.15) rotate(180deg);
-        }
-
-        .eco-separator {
-            color: var(--text-muted);
-            font-weight: 400;
-            font-size: 0.9em;
-        }
-
-        .copyright-footer {
-            position: absolute;
-            bottom: 24px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            main {
-                align-items: flex-start !important;
-                padding-top: 80px;
-                padding-bottom: 100px;
-            }
-
-            .ecosystem {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-                margin-top: 4vh;
-            }
-
-            .eco-separator {
-                display: none;
-            }
-
-            .copyright-footer {
-                bottom: 12px;
-                font-size: 0.65rem;
-            }
-        }
-    </style>
 
     <footer class="copyright-footer">
         Bản quyền và thiết kế bởi hoaquocdang
     </footer>
 
     <script>
-        // Simple interactive parallax effect for the portfolio content
+        // Smooth parallax effect for the centered content
         document.addEventListener('mousemove', (e) => {
-            const heroText = document.querySelector('.portfolio-content');
-            if (!heroText) return;
-            const x = (e.clientX / window.innerWidth - 0.5) * 10; // max 10px movement
-            const y = (e.clientY / window.innerHeight - 0.5) * 10;
+            const content = document.querySelector('.portfolio-center');
+            if (!content) return;
 
-            heroText.style.transform = `translate(${x}px, ${y}px)`;
-            heroText.style.transition = 'none';
+            // Calculate movement based on mouse position (subtle)
+            const x = (e.clientX / window.innerWidth - 0.5) * 15;
+            const y = (e.clientY / window.innerHeight - 0.5) * 15;
+
+            content.style.transform = `translate(${x}px, ${y}px)`;
+            content.style.transition = 'none';
         });
 
         document.addEventListener('mouseleave', () => {
-            const heroText = document.querySelector('.portfolio-content');
-            if (!heroText) return;
-            heroText.style.transform = `translate(0px, 0px)`;
-            heroText.style.transition = 'transform 0.5s ease-out';
+            const content = document.querySelector('.portfolio-center');
+            if (!content) return;
+
+            content.style.transform = `translate(0px, 0px)`;
+            content.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
         });
     </script>
 </body>
