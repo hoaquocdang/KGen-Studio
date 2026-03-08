@@ -857,13 +857,35 @@ function renderHistoryPage() {
         if (grid) {
             grid.classList.remove('hidden');
             grid.innerHTML = APP_STATE.generationHistory.map((item, i) => `
-                <div class="card" onclick="openHistoryModal(${i})" style="break-inside:avoid; margin-bottom:16px; border-radius:12px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform 0.2s;">
+                <div class="card" onclick="openHistoryModal(${i})" style="position:relative; break-inside:avoid; margin-bottom:16px; border-radius:12px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform 0.2s;" onmouseover="this.querySelector('.hist-dl-btn').style.opacity=1" onmouseout="this.querySelector('.hist-dl-btn').style.opacity=0">
                     <img src="${item.url}" alt="History item" style="width:100%; display:block;">
+                    <button class="hist-dl-btn" onclick="event.stopPropagation(); downloadImageFromUrl('${item.url}', 'kgen_history_${i}.jpg')" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity 0.2s; backdrop-filter:blur(4px);" title="Tải xuống">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </button>
                 </div>
             `).join('');
         }
     }
 }
+
+window.downloadImageFromUrl = async function (url, filename) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename || 'kgen_image.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+        showToast('Đã tải ảnh thành công!', 'success');
+    } catch (err) {
+        console.error('Error downloading image', err);
+        showToast('Lỗi khi tải ảnh xuống', 'error');
+    }
+};
 
 function openHistoryModal(index) {
     const item = APP_STATE.generationHistory[index];
@@ -1762,8 +1784,11 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
 function renderHistory() {
     const grid = document.getElementById('history-grid');
     grid.innerHTML = APP_STATE.generationHistory.slice(0, 12).map((item, i) => `
-        <div class="history-thumb" data-index="${i}" title="${item.prompt.slice(0, 80)}">
+        <div class="history-thumb" data-index="${i}" title="${item.prompt.slice(0, 80)}" style="position:relative;" onmouseover="this.querySelector('.hist-dl-icon').style.opacity=1" onmouseout="this.querySelector('.hist-dl-icon').style.opacity=0">
             <img src="${item.url}" alt="Gen ${i + 1}" loading="lazy">
+            <button class="hist-dl-icon" onclick="event.stopPropagation(); downloadImageFromUrl('${item.url}', 'kgen_history_${i}.jpg')" style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity 0.2s; backdrop-filter:blur(2px);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
         </div>
     `).join('');
 
