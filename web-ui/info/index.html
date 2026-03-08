@@ -302,9 +302,8 @@
 
 <body>
 
-    <!-- Muted Background Image (You can change this URL to any tech/AI image you prefer) -->
-    <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=2000"
-        class="full-bg-image" alt="Tech Abstract Background">
+    <!-- Muted Background Image (User provided) -->
+    <img src="bg.webp" class="full-bg-image" alt="Tech Abstract Background">
 
     <nav>
         <div class="logo">
@@ -364,11 +363,11 @@
             <div class="hero-line accent">PHÁT TRIỂN</div>
 
             <div class="ecosystem">
-                <div class="eco-brand">KGEN</div>
+                <a href="https://kgen.cloud" target="_blank" class="eco-brand">KGEN</a>
                 <div class="eco-separator">/</div>
-                <div class="eco-brand">KUDOMAX</div>
+                <a href="https://kudomax.vn" target="_blank" class="eco-brand">KUDOMAX</a>
                 <div class="eco-separator">/</div>
-                <div class="eco-brand accent">HOAREVIEWAZ</div>
+                <a href="https://hoareviewaz.com" target="_blank" class="eco-brand accent">HOAREVIEWAZ</a>
             </div>
         </div>
     </main>
@@ -397,8 +396,9 @@
 
         .eco-brand {
             color: var(--text-main);
-            transition: color 0.3s;
+            transition: color 0.3s, text-shadow 0.3s;
             cursor: pointer;
+            text-decoration: none;
         }
 
         .eco-brand:hover {
@@ -420,6 +420,19 @@
             font-size: 0.9em;
         }
 
+        .copyright-footer {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            z-index: 10;
+            pointer-events: none;
+        }
+
         @media (max-width: 768px) {
             .ecosystem {
                 flex-direction: column;
@@ -434,8 +447,17 @@
             .hero-text {
                 font-size: clamp(4rem, 14vw, 8rem);
             }
+
+            .copyright-footer {
+                bottom: 12px;
+                font-size: 0.65rem;
+            }
         }
     </style>
+
+    <footer class="copyright-footer">
+        Bản quyền và thiết kế bởi hoaquocdang
+    </footer>
 
     <script>
         // Simple interactive parallax effect for the hero text
