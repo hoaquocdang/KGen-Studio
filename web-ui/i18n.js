@@ -117,6 +117,37 @@ const TRANSLATIONS = {
     'toast.enhanced': { vi: '✨ Prompt đã được nâng cấp!', en: '✨ Prompt enhanced!', ja: '✨ プロンプトが強化されました！', es: '✨ ¡Prompt mejorado!', hi: '✨ प्रॉम्प्ट अपग्रेड हुआ!' },
     'toast.generating': { vi: '⏳ Đang tạo ảnh...', en: '⏳ Generating image...', ja: '⏳ 画像生成中...', es: '⏳ Generando imagen...', hi: '⏳ इमेज बन रही है...' },
     'toast.error_input': { vi: 'Vui lòng nhập ý tưởng', en: 'Please enter an idea', ja: 'アイデアを入力してください', es: 'Por favor ingresa una idea', hi: 'कृपया एक विचार दर्ज करें' },
+
+    // ===== LEGAL MODALS =====
+    'legal.terms.title': { vi: 'Điều khoản Dịch vụ', en: 'Terms of Service', ja: '利用規約', es: 'Términos de Servicio', hi: 'सेवा की शर्तें' },
+    'legal.terms.p1': { vi: 'Bằng việc truy cập và sử dụng trang web này, bạn đồng ý tuân thủ các điều khoản và điều kiện sau.', en: 'By accessing and using this website, you agree to comply with the following terms and conditions.' },
+    'legal.terms.p2': { vi: 'Dịch vụ này cung cấp các công cụ và tiện ích kỹ thuật số tích hợp AI để tạo và phân tích nội dung. Người dùng phải sử dụng dịch vụ tuân thủ các luật hiện hành và không được lạm dụng, trục lợi hoặc cố gắng phá hoại nền tảng.', en: 'This service provides AI-powered tools and digital utilities for content generation and analysis. Users must use the service in compliance with applicable laws and must not misuse, exploit, or attempt to disrupt the platform.' },
+    'legal.terms.p3': { vi: 'Chúng tôi có quyền sửa đổi, đình chỉ hoặc ngừng bất kỳ phần nào của dịch vụ vào bất kỳ lúc nào mà không cần thông báo trước.', en: 'We reserve the right to modify, suspend, or discontinue any part of the service at any time without prior notice.' },
+    'legal.terms.p4': { vi: 'Người dùng chịu trách nhiệm về nội dung họ tạo ra hoặc tải lên trong quá trình sử dụng nền tảng.', en: 'Users are responsible for the content they generate or upload while using the platform.' },
+    'legal.terms.p5': { vi: 'Bằng việc tiếp tục sử dụng trang web này, bạn đồng ý với các điều khoản trên.', en: 'By continuing to use this website, you agree to these terms.' },
+
+    'legal.privacy.title': { vi: 'Chính sách Bảo mật', en: 'Privacy Policy', ja: 'プライバシーポリシー', es: 'Política de Privacidad', hi: 'गोपनीयता नीति' },
+    'legal.privacy.p1': { vi: 'Chúng tôi tôn trọng quyền riêng tư của bạn và cam kết bảo vệ thông tin cá nhân của bạn.', en: 'We respect your privacy and are committed to protecting your personal information.' },
+    'legal.privacy.p2': { vi: 'Trang web này có thể thu thập dữ liệu giới hạn như địa chỉ email, số liệu thống kê sử dụng và thông tin kỹ thuật để cải thiện hiệu suất dịch vụ.', en: 'This website may collect limited data such as email addresses, usage statistics, and technical information to improve service performance.' },
+    'legal.privacy.p3': { vi: 'Chúng tôi không bán hoặc chia sẻ dữ liệu cá nhân của bạn với bên thứ ba trừ khi luật pháp yêu cầu hoặc cần thiết để vận hành dịch vụ.', en: 'We do not sell or share your personal data with third parties except when required by law or necessary to operate the service.' },
+    'legal.privacy.p4': { vi: 'Tất cả dữ liệu được thu thập được xử lý an toàn và chỉ được sử dụng để duy trì và cải thiện nền tảng.', en: 'All collected data is handled securely and used solely to maintain and improve the platform.' },
+    'legal.privacy.p5': { vi: 'Bằng việc sử dụng trang web này, bạn đồng ý với chính sách bảo mật này.', en: 'By using this website, you consent to this privacy policy.' },
+
+    'legal.dmca.title': { vi: 'Chính sách DMCA', en: 'DMCA Policy', ja: 'DMCAポリシー', es: 'Política de DMCA', hi: 'DMCA नीति' },
+    'legal.dmca.p1': { vi: 'Chúng tôi tôn trọng quyền sở hữu trí tuệ và tuân thủ Đạo luật Bản quyền Thiên niên kỷ Kỹ thuật số (DMCA).', en: 'We respect intellectual property rights and comply with the Digital Millennium Copyright Act (DMCA).' },
+    'legal.dmca.p2': { vi: 'Nếu bạn tin rằng bất kỳ nội dung nào trên trang web này vi phạm bản quyền của bạn, vui lòng gửi thông báo DMCA bao gồm:', en: 'If you believe that any content on this website infringes your copyright, please submit a DMCA notice including:' },
+    'legal.dmca.li1': { vi: 'Tên và thông tin liên hệ của bạn', en: 'Your name and contact information' },
+    'legal.dmca.li2': { vi: 'Mô tả tác phẩm có bản quyền bị vi phạm', en: 'Description of the copyrighted work' },
+    'legal.dmca.li3': { vi: 'URL của nội dung vi phạm', en: 'URL of the infringing content' },
+    'legal.dmca.li4': { vi: 'Tuyên bố xác nhận tin tưởng thiện chí về sự vi phạm', en: 'A statement confirming good faith belief of infringement' },
+    'legal.dmca.p3': { vi: 'Khi nhận được thông báo hợp lệ, chúng tôi sẽ nhanh chóng điều tra và gỡ bỏ tài liệu vi phạm nếu cần thiết.', en: 'Upon receiving a valid notice, we will promptly investigate and remove the infringing material if necessary.' },
+
+    'legal.refund.title': { vi: 'Chính sách Hoàn tiền', en: 'Refund Policy', ja: '返金ポリシー', es: 'Política de Reembolso', hi: 'धनवापसी नीति' },
+    'legal.refund.p1': { vi: 'Tất cả các giao dịch mua bán trên nền tảng này đều được xem là cuối cùng.', en: 'All purchases made on this platform are considered final.' },
+    'legal.refund.p2': { vi: 'Do bản chất của dịch vụ kỹ thuật số và nội dung do AI tạo ra, chúng tôi thường không hoàn tiền sau khi dịch vụ đã được sử dụng.', en: 'Due to the nature of digital services and AI-generated content, refunds are generally not provided once the service has been used.' },
+    'legal.refund.p3': { vi: 'Nếu bạn gặp vấn đề kỹ thuật hoặc lỗi thanh toán, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi để được trợ giúp.', en: 'If you experience technical issues or billing errors, please contact our support team for assistance.' },
+    'legal.refund.p4': { vi: 'Chúng tôi sẽ xem xét từng yêu cầu riêng biệt và có thể hoàn tiền trong các trường hợp ngoại lệ.', en: 'We will review each request individually and may provide a refund in exceptional circumstances.' },
+    'legal.copyright': { vi: 'Bản quyền và thiết kế bởi hoaquocdang', en: 'Copyright and design by hoaquocdang', ja: '著作権とデザイン: hoaquocdang', es: 'Derechos de autor y diseño de hoaquocdang', hi: 'कॉपीराइट और डिजाइन: hoaquocdang' },
 };
 
 // ============================================================

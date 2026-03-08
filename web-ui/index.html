@@ -175,7 +175,10 @@
                 <span class="version-dot"></span>
             </div>
             <div class="sidebar-legal">
-                <a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">DMCA</a> · <a href="#">Refund</a>
+                <a href="#" onclick="openLegalModal('terms'); return false;">Terms</a> ·
+                <a href="#" onclick="openLegalModal('privacy'); return false;">Privacy</a> ·
+                <a href="#" onclick="openLegalModal('dmca'); return false;">DMCA</a> ·
+                <a href="#" onclick="openLegalModal('refund'); return false;">Refund</a>
             </div>
             <!-- Sidebar User Stats / Tokens (hidden until logged in/fetched) -->
             <div class="sidebar-user-stats" id="sidebar-user-stats"
@@ -1115,6 +1118,222 @@
         </div>
     </div>
     </div>
+
+    <!-- ===== LEGAL MODALS ===== -->
+    <style>
+        .legal-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+
+        .legal-modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .legal-modal {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .legal-modal-overlay.show .legal-modal {
+            transform: translateY(0);
+        }
+
+        .legal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .legal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+        }
+
+        .legal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .legal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .legal-body {
+            padding: 24px;
+            overflow-y: auto;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .legal-body p {
+            margin-bottom: 16px;
+        }
+
+        .legal-body ul {
+            margin-bottom: 16px;
+            padding-left: 20px;
+        }
+
+        .legal-body li {
+            margin-bottom: 8px;
+        }
+
+        .legal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+    </style>
+
+    <div class="legal-modal-overlay" id="legal-terms-overlay">
+        <div class="legal-modal">
+            <div class="legal-header">
+                <h2 data-i18n="legal.terms.title">Điều khoản Dịch vụ</h2>
+                <button class="legal-close" onclick="closeLegalModal('terms')">&times;</button>
+            </div>
+            <div class="legal-body">
+                <p data-i18n="legal.terms.p1">Bằng việc truy cập và sử dụng trang web này, bạn đồng ý tuân thủ các điều
+                    khoản và điều kiện sau.</p>
+                <p data-i18n="legal.terms.p2">Dịch vụ này cung cấp các công cụ và tiện ích kỹ thuật số tích hợp AI để
+                    tạo và phân tích nội dung. Người dùng phải sử dụng dịch vụ tuân thủ các luật hiện hành và không được
+                    lạm dụng, trục lợi hoặc cố gắng phá hoại nền tảng.</p>
+                <p data-i18n="legal.terms.p3">Chúng tôi có quyền sửa đổi, đình chỉ hoặc ngừng bất kỳ phần nào của dịch
+                    vụ vào bất kỳ lúc nào mà không cần thông báo trước.</p>
+                <p data-i18n="legal.terms.p4">Người dùng chịu trách nhiệm về nội dung họ tạo ra hoặc tải lên trong quá
+                    trình sử dụng nền tảng.</p>
+                <p data-i18n="legal.terms.p5">Bằng việc tiếp tục sử dụng trang web này, bạn đồng ý với các điều khoản
+                    trên.</p>
+            </div>
+            <div class="legal-footer" data-i18n="legal.copyright">
+                Bản quyền và thiết kế bởi hoaquocdang
+            </div>
+        </div>
+    </div>
+
+    <div class="legal-modal-overlay" id="legal-privacy-overlay">
+        <div class="legal-modal">
+            <div class="legal-header">
+                <h2 data-i18n="legal.privacy.title">Chính sách Bảo mật</h2>
+                <button class="legal-close" onclick="closeLegalModal('privacy')">&times;</button>
+            </div>
+            <div class="legal-body">
+                <p data-i18n="legal.privacy.p1">Chúng tôi tôn trọng quyền riêng tư của bạn và cam kết bảo vệ thông tin
+                    cá nhân của bạn.</p>
+                <p data-i18n="legal.privacy.p2">Trang web này có thể thu thập dữ liệu giới hạn như địa chỉ email, số
+                    liệu thống kê sử dụng và thông tin kỹ thuật để cải thiện hiệu suất dịch vụ.</p>
+                <p data-i18n="legal.privacy.p3">Chúng tôi không bán hoặc chia sẻ dữ liệu cá nhân của bạn với bên thứ ba
+                    trừ khi luật pháp yêu cầu hoặc cần thiết để vận hành dịch vụ.</p>
+                <p data-i18n="legal.privacy.p4">Tất cả dữ liệu được thu thập được xử lý an toàn và chỉ được sử dụng để
+                    duy trì và cải thiện nền tảng.</p>
+                <p data-i18n="legal.privacy.p5">Bằng việc sử dụng trang web này, bạn đồng ý với chính sách bảo mật này.
+                </p>
+            </div>
+            <div class="legal-footer" data-i18n="legal.copyright">
+                Bản quyền và thiết kế bởi hoaquocdang
+            </div>
+        </div>
+    </div>
+
+    <div class="legal-modal-overlay" id="legal-dmca-overlay">
+        <div class="legal-modal">
+            <div class="legal-header">
+                <h2 data-i18n="legal.dmca.title">Chính sách DMCA</h2>
+                <button class="legal-close" onclick="closeLegalModal('dmca')">&times;</button>
+            </div>
+            <div class="legal-body">
+                <p data-i18n="legal.dmca.p1">Chúng tôi tôn trọng quyền sở hữu trí tuệ và tuân thủ Đạo luật Bản quyền
+                    Thiên niên kỷ Kỹ thuật số (DMCA).</p>
+                <p data-i18n="legal.dmca.p2">Nếu bạn tin rằng bất kỳ nội dung nào trên trang web này vi phạm bản quyền
+                    của bạn, vui lòng gửi thông báo DMCA bao gồm:</p>
+                <ul>
+                    <li data-i18n="legal.dmca.li1">Tên và thông tin liên hệ của bạn</li>
+                    <li data-i18n="legal.dmca.li2">Mô tả tác phẩm có bản quyền bị vi phạm</li>
+                    <li data-i18n="legal.dmca.li3">URL của nội dung vi phạm</li>
+                    <li data-i18n="legal.dmca.li4">Tuyên bố xác nhận tin tưởng thiện chí về sự vi phạm</li>
+                </ul>
+                <p data-i18n="legal.dmca.p3">Khi nhận được thông báo hợp lệ, chúng tôi sẽ nhanh chóng điều tra và gỡ bỏ
+                    tài liệu vi phạm nếu cần thiết.</p>
+            </div>
+            <div class="legal-footer" data-i18n="legal.copyright">
+                Bản quyền và thiết kế bởi hoaquocdang
+            </div>
+        </div>
+    </div>
+
+    <div class="legal-modal-overlay" id="legal-refund-overlay">
+        <div class="legal-modal">
+            <div class="legal-header">
+                <h2 data-i18n="legal.refund.title">Chính sách Hoàn tiền</h2>
+                <button class="legal-close" onclick="closeLegalModal('refund')">&times;</button>
+            </div>
+            <div class="legal-body">
+                <p data-i18n="legal.refund.p1">Tất cả các giao dịch mua bán trên nền tảng này đều được xem là cuối cùng.
+                </p>
+                <p data-i18n="legal.refund.p2">Do bản chất của dịch vụ kỹ thuật số và nội dung do AI tạo ra, chúng tôi
+                    thường không hoàn tiền sau khi dịch vụ đã được sử dụng.</p>
+                <p data-i18n="legal.refund.p3">Nếu bạn gặp vấn đề kỹ thuật hoặc lỗi thanh toán, vui lòng liên hệ với đội
+                    ngũ hỗ trợ của chúng tôi để được trợ giúp.</p>
+                <p data-i18n="legal.refund.p4">Chúng tôi sẽ xem xét từng yêu cầu riêng biệt và có thể hoàn tiền trong
+                    các trường hợp ngoại lệ.</p>
+            </div>
+            <div class="legal-footer" data-i18n="legal.copyright">
+                Bản quyền và thiết kế bởi hoaquocdang
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openLegalModal(type) {
+            const el = document.getElementById('legal-' + type + '-overlay');
+            if (el) el.classList.add('show');
+        }
+        function closeLegalModal(type) {
+            const el = document.getElementById('legal-' + type + '-overlay');
+            if (el) el.classList.remove('show');
+        }
+        // close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('legal-modal-overlay')) {
+                e.target.classList.remove('show');
+            }
+        });
+    </script>
 
     <!-- ===== AUTH MODAL ===== -->
     <div class="modal-overlay hidden" id="auth-modal-overlay">
