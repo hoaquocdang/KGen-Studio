@@ -2784,20 +2784,26 @@ function updateAuthUI() {
         if (userProfile) userProfile.style.display = 'block';
         if (loginCta) loginCta.style.display = 'none';
 
-        // Update avatar
-        const avatarEl = document.getElementById('sidebar-avatar');
-        if (avatarEl) {
-            if (user.picture) {
-                avatarEl.innerHTML = `<img src="${user.picture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-            } else {
-                avatarEl.textContent = (user.name || 'U').charAt(0).toUpperCase();
-            }
-        }
-
         // Update name + email
         const nameEl = document.getElementById('sidebar-user-name');
         const emailEl = document.getElementById('sidebar-user-email');
-        if (nameEl) nameEl.textContent = user.name || 'User';
+        if (nameEl) {
+            nameEl.textContent = user.name || 'User';
+            // Make name and avatar open the profile modal
+            nameEl.style.cursor = 'pointer';
+            nameEl.onclick = openUserProfileModal;
+        }
+
+        const avatarEl = document.getElementById('sidebar-avatar');
+        if (avatarEl) {
+            if (user.picture) {
+                avatarEl.innerHTML = `<img src="${user.picture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="openUserProfileModal()">`;
+            } else {
+                avatarEl.textContent = (user.name || 'U').charAt(0).toUpperCase();
+                avatarEl.style.cursor = 'pointer';
+                avatarEl.onclick = openUserProfileModal;
+            }
+        }
         if (emailEl) emailEl.textContent = user.email || '';
 
         // Update plan badge
@@ -2861,6 +2867,147 @@ function updateAuthUI() {
         const loggedIn = document.getElementById('user-logged-in');
         if (loggedOut) loggedOut.classList.remove('hidden');
         if (loggedIn) loggedIn.classList.add('hidden');
+    }
+}
+
+// ============================================================
+// USER PROFILE MODAL & ORDER HISTORY
+// ============================================================
+
+function openUserProfileModal() {
+    if (!isLoggedIn()) return;
+    const user = APP_STATE.currentUser;
+    const modal = document.getElementById('user-profile-modal');
+    if (!modal) return;
+
+    // Set info
+    document.getElementById('up-name').value = user.name || 'User';
+    document.getElementById('up-email').textContent = user.email || '';
+
+    // Avatar
+    const avatar = document.getElementById('up-avatar');
+    if (user.picture) {
+        avatar.innerHTML = `<img src="${user.picture}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    } else {
+        avatar.innerHTML = (user.name || 'U').charAt(0).toUpperCase();
+    }
+
+    // Tier
+    const tierIcons = { free: '🌱', pro: '⚡', premium: '🔥' };
+    const tierDesc = { free: 'Miễn phí trọn đời', pro: 'Tạo 1000 ảnh / tháng', premium: 'Tạo 5000 ảnh / tháng' };
+    const tier = user.tier || 'free';
+
+    document.getElementById('up-tier-icon').textContent = tierIcons[tier] || '🌱';
+    document.getElementById('up-tier-name').textContent = tier.toUpperCase();
+    document.getElementById('up-tier-name').style.color = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#f59e0b' : 'white';
+    document.getElementById('up-tier-desc').textContent = tierDesc[tier] || '';
+
+    // Show modal
+    modal.classList.remove('hidden');
+    // small delay for css transition
+    requestAnimationFrame(() => {
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
+        modal.querySelector('.modal-content').style.transform = 'scale(1)';
+    });
+
+    refreshOrderHistory();
+}
+
+function closeUserProfileModal() {
+    const modal = document.getElementById('user-profile-modal');
+    if (!modal) return;
+
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+    modal.querySelector('.modal-content').style.transform = 'scale(0.95)';
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function saveUserProfile() {
+    const newName = document.getElementById('up-name').value.trim();
+    if (!newName) {
+        showToast('Tên không được để trống', 'error');
+        return;
+    }
+
+    if (APP_STATE.currentUser) {
+        APP_STATE.currentUser.name = newName;
+        // update localstorage
+        const session = JSON.parse(localStorage.getItem('kgen_session'));
+        if (session && session.user) {
+            session.user.name = newName;
+            localStorage.setItem('kgen_session', JSON.stringify(session));
+        }
+
+        updateAuthUI();
+        showToast('Đã cập nhật hồ sơ', 'success');
+        closeUserProfileModal();
+    }
+}
+
+function refreshOrderHistory() {
+    const list = document.getElementById('up-orders-list');
+    if (!list) return;
+
+    list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-tertiary);">Đang tải...</div>';
+
+    try {
+        const ordersStr = localStorage.getItem('kgen_orders');
+        let orders = ordersStr ? JSON.parse(ordersStr) : [];
+
+        if (!orders || orders.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-tertiary);">Chưa có đơn hàng nào.</div>';
+            return;
+        }
+
+        // Sort newest first
+        orders.sort((a, b) => b.timestamp - a.timestamp);
+
+        let html = '';
+        orders.forEach(o => {
+            const date = new Date(o.timestamp).toLocaleString('vi-VN');
+            let statusHTML = '';
+            let bgHTML = 'background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);';
+            let statusText = 'Đang chờ';
+
+            if (o.status === 'paid') {
+                bgHTML = 'background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2);';
+                statusHTML = '<span style="color:#22c55e; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(34,197,94,0.1);">Hoàn tất</span>';
+                statusText = 'Hoàn tất';
+            } else if (o.status === 'awaiting_review' || o.status === 'pending') {
+                bgHTML = 'background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2);';
+                statusHTML = '<span style="color:#f59e0b; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(245,158,11,0.1);">Đang chờ Check</span>';
+            } else if (o.status === 'cancelled') {
+                statusHTML = '<span style="color:#ef4444; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(239,68,68,0.1);">Đã hủy</span>';
+            }
+
+            const tierName = o.tier === 'pro' ? 'PRO' : o.tier === 'premium' ? 'PREMIUM' : o.tier;
+
+            html += `
+            <div style="padding: 16px; border-radius: 12px; margin-bottom: 12px; ${bgHTML}">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <strong style="color:var(--accent-blue); font-size:1rem; letter-spacing:0.5px;">${o.orderCode}</strong>
+                    ${statusHTML}
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">
+                    <span>Gói Nâng Cấp: <strong style="color:white;">${tierName}</strong></span>
+                    <span>${o.amountVnd ? o.amountVnd.toLocaleString('vi-VN') + 'đ' : ''}</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-tertiary);">
+                    📅 ${date}
+                </div>
+            </div>`;
+        });
+
+        list.innerHTML = html;
+
+    } catch (e) {
+        list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-tertiary);">Lỗi hiển thị dữ liệu lịch sử.</div>';
+        console.error('Error rendering history', e);
     }
 }
 
@@ -3177,8 +3324,8 @@ function setupPricing() {
             `).join('')}
         </div>
         <div class="pricing-footer-inline">
-            <p>${typeof t === 'function' ? t('pricing.footer') : '\ud83d\udcb3 Thanh toán an toàn qua Stripe'}</p>
-            <p class="sub-note">${typeof t === 'function' ? t('pricing.footer_sub') : 'Hỗ trợ: MoMo, Visa, Mastercard, JCB'}</p>
+            <p>${typeof t === 'function' ? t('pricing.footer') : '🔒 Thanh toán tự động KGen Guard'}</p>
+            <p class="sub-note">${typeof t === 'function' ? t('pricing.footer_sub') : 'Kích hoạt ngay khi nhận thanh toán. Quản lý dễ dàng.'}</p>
         </div>
     `;
 

@@ -98,8 +98,8 @@ const TRANSLATIONS = {
 
     // ===== PRICING =====
     'pricing.title': { vi: 'Nâng cấp tài khoản', en: 'Upgrade Account', ja: 'アカウントアップグレード', es: 'Mejorar Cuenta', hi: 'अकाउंट अपग्रेड' },
-    'pricing.footer': { vi: '🔒 Thanh toán an toàn qua Stripe', en: '🔒 Secure payment via Stripe', ja: '🔒 Stripeによる安全な決済', es: '🔒 Pago seguro con Stripe', hi: '🔒 Stripe से सुरक्षित भुगतान' },
-    'pricing.footer_sub': { vi: 'Hủy bất kỳ lúc nào. Không cam kết dài hạn.', en: 'Cancel anytime. No long-term commitment.', ja: 'いつでもキャンセル可能。', es: 'Cancela cuando quieras.', hi: 'कभी भी रद्द करें।' },
+    'pricing.footer': { vi: '🔒 Hệ thống Thanh Toán Tự Động KGen', en: '🔒 KGen Auto Payment System', ja: '🔒 KGen 自動決済システム', es: '🔒 Sistema de Pago Automático KGen', hi: '🔒 KGen ऑटो पेमेंट सिस्टम' },
+    'pricing.footer_sub': { vi: 'Mở khóa tự động 24/7. Không cam kết.', en: 'Auto unlock 24/7. No commitment.', ja: '24時間自動ロック解除。契約縛りなし。', es: 'Desbloqueo automático 24/7. Sin compromiso.', hi: 'ऑटो अनलॉक 24/7. कोई प्रतिबद्धता नहीं।' },
 
     // ===== COMMON =====
     'common.copy': { vi: 'Copy', en: 'Copy', ja: 'コピー', es: 'Copiar', hi: 'कॉपी' },
