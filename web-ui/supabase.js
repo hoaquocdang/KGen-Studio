@@ -469,49 +469,113 @@ function createCheckoutSession(tier) {
 
     const overlay = document.createElement('div');
     overlay.id = 'qr-modal-overlay';
-    overlay.className = 'pricing-overlay'; // reuse styling
+    overlay.className = 'pricing-overlay';
     overlay.style.zIndex = '10000';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.backdropFilter = 'blur(16px)';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.85)';
+
+    // Brand accent color tracking tier
+    const accentColor = tier === 'pro' ? '#4a90e2' : '#f59e0b';
+    const accentGlow = tier === 'pro' ? 'rgba(74, 144, 226, 0.3)' : 'rgba(245, 158, 11, 0.3)';
+
+    // Modern animated timer script logic wrapper
+    const countdownId = 'qr-countdown-' + Date.now();
 
     overlay.innerHTML = `
-        <div class="pricing-modal" style="max-width:400px; text-align:center;">
-            <button class="modal-close" id="qr-close">&times;</button>
-            <div class="pricing-header" style="margin-bottom:16px;">
-                <h2 class="pricing-title">Thanh Toán VietQR</h2>
-                <p class="pricing-subtitle" style="margin-top:8px;">Gói <strong>${tier.toUpperCase()}</strong> - ${priceVnd.toLocaleString('vi')}đ</p>
-            </div>
+        <div class="pricing-modal" style="position:relative; max-width:440px; width:100%; border-radius:24px; padding:0; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5), 0 0 120px ${accentGlow}; overflow:hidden; animation:modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Glow background -->
+            <div style="position:absolute; top:-100px; left:-100px; right:-100px; height:200px; background:${accentColor}; filter:blur(100px); opacity:0.15; z-index:0; border-radius:50%; pointer-events:none;"></div>
             
-            <div style="background:white; padding:16px; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-                <img src="${qrUrl}" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; border-radius:8px;" alt="VietQR">
-            </div>
+            <button class="modal-close" id="qr-close" style="z-index:10; background:rgba(255,255,255,0.1); backdrop-filter:blur(4px); top:16px; right:16px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:all 0.2s; color:white;">&times;</button>
+            
+            <div style="position:relative; z-index:1; padding:32px 32px 24px;">
+                <div style="text-align:center; margin-bottom:24px;">
+                    <div style="display:inline-flex; align-items:center; justify-content:center; padding:6px 16px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:100px; gap:8px; margin-bottom:16px;">
+                        <span style="display:block; width:8px; height:8px; border-radius:50%; background:${accentColor}; box-shadow:0 0 10px ${accentColor}; animation:pulse 2s infinite;"></span>
+                        <span style="font-size:0.85rem; font-weight:600; letter-spacing:1px; color:white;">BẢO MẬT SSL KGEN</span>
+                    </div>
+                    <h2 style="font-size:1.8rem; font-weight:800; text-transform:uppercase; letter-spacing:-0.5px; background:linear-gradient(135deg, #fff 0%, #a1a1aa 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0 0 8px 0;">Nâng Cấp ${tier}</h2>
+                    <p style="color:var(--text-secondary); font-size:1rem;">Mở khóa sức mạnh AI không giới hạn</p>
+                </div>
+                
+                <div style="background:white; padding:20px; border-radius:20px; margin-bottom:24px; box-shadow:0 12px 32px rgba(0,0,0,0.3); position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:0; left:0; right:0; padding:6px 0; background:#f4f4f5; text-align:center; font-size:0.75rem; font-weight:700; color:#52525b; letter-spacing:1px;">QUÉT MÃ ĐỂ THANH TOÁN</div>
+                    <img src="${qrUrl}" style="width:100%; max-width:300px; height:auto; display:block; margin:24px auto 0; border-radius:8px;" alt="VietQR">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #e4e4e7; margin-top:20px; padding-top:16px;">
+                        <span style="color:#52525b; font-size:0.9rem; font-weight:500;">Số tiền</span>
+                        <span style="color:#18181b; font-size:1.4rem; font-weight:800;">${priceVnd.toLocaleString('vi')}đ</span>
+                    </div>
+                </div>
 
-            <div style="background:var(--bg-elevated); padding:16px; border-radius:12px; margin-bottom:20px; text-align:left; border:1px solid var(--border-color);">
-                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:4px;">Ngân hàng: <strong style="color:var(--text-primary);">${pCfg.bankId}</strong></div>
-                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:4px;">Số tài khoản: <strong style="color:var(--text-primary);">${pCfg.accountNo}</strong></div>
-                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">Chủ TK: <strong style="color:var(--text-primary);">${pCfg.accountName}</strong></div>
-                <div style="font-size:0.85rem; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center;">
-                    <span>Lời nhắn: <strong id="qr-order-code" style="color:var(--accent-blue); font-size:1rem;">${orderCode}</strong></span>
-                    <button class="btn btn-sm btn-ghost" onclick="navigator.clipboard.writeText('${orderCode}'); showToast('Đã copy mã đơn', 'success')" style="padding:4px 8px;">Copy</button>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); padding:20px; border-radius:16px; margin-bottom:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="color:var(--text-tertiary); font-size:0.85rem;">Ngân hàng thụ hưởng</span>
+                        <strong style="color:white; font-size:0.9rem;">${pCfg.bankId}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="color:var(--text-tertiary); font-size:0.85rem;">Số tài khoản</span>
+                        <strong style="color:white; font-size:0.9rem; letter-spacing:1px;">${pCfg.accountNo}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <span style="color:var(--text-tertiary); font-size:0.85rem;">Tên người nhận</span>
+                        <strong style="color:white; font-size:0.9rem;">${pCfg.accountName}</strong>
+                    </div>
+                    
+                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; border:1px dashed ${accentColor};">
+                        <div>
+                            <span style="display:block; color:var(--text-tertiary); font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Nội dung chuyển khoản (Bắt buộc)</span>
+                            <strong style="color:${accentColor}; font-size:1.1rem; letter-spacing:1px;">${orderCode}</strong>
+                        </div>
+                        <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${orderCode}'); showToast('Đã sao chép mã đơn', 'success')" style="background:${accentColor}; color:white; border:none; border-radius:8px; padding:8px 16px; font-weight:600; cursor:pointer;">Copy</button>
+                    </div>
+                </div>
+
+                <button class="btn" id="btn-confirm-paid" style="width:100%; padding:16px; border-radius:16px; background:white; color:black; font-size:1.05rem; font-weight:700; letter-spacing:0.5px; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(255,255,255,0.15); transition:transform 0.2s;">
+                    Tôi đã chuyển khoản xong
+                </button>
+                
+                <div style="text-align:center; margin-top:16px; font-size:0.85rem; color:var(--text-tertiary); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Mã QR sẽ hết hạn sau <strong id="${countdownId}" style="color:white;">15:00</strong></span>
                 </div>
             </div>
-
-            <p style="font-size:0.85rem; color:var(--text-tertiary); margin-bottom:16px;">
-                Vui lòng <strong>giữ nguyên lời nhắn</strong> (${orderCode}) khi chuyển khoản.
-            </p>
-
-            <button class="btn btn-primary" id="btn-confirm-paid" style="width:100%;">
-                Tôi đã thanh toán
-            </button>
         </div>
     `;
 
     document.body.appendChild(overlay);
 
+    // Setup countdown
+    let timeLeft = 15 * 60; // 15 minutes
+    const cntTimer = setInterval(() => {
+        timeLeft--;
+        const el = document.getElementById(countdownId);
+        if (!el) {
+            clearInterval(cntTimer);
+            return;
+        }
+        if (timeLeft <= 0) {
+            clearInterval(cntTimer);
+            el.innerHTML = "Hết hạn";
+            overlay.innerHTML = `<div class="pricing-modal" style="text-align:center; padding:40px;"><h2 style="margin-bottom:16px;">Mã QR đã hết hạn</h2><button class="btn btn-primary" onclick="document.getElementById('qr-modal-overlay').remove()">Đóng</button></div>`;
+            return;
+        }
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        el.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+    }, 1000);
+
     document.getElementById('qr-close').addEventListener('click', () => {
-        overlay.classList.remove('active');
+        clearInterval(cntTimer);
+        overlay.style.opacity = '0';
         setTimeout(() => overlay.remove(), 300);
     });
 
     document.getElementById('btn-confirm-paid').addEventListener('click', () => {
+        clearInterval(cntTimer);
         // Save local order to simulate for admin check
         const orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
         orders.push({
@@ -525,16 +589,24 @@ function createCheckoutSession(tier) {
         localStorage.setItem('kgen_orders', JSON.stringify(orders));
 
         overlay.innerHTML = `
-            <div class="pricing-modal" style="max-width:400px; text-align:center; padding:40px 20px;">
-                <div style="font-size:48px; margin-bottom:16px;">⏳</div>
-                <h2 style="margin-bottom:16px;">Đang xác nhận thanh toán</h2>
-                <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:24px;">Hệ thống đã ghi nhận mã <strong>${orderCode}</strong>. Quản trị viên sẽ kích hoạt gói <strong>${tier.toUpperCase()}</strong> cho tài khoản <strong>${user.email}</strong> trong vài phút nữa.</p>
-                <button class="btn btn-primary" onclick="window.location.reload()" style="width:100%">Đóng</button>
+            <div class="pricing-modal" style="position:relative; max-width:400px; width:100%; border-radius:24px; padding:48px 32px 40px; text-align:center; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5);">
+                <!-- Animated success circle -->
+                <div style="width:80px; height:80px; border-radius:50%; background:rgba(16, 185, 129, 0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 24px; position:relative;">
+                    <div style="position:absolute; inset:0; border-radius:50%; border:2px solid #10b981; animation:ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity:0.5;"></div>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation:scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                
+                <h2 style="font-size:1.5rem; font-weight:700; color:white; margin-bottom:16px;">Thanh toán thành công!</h2>
+                <p style="color:var(--text-secondary); font-size:0.95rem; line-height:1.6; margin-bottom:32px;">Hệ thống đã ghi nhận mã <strong style="color:white; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px;">${orderCode}</strong>. Quản trị viên sẽ kích hoạt gói <strong style="color:${accentColor}">${tier.toUpperCase()}</strong> cho tài khoản của bạn trong vòng vài phút tiếp theo.</p>
+                
+                <button class="btn" style="width:100%; padding:14px; border-radius:14px; background:white; color:black; font-weight:700; cursor:pointer;" onclick="document.getElementById('qr-modal-overlay').remove()">
+                    Hoàn tất
+                </button>
             </div>
         `;
     });
-
-    requestAnimationFrame(() => overlay.classList.add('active'));
+}
+requestAnimationFrame(() => overlay.classList.add('active'));
 }
 
 // ============================================================
