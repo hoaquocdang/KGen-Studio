@@ -449,8 +449,8 @@ async function isInCollection(imageUrl) {
 // ============================================================
 
 function createCheckoutSession(tier) {
-    const pCfg = (window.SITE_CONFIG && window.SITE_CONFIG.payment) || { bankId: 'MB', accountNo: '3333333333', accountName: 'TEST' };
-    const webhookBase = (window.SITE_CONFIG && window.SITE_CONFIG.payment && window.SITE_CONFIG.payment.webhookBase) || '';
+    const pCfg = (window.SITE_CONFIG && window.SITE_CONFIG.payment) || { bankId: 'TPB', accountNo: '00002035456', accountName: 'TRAN DANG QUOC HOA' };
+    const webhookBase = (window.SITE_CONFIG && window.SITE_CONFIG.payment && window.SITE_CONFIG.payment.webhookBase) || 'https://n8n-1adi.srv1465145.hstgr.cloud';
     const user = APP_STATE.currentUser;
 
     if (!user) {
