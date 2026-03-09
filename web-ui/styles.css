@@ -2791,12 +2791,12 @@ button[data-tab="settings"] {
         box-shadow: none;
         z-index: 300;
         /* above everything for a proper full-screen modal */
-        transform: translateY(120%);
+        transform: translateX(100%);
         transition: transform 0.4s var(--ease-spring);
     }
 
     #tab-generate.active {
-        transform: translateY(0);
+        transform: translateX(0);
     }
 
     .generate-layout {

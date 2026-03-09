@@ -1133,7 +1133,7 @@ function setupModal() {
         document.getElementById('gen-prompt').value = promptText;
         updateCharCount();
         closeModal();
-        showToast('✨ Prompt đã được chuyển sang tab Tạo ảnh', 'success');
+        switchTab('generate');
     });
 
     document.getElementById('btn-favorite-prompt').addEventListener('click', async () => {
