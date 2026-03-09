@@ -3311,29 +3311,54 @@ function setupPricing() {
     const _bpv = typeof BASE_PRICES_VND !== 'undefined' ? BASE_PRICES_VND : { free: 0, pro: 39000, premium: 199000 };
 
     container.innerHTML = `
-        <div class="pricing-grid-inline">
-            ${PRICING_TIERS.map(tier => `
-                <div class="pricing-card-inline ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}">
-                    ${tier.popular ? '<div class="popular-badge-inline">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
-                    <div class="tier-header-inline">
-                        <span class="tier-emoji-inline">${tier.emoji}</span>
-                        <h3>${tier.name}</h3>
+        <div style="margin-bottom: 32px;">
+            <div class="pricing-grid-inline">
+                ${PRICING_TIERS.map(tier => `
+                    <div class="pricing-card-inline ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}">
+                        ${tier.popular ? '<div class="popular-badge-inline">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
+                        <div class="tier-header-inline">
+                            <span class="tier-emoji-inline">${tier.emoji}</span>
+                            <h3>${tier.name}</h3>
+                        </div>
+                        <div class="tier-price-inline">
+                            <span class="amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
+                            <span class="period">${_period}</span>
+                        </div>
+                        <ul class="tier-features-inline">
+                            ${tier.features.map(f => `<li>${f}</li>`).join('')}
+                            ${tier.limitations.map(l => `<li class="limit">\u274c ${l}</li>`).join('')}
+                        </ul>
+                        <button class="btn ${tier.buttonClass} tier-btn-inline" 
+                            data-tier="${tier.id}"
+                            ${currentTier === tier.id ? 'disabled' : ''}>
+                            ${currentTier === tier.id ? '\u2713 ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
+                        </button>
                     </div>
-                    <div class="tier-price-inline">
-                        <span class="amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
-                        <span class="period">${_period}</span>
+                `).join('')}
+            </div>
+        </div>
+
+        <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <div style="text-align:center; margin-bottom: 24px;">
+                <h2 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">Nạp thêm <span style="color:var(--accent-blue)">Credits</span></h2>
+                <p style="color:var(--text-secondary); max-width:500px; margin:0 auto;">Dùng cho khách hàng đã xài hết Credit trong Gói Tháng mà vẫn còn nhu cầu.</p>
+            </div>
+            <div class="pricing-grid-inline" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                ${(typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : []).map(pack => `
+                    <div class="pricing-card-inline" style="padding:24px; text-align:center;">
+                        ${pack.best ? '<div class="popular-badge-inline" style="background:#10b981; color:#fff;">' + pack.bonus + '</div>' : ''}
+                        <div style="font-size:3rem; margin-bottom:12px;">${pack.emoji}</div>
+                        <h3 style="font-size:1.2rem; margin-bottom:4px;">${pack.name}</h3>
+                        <div style="color:var(--accent-blue); font-size:1.8rem; font-weight:800; margin-bottom:16px;">
+                            ${pack.credits} <span style="font-size:1rem; font-weight:600; color:var(--text-secondary);">Credits</span>
+                        </div>
+                        <div style="font-size:1.4rem; font-weight:700; margin-bottom:20px;">${pack.price}</div>
+                        <button class="btn ${pack.best ? 'btn-primary' : 'btn-outline'} topup-btn-inline" style="width:100%; border-radius:12px;" data-pack="${pack.id}">
+                            Mua ngay
+                        </button>
                     </div>
-                    <ul class="tier-features-inline">
-                        ${tier.features.map(f => `<li>${f}</li>`).join('')}
-                        ${tier.limitations.map(l => `<li class="limit">\u274c ${l}</li>`).join('')}
-                    </ul>
-                    <button class="btn ${tier.buttonClass} tier-btn-inline" 
-                        data-tier="${tier.id}"
-                        ${currentTier === tier.id ? 'disabled' : ''}>
-                        ${currentTier === tier.id ? '\u2713 ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
-                    </button>
-                </div>
-            `).join('')}
+                `).join('')}
+            </div>
         </div>
         <div class="pricing-footer-inline">
             <p>${typeof t === 'function' ? t('pricing.footer') : '🔒 Thanh toán tự động KGen Guard'}</p>
@@ -3348,6 +3373,21 @@ function setupPricing() {
             if (tier === 'free') return;
             if (typeof handleUpgrade === 'function') {
                 handleUpgrade(tier);
+            }
+        });
+    });
+
+    // Attach events for topup packages
+    container.querySelectorAll('.topup-btn-inline').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!APP_STATE.currentUser) {
+                switchTab('home');
+                showToast("Vui lòng đăng nhập trước khi nạp thêm Credit");
+                return;
+            }
+            const packId = btn.dataset.pack;
+            if (typeof handleUpgrade === 'function') {
+                handleUpgrade(packId);
             }
         });
     });

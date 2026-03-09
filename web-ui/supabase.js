@@ -740,14 +740,15 @@ const PRICING_TIERS = [
         name: 'Gói FREE',
         emoji: '🌱',
         price: '0đ',
-        period: '/tháng',
+        period: '/mãi mãi',
         features: [
-            'Dùng thử trải nghiệm tính năng',
-            'Thêm API Key cá nhân (ẩn giới hạn)',
-            'Khám phá 10% thư viện mẫu'
+            'Tặng kèm 10 Credits ban đầu',
+            'Tự nạp API Key cá nhân để dùng',
+            'Sử dụng giới hạn mô hình',
+            'Truy cập 10% thư viện prompt'
         ],
         limitations: [
-            'Chỉ sử dụng hình ảnh tạo ra cá nhân',
+            'Chỉ sử dụng hình ảnh tạo ra cá nhân'
         ],
         buttonText: 'Đang sử dụng',
         buttonClass: 'btn-ghost',
@@ -757,15 +758,15 @@ const PRICING_TIERS = [
         id: 'pro',
         name: 'Gói PRO',
         emoji: '⚡',
-        price: '39.000đ',
+        price: '49.000đ',
         period: '/tháng',
         features: [
-            '1000 ảnh / tháng (Không cần cấu hình)',
-            'Dùng chung tài khoản hệ sinh thái KGen',
-            'Sử dụng Nanobanana Pro / Gemini Imagen 3',
-            'Mở khoá 100% tài nguyên và 1300+ prompt gốc',
-            'Server ưu tiên tốc độ cao',
-            'Cho phép sử dụng thương mại'
+            'Tặng 500 Credits / tháng (~500 ảnh thường)',
+            'Mở khoá toàn bộ 1300+ mẫu Prompt',
+            'Truy cập mô hình Cao cấp (Imagen/Midjourney)',
+            'Sử dụng chung tài khoản Hệ sinh thái',
+            'Tốc độ server ưu tiên cao',
+            'Chi phí mua Credit rẻ hơn 15%'
         ],
         limitations: [],
         buttonText: 'Nâng cấp ngay',
@@ -779,18 +780,48 @@ const PRICING_TIERS = [
         price: '199.000đ',
         period: '/tháng',
         features: [
-            '5000 ảnh / tháng (Gói doanh nghiệp/đội nhóm)',
-            'Công cụ Tạo Nội dung Viral (Carousel God Mode)',
-            'Dùng chung tài khoản hệ sinh thái KGen',
-            'Bao gồm tất cả đặc quyền PRO',
-            'Trợ lý hỗ trợ khách hàng ưu tiên 24/7',
-            'API access trực tiếp'
+            'Tặng 2,500 Credits / tháng (Business)',
+            'Sử dụng công cụ Tạo Viral Carousel',
+            'Mở khoá tính năng cho Đội nhóm',
+            'Được nạp Credit với giá sỉ rẻ nhất',
+            'Dùng chung tài khoản Hệ sinh thái',
+            'Trợ lý hỗ trợ kỹ thuật cá nhân'
         ],
         limitations: [],
         buttonText: 'Nâng cấp Premium',
         buttonClass: 'btn-premium',
         popular: false,
     },
+];
+
+const TOPUP_PACKAGES = [
+    {
+        id: 'topup_50',
+        name: 'Nạp Tiêu Chuẩn',
+        emoji: '🪙',
+        price: '50.000đ',
+        credits: 500,
+        bonus: '+0%',
+        best: false
+    },
+    {
+        id: 'topup_100',
+        name: 'Nạp Phổ Biến',
+        emoji: '💰',
+        price: '100.000đ',
+        credits: 1200,
+        bonus: '+20% (Khuyên dùng)',
+        best: true
+    },
+    {
+        id: 'topup_200',
+        name: 'Nạp Cao Cấp',
+        emoji: '💎',
+        price: '200.000đ',
+        credits: 2800,
+        bonus: '+40% (Tiết kiệm nhất)',
+        best: false
+    }
 ];
 
 // ============================================================
@@ -810,43 +841,70 @@ function renderPricingModal() {
     overlay.id = 'pricing-modal-overlay';
     overlay.className = 'pricing-overlay';
     overlay.innerHTML = `
-            < div class="pricing-modal" >
+        <div class="pricing-modal">
             <button class="modal-close" id="pricing-close">&times;</button>
             <div class="pricing-header">
                 <h2 class="pricing-title">${typeof t === 'function' ? t('pricing.title') : 'Chọn gói phù hợp'}</h2>
                 <p class="pricing-subtitle">${typeof t === 'function' ? t('home.subtitle') : 'Mở khóa toàn bộ sức mạnh của KGen Studio'}</p>
             </div>
-            <div class="pricing-grid">
-                ${PRICING_TIERS.map(tier => `
-                    <div class="pricing-card ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}" data-tier="${tier.id}">
-                        ${tier.popular ? '<div class="popular-badge">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
-                        ${currentTier === tier.id ? '<div class="current-badge">✓ ' + (typeof t === 'function' ? t('common.save') : 'Gói hiện tại') + '</div>' : ''}
-                        <div class="pricing-card-header">
-                            <span class="tier-emoji">${tier.emoji}</span>
-                            <h3 class="tier-name">${tier.name}</h3>
-                            <div class="tier-price">
-                                <span class="price-amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
-                                <span class="price-period">${_period}</span>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="text-align:center; font-size:1.4rem; font-weight:700; margin-bottom: 16px;">Đăng ký Gói Nền tảng</h3>
+                <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    ${PRICING_TIERS.map(tier => `
+                        <div class="pricing-card ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}" data-tier="${tier.id}">
+                            ${tier.popular ? '<div class="popular-badge">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
+                            ${currentTier === tier.id ? '<div class="current-badge">✓ ' + (typeof t === 'function' ? t('common.save') : 'Gói hiện tại') + '</div>' : ''}
+                            <div class="pricing-card-header">
+                                <span class="tier-emoji">${tier.emoji}</span>
+                                <h3 class="tier-name">${tier.name}</h3>
+                                <div class="tier-price">
+                                    <span class="price-amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
+                                    <span class="price-period">${_period}</span>
+                                </div>
                             </div>
+                            <ul class="tier-features">
+                                ${tier.features.map(f => `<li>${f}</li>`).join('')}
+                                ${tier.limitations.map(l => `<li class="limitation">❌ ${l}</li>`).join('')}
+                            </ul>
+                            <button class="btn ${tier.buttonClass} pricing-btn" 
+                                data-tier="${tier.id}"
+                                ${currentTier === tier.id ? 'disabled' : ''}>
+                                ${currentTier === tier.id ? '✓ ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
+                            </button>
                         </div>
-                        <ul class="tier-features">
-                            ${tier.features.map(f => `<li>${f}</li>`).join('')}
-                            ${tier.limitations.map(l => `<li class="limitation">❌ ${l}</li>`).join('')}
-                        </ul>
-                        <button class="btn ${tier.buttonClass} pricing-btn" 
-                            data-tier="${tier.id}"
-                            ${currentTier === tier.id ? 'disabled' : ''}>
-                            ${currentTier === tier.id ? '✓ ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
-                        </button>
-                    </div>
-                `).join('')}
+                    `).join('')}
+                </div>
             </div>
+
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <h3 style="text-align:center; font-size:1.4rem; font-weight:700; margin-bottom: 8px;">Nạp thêm <span style="color:var(--accent-blue)">Credits</span></h3>
+                <p style="text-align:center; color:var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px; max-width:80%; margin-left:auto; margin-right:auto;">Dùng cho khách hàng đã xài hết Credit trong Gói Tháng mà vẫn còn nhu cầu sinh ảnh/bài viết.</p>
+                
+                <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    ${(typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : []).map(pack => `
+                        <div class="pricing-card" style="padding:20px; text-align:center;">
+                            ${pack.best ? '<div class="popular-badge" style="background:#10b981; color:#fff; top:-12px;">' + pack.bonus + '</div>' : ''}
+                            <div style="font-size:2.5rem; margin-bottom:12px;">${pack.emoji}</div>
+                            <h3 style="font-size:1.1rem; margin-bottom:4px;">${pack.name}</h3>
+                            <div style="color:var(--accent-blue); font-size:1.6rem; font-weight:800; margin-bottom:12px;">
+                                ${pack.credits} <span style="font-size:0.9rem; font-weight:600; color:var(--text-secondary);">Credits</span>
+                            </div>
+                            <div style="font-size:1.2rem; font-weight:700; margin-bottom:20px;">${pack.price}</div>
+                            <button class="btn ${pack.best ? 'btn-primary' : 'btn-outline'} topup-pricing-btn" style="width:100%; border-radius:12px;" data-pack="${pack.id}">
+                                Nạp ngay
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
             <div class="pricing-footer">
-                <p>${typeof t === 'function' ? t('pricing.footer') : '💳 Thanh toán an toàn qua Stripe'}</p>
-                <p style="margin-top:4px;font-size:0.78rem;color:var(--text-tertiary)">${typeof t === 'function' ? t('pricing.footer_sub') : 'Hỗ trợ: MoMo, Visa, Mastercard, JCB'}</p>
+                <p>${typeof t === 'function' ? t('pricing.footer') : '🔒 Thanh toán tự động KGen Guard'}</p>
+                <p style="margin-top:4px;font-size:0.78rem;color:var(--text-tertiary)">${typeof t === 'function' ? t('pricing.footer_sub') : 'Kích hoạt ngay khi nhận thanh toán. Quản lý dễ dàng.'}</p>
             </div>
-        </div >
-            `;
+        </div>
+    `;
 
     document.body.appendChild(overlay);
 
@@ -862,6 +920,19 @@ function renderPricingModal() {
             const tier = btn.dataset.tier;
             if (tier === 'free') return;
             handleUpgrade(tier);
+        });
+    });
+
+    // Topup buttons
+    overlay.querySelectorAll('.topup-pricing-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!APP_STATE.currentUser) {
+                closePricingModal();
+                showToast("Vui lòng đăng nhập trước khi nạp thêm Credit");
+                return;
+            }
+            const packId = btn.dataset.pack;
+            handleUpgrade(packId);
         });
     });
 
@@ -913,4 +984,6 @@ window.saveToCollection = saveToCollection;
 window.removeFromCollection = removeFromCollection;
 window.getCollection = getCollection;
 window.isInCollection = isInCollection;
+// Make arrays globally available so ui code uses them
 window.PRICING_TIERS = PRICING_TIERS;
+window.TOPUP_PACKAGES = TOPUP_PACKAGES;
