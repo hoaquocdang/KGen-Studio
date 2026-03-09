@@ -15,10 +15,11 @@ const SUPABASE_CONFIG = {
 let supabaseClient = null;
 
 function getSupabaseConfig() {
+    const siteCfg = (window.SITE_CONFIG && window.SITE_CONFIG.supabase) || {};
     const settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
     return {
-        url: settings.supabaseUrl || '',
-        anonKey: settings.supabaseAnonKey || '',
+        url: siteCfg.url || settings.supabaseUrl || '',
+        anonKey: siteCfg.anonKey || settings.supabaseAnonKey || '',
     };
 }
 

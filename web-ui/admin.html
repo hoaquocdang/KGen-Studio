@@ -335,10 +335,22 @@
                                 <option value="cancelled">Huỷ</option>
                             </select>
                         </div>
+                        <!-- Batch actions toolbar -->
+                        <div id="batch-bar"
+                            style="display:none;padding:10px 16px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+                            <span style="font-weight:600;color:var(--text-primary)" id="batch-count">Đã chọn: 0</span>
+                            <button class="btn btn-sm" style="background:#10b981;color:#fff;border:none"
+                                onclick="batchConfirm()">✅ Xác nhận tất cả</button>
+                            <button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none"
+                                onclick="batchCancel()">❌ Huỷ tất cả</button>
+                            <button class="btn btn-sm" onclick="uncheckAll()">↩ Bỏ chọn</button>
+                        </div>
                         <div class="user-table-wrap">
                             <table class="user-table">
                                 <thead>
                                     <tr>
+                                        <th style="width:40px"><input type="checkbox" id="order-check-all"
+                                                onchange="toggleAllOrders(this)"></th>
                                         <th>Mã đơn</th>
                                         <th>Email</th>
                                         <th>Gói/Nạp</th>
@@ -459,16 +471,22 @@
 
         // ============== SUPABASE INIT ==============
         function initAdminSupabase() {
+            // Try SITE_CONFIG first (server-side config), then localStorage
+            const siteCfg = (window.SITE_CONFIG && window.SITE_CONFIG.supabase) || {};
             const settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
-            const url = settings.supabaseUrl || '';
-            const key = settings.supabaseAnonKey || '';
-            if (!url || !key || typeof window.supabase === 'undefined') {
-                console.warn('Supabase not configured for admin. Using localStorage fallback.');
+            const url = siteCfg.url || settings.supabaseUrl || '';
+            const key = siteCfg.anonKey || settings.supabaseAnonKey || '';
+            if (!url || !key) {
+                console.warn('⚠️ Supabase chưa cấu hình. Mở site-config.js > supabase > url/anonKey để kết nối.');
+                return false;
+            }
+            if (typeof window.supabase === 'undefined') {
+                console.warn('Supabase SDK not loaded.');
                 return false;
             }
             try {
                 sb = window.supabase.createClient(url, key);
-                console.log('✅ Admin Supabase connected');
+                console.log('✅ Admin Supabase connected:', url);
                 return true;
             } catch (e) { console.error('Supabase admin init error:', e); return false; }
         }
@@ -688,7 +706,7 @@
 
         function renderOrders() {
             const tb = document.getElementById('orders-body'); if (!tb) return;
-            if (!filteredOrders.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">📭 Chưa có đơn hàng</td></tr>'; return; }
+            if (!filteredOrders.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">📭 Chưa có đơn hàng</td></tr>'; updateBatchBar(); return; }
             tb.innerHTML = filteredOrders.map(o => {
                 const code = o.order_code || o.orderCode || '—';
                 const email = o.user_email || o.user || '—';
@@ -697,7 +715,9 @@
                 const date = fmtDate(o.created_at || o.date);
                 const statusBadge = o.status === 'paid' ? 'badge-green' : o.status === 'cancelled' ? 'badge-red' : 'badge-orange';
                 const statusText = o.status === 'paid' ? '✅ Đã TT' : o.status === 'cancelled' ? '❌ Huỷ' : '⏳ Chờ';
+                const canCheck = o.status === 'pending';
                 return `<tr>
+                    <td><input type="checkbox" class="order-chk" data-code="${esc(code)}" ${canCheck ? '' : 'disabled'} onchange="updateBatchBar()"></td>
                     <td><code style="font-size:0.8rem">${esc(code)}</code></td>
                     <td style="font-size:0.85rem">${esc(email)}</td>
                     <td><span class="badge badge-blue">${esc(tier.toUpperCase())}</span></td>
@@ -705,21 +725,58 @@
                     <td style="font-size:0.8rem">${date}</td>
                     <td><span class="badge ${statusBadge}">${statusText}</span></td>
                     <td><div class="user-actions">
-                        ${o.status === 'pending' ? `<button class="btn btn-sm" onclick="confirmOrder('${code}')" title="Xác nhận đã TT">✅</button><button class="btn btn-sm" onclick="cancelOrder('${code}')" title="Huỷ đơn">❌</button>` : '—'}
+                        ${o.status === 'pending' ? `<button class="btn btn-sm" onclick="confirmOrder('${code}')" title="Xác nhận">✅</button><button class="btn btn-sm" onclick="cancelOrder('${code}')" title="Huỷ">❌</button>` : '—'}
                     </div></td>
                 </tr>`;
             }).join('');
+            updateBatchBar();
         }
 
-        async function confirmOrder(code) {
-            if (!confirm(`Xác nhận đã thanh toán đơn: ${code}?`)) return;
+        function getCheckedCodes() {
+            return [...document.querySelectorAll('.order-chk:checked')].map(c => c.dataset.code);
+        }
+        function updateBatchBar() {
+            const checked = getCheckedCodes();
+            const bar = document.getElementById('batch-bar');
+            if (bar) {
+                bar.style.display = checked.length > 0 ? 'flex' : 'none';
+                document.getElementById('batch-count').textContent = `Đã chọn: ${checked.length}`;
+            }
+        }
+        function toggleAllOrders(el) {
+            document.querySelectorAll('.order-chk:not(:disabled)').forEach(c => c.checked = el.checked);
+            updateBatchBar();
+        }
+        function uncheckAll() {
+            document.querySelectorAll('.order-chk').forEach(c => c.checked = false);
+            const all = document.getElementById('order-check-all'); if (all) all.checked = false;
+            updateBatchBar();
+        }
+        async function batchConfirm() {
+            const codes = getCheckedCodes();
+            if (!codes.length) return;
+            if (!confirm(`Xác nhận thanh toán ${codes.length} đơn?`)) return;
+            for (const code of codes) { await confirmOrder(code, true); }
+            toast(`✅ Đã xác nhận ${codes.length} đơn`, 'success');
+            uncheckAll(); await loadUsers();
+        }
+        async function batchCancel() {
+            const codes = getCheckedCodes();
+            if (!codes.length) return;
+            if (!confirm(`Huỷ ${codes.length} đơn đang chờ?`)) return;
+            for (const code of codes) { await cancelOrder(code, true); }
+            toast(`❌ Đã huỷ ${codes.length} đơn`, 'error');
+            uncheckAll();
+        }
+
+        async function confirmOrder(code, silent) {
+            if (!silent && !confirm(`Xác nhận đã thanh toán đơn: ${code}?`)) return;
             const o = orders.find(x => (x.order_code || x.orderCode) === code);
-            if (!o) { toast('Không tìm thấy đơn', 'error'); return; }
+            if (!o) { if (!silent) toast('Không tìm thấy đơn', 'error'); return; }
             o.status = 'paid';
             o.confirmed_at = new Date().toISOString();
             if (sb) {
                 await sb.from('orders').update({ status: 'paid', confirmed_at: o.confirmed_at, confirmed_by: 'admin' }).eq('order_code', code);
-                // Add credits to user based on tier/topup
                 const creditsMap = { 'pro': 500, 'premium': 2500, 'topup_50': 500, 'topup_100': 1200, 'topup_200': 2800 };
                 const creditsToAdd = creditsMap[o.tier] || 0;
                 const userEmail = o.user_email || o.user;
@@ -733,18 +790,18 @@
             }
             localStorage.setItem('kgen_orders', JSON.stringify(orders));
             filterOrders(); updateStats();
-            toast(`✅ Đã xác nhận đơn ${code}`, 'success');
-            await loadUsers();
+            if (!silent) { toast(`✅ Đã xác nhận đơn ${code}`, 'success'); await loadUsers(); }
         }
 
-        async function cancelOrder(code) {
-            if (!confirm(`Huỷ đơn: ${code}?`)) return;
+        async function cancelOrder(code, silent) {
+            if (!silent && !confirm(`Huỷ đơn: ${code}?`)) return;
             const o = orders.find(x => (x.order_code || x.orderCode) === code);
             if (!o) return;
             o.status = 'cancelled';
             if (sb) { await sb.from('orders').update({ status: 'cancelled' }).eq('order_code', code); }
             localStorage.setItem('kgen_orders', JSON.stringify(orders));
-            filterOrders(); toast(`❌ Đã huỷ đơn ${code}`, 'error');
+            filterOrders();
+            if (!silent) toast(`❌ Đã huỷ đơn ${code}`, 'error');
         }
 
         // ============== CREDITS ==============
