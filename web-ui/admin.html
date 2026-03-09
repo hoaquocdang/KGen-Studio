@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -41,6 +41,13 @@
                     <a class="nav-item" data-tab="users" onclick="switchTab('users')">
                         <span class="nav-icon">👥</span> Quản lý User
                         <span class="nav-badge" id="nav-user-count">0</span>
+                    </a>
+                    <a class="nav-item" data-tab="orders" onclick="switchTab('orders')">
+                        <span class="nav-icon">🧾</span> Đơn hàng
+                        <span class="nav-badge" id="nav-order-count">0</span>
+                    </a>
+                    <a class="nav-item" data-tab="credits" onclick="switchTab('credits')">
+                        <span class="nav-icon">🪙</span> Quản lý Credits
                     </a>
                 </div>
                 <div class="nav-section">
@@ -188,7 +195,8 @@
                                     <tr>
                                         <th>User</th>
                                         <th>Gói</th>
-                                        <th>Ảnh</th>
+                                        <th>Credits</th>
+                                        <th>Đã dùng</th>
                                         <th>Ngày</th>
                                         <th>Trạng thái</th>
                                         <th>Hành động</th>
@@ -310,6 +318,81 @@
                     </div>
                 </div>
 
+                <!-- ORDERS -->
+                <div class="tab-page" id="page-orders">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>🧾 Quản lý Đơn hàng</h2>
+                            <span class="badge badge-orange" id="o-badge">0</span>
+                        </div>
+                        <div class="table-toolbar">
+                            <input class="table-search" id="order-search" placeholder="🔍 Tìm mã đơn, email..."
+                                oninput="filterOrders()">
+                            <select class="filter-select" id="f-order-status" onchange="filterOrders()">
+                                <option value="all">Tất cả</option>
+                                <option value="pending">Chờ TT</option>
+                                <option value="paid">Đã TT</option>
+                                <option value="cancelled">Huỷ</option>
+                            </select>
+                        </div>
+                        <div class="user-table-wrap">
+                            <table class="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Email</th>
+                                        <th>Gói/Nạp</th>
+                                        <th>Số tiền</th>
+                                        <th>Ngày</th>
+                                        <th>Trạng thái</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CREDITS -->
+                <div class="tab-page" id="page-credits">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>🪙 Cộng / Trừ Credits nhanh</h2>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email người dùng</label>
+                            <input type="email" class="form-input" id="cr-email" placeholder="user@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số Credits (dương = cộng, âm = trừ)</label>
+                            <input type="number" class="form-input" id="cr-amount" placeholder="500" value="500">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Lý do</label>
+                            <input type="text" class="form-input" id="cr-reason"
+                                placeholder="Nạp thêm / Hoàn tiền / Fix lỗi...">
+                        </div>
+                        <button class="btn btn-primary" onclick="applyCredits()">🪙 Áp dụng Credits</button>
+                        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+                            <h3 style="margin-bottom:12px">📋 Lịch sử thay đổi Credits</h3>
+                            <div class="user-table-wrap">
+                                <table class="user-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Thời gian</th>
+                                            <th>Email</th>
+                                            <th>Thay đổi</th>
+                                            <th>Lý do</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="credit-log-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- SECURITY -->
                 <div class="tab-page" id="page-security">
                     <div class="card">
@@ -360,17 +443,37 @@
 
     <div class="toast-container" id="toasts"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/site-config.js"></script>
     <script>
         const CK = 'KGen_admin_config', UK = 'kgen_all_users', DP = 'kgen2026', PP = 20;
-        let pg = 1, users = [], filtered = [];
+        let pg = 1, users = [], filtered = [], orders = [], filteredOrders = [];
+        let sb = null; // Supabase client
 
         function hash(p) { let h = 0; for (let i = 0; i < p.length; i++) { h = ((h << 5) - h) + p.charCodeAt(i); h |= 0; } return 'h_' + Math.abs(h).toString(36); }
         function gc() { try { return JSON.parse(localStorage.getItem(CK) || '{}'); } catch { return {}; } }
         function sc(c) { localStorage.setItem(CK, JSON.stringify(c)); }
         function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-        function fmtDate(s) { try { return new Date(s).toLocaleDateString('vi', { day: '2-digit', month: '2-digit', year: 'numeric' }); } catch { return '—'; } }
+        function fmtDate(s) { try { return new Date(s).toLocaleDateString('vi', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return '—'; } }
         function tog(id) { const e = document.getElementById(id); if (e) e.type = e.type === 'password' ? 'text' : 'password'; }
 
+        // ============== SUPABASE INIT ==============
+        function initAdminSupabase() {
+            const settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
+            const url = settings.supabaseUrl || '';
+            const key = settings.supabaseAnonKey || '';
+            if (!url || !key || typeof window.supabase === 'undefined') {
+                console.warn('Supabase not configured for admin. Using localStorage fallback.');
+                return false;
+            }
+            try {
+                sb = window.supabase.createClient(url, key);
+                console.log('✅ Admin Supabase connected');
+                return true;
+            } catch (e) { console.error('Supabase admin init error:', e); return false; }
+        }
+
+        // ============== AUTH ==============
         function doLogin() {
             const p = document.getElementById('admin-password').value; if (!p) return;
             const c = gc(), sh = c.passwordHash || hash(DP);
@@ -378,30 +481,30 @@
             else { document.getElementById('login-error').style.display = 'block'; document.getElementById('admin-password').value = ''; document.getElementById('admin-password').focus(); }
         }
         function doLogout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
-        function show() { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-wrap').style.display = 'block'; loadAll(); }
+        function show() { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-wrap').style.display = 'block'; initAdminSupabase(); loadAll(); }
 
-        function loadAll() { loadUI(); loadUsers(); updateStats(); }
+        async function loadAll() { await loadUsers(); await loadOrders(); loadUI(); updateStats(); loadCreditLog(); }
 
+        // ============== SETTINGS ==============
         function loadUI() {
             const c = gc();
             document.getElementById('f-kie-key').value = c.kieApiKey || '';
             document.getElementById('f-kie-base').value = c.kieApiBase || 'https://api.kie.ai';
             document.getElementById('f-kie-model').value = c.kieModel || 'nano-banana-pro';
             const pl = c.plans || {};
-            [['free', 10], ['pro', 1000], ['prem', 5000]].forEach(([k, d]) => {
-                const v = pl[k + 'Limit'] || (k === 'free' ? 10 : k === 'pro' ? 1000 : 5000);
-                const el = document.getElementById('pl-' + k); if (el) { el.value = v; }
-                const dl = document.getElementById('pd-' + k); if (dl) { dl.textContent = v; }
+            [['free', 10], ['pro', 500], ['prem', 2500]].forEach(([k, d]) => {
+                const v = pl[k + 'Limit'] || d;
+                const el = document.getElementById('pl-' + k); if (el) el.value = v;
+                const dl = document.getElementById('pd-' + k); if (dl) dl.textContent = v;
                 if (el) { el.oninput = () => { if (dl) dl.textContent = el.value || 0; }; }
             });
             updAPI(c.kieApiKey);
-            document.getElementById('sys-supa').textContent = (typeof isSupabaseEnabled === 'function' && isSupabaseEnabled()) ? '✅ Đã kết nối' : '❌ Chưa kết nối';
-
-            // Load pricing
-            const pricing = c.pricing || { pro: 39000, premium: 199000 };
+            document.getElementById('sys-supa').textContent = sb ? '✅ Đã kết nối' : '❌ Chưa kết nối';
+            document.getElementById('sys-store').textContent = sb ? 'Supabase (PostgreSQL)' : 'localStorage';
+            const pricing = c.pricing || { pro: 49000, premium: 199000 };
             const elPro = document.getElementById('pl-price-pro');
             const elPrem = document.getElementById('pl-price-prem');
-            if (elPro) elPro.value = pricing.pro || 39000;
+            if (elPro) elPro.value = pricing.pro || 49000;
             if (elPrem) elPrem.value = pricing.premium || 199000;
             updatePriceDisplay();
         }
@@ -417,25 +520,20 @@
             c.kieApiKey = document.getElementById('f-kie-key').value.trim();
             c.kieApiBase = document.getElementById('f-kie-base').value.trim() || 'https://api.kie.ai';
             c.kieModel = document.getElementById('f-kie-model').value;
-            c.plans = { freeLimit: +(document.getElementById('pl-free').value) || 10, proLimit: +(document.getElementById('pl-pro').value) || 1000, premLimit: +(document.getElementById('pl-prem').value) || 5000 };
+            c.plans = { freeLimit: +(document.getElementById('pl-free').value) || 10, proLimit: +(document.getElementById('pl-pro').value) || 500, premLimit: +(document.getElementById('pl-prem').value) || 2500 };
             sc(c); updAPI(c.kieApiKey);
-            if (window.parent && window.parent.SITE_CONFIG) { window.parent.SITE_CONFIG.api = { kieApiKey: c.kieApiKey, kieApiBase: c.kieApiBase, kieModel: c.kieModel }; }
             toast('Đã lưu cài đặt!', 'success');
         }
 
         function updatePriceDisplay() {
-            const proPx = +(document.getElementById('pl-price-pro')?.value) || 39000;
+            const proPx = +(document.getElementById('pl-price-pro')?.value) || 49000;
             const premPx = +(document.getElementById('pl-price-prem')?.value) || 199000;
-            const proLimit = +(document.getElementById('pl-pro')?.value) || 1000;
-            const premLimit = +(document.getElementById('pl-prem')?.value) || 5000;
-
-            // Update display
+            const proLimit = +(document.getElementById('pl-pro')?.value) || 500;
+            const premLimit = +(document.getElementById('pl-prem')?.value) || 2500;
             const dpPro = document.getElementById('pd-price-pro');
             const dpPrem = document.getElementById('pd-price-prem');
             if (dpPro) dpPro.textContent = proPx.toLocaleString('vi') + 'đ';
             if (dpPrem) dpPrem.textContent = premPx.toLocaleString('vi') + 'đ';
-
-            // Per-image cost
             const ppcPro = document.getElementById('ppc-pro');
             const ppcPrem = document.getElementById('ppc-prem');
             if (ppcPro) ppcPro.textContent = proLimit > 0 ? Math.round(proPx / proLimit).toLocaleString('vi') : '0';
@@ -444,51 +542,37 @@
 
         function savePlansAndPricing() {
             const c = gc();
-            c.plans = {
-                freeLimit: +(document.getElementById('pl-free').value) || 10,
-                proLimit: +(document.getElementById('pl-pro').value) || 1000,
-                premLimit: +(document.getElementById('pl-prem').value) || 5000
-            };
-            c.pricing = {
-                pro: +(document.getElementById('pl-price-pro').value) || 39000,
-                premium: +(document.getElementById('pl-price-prem').value) || 199000
-            };
-            sc(c);
-
-            // Sync to i18n currency system
-            if (typeof BASE_PRICES_VND !== 'undefined') {
-                BASE_PRICES_VND.pro = c.pricing.pro;
-                BASE_PRICES_VND.premium = c.pricing.premium;
-            }
-            // Sync to PRICING_TIERS
-            if (typeof PRICING_TIERS !== 'undefined') {
-                const pro = PRICING_TIERS.find(t => t.id === 'pro');
-                const prem = PRICING_TIERS.find(t => t.id === 'premium');
-                if (pro) pro.price = c.pricing.pro.toLocaleString('vi') + 'đ';
-                if (prem) prem.price = c.pricing.premium.toLocaleString('vi') + 'đ';
-            }
-
-            updatePriceDisplay();
-            toast('💾 Đã lưu Quota & Giá thành công!', 'success');
+            c.plans = { freeLimit: +(document.getElementById('pl-free').value) || 10, proLimit: +(document.getElementById('pl-pro').value) || 500, premLimit: +(document.getElementById('pl-prem').value) || 2500 };
+            c.pricing = { pro: +(document.getElementById('pl-price-pro').value) || 49000, premium: +(document.getElementById('pl-price-prem').value) || 199000 };
+            sc(c); updatePriceDisplay();
+            toast('💾 Đã lưu Quota & Giá!', 'success');
         }
 
         function changePwd() {
             const n = document.getElementById('f-new-pwd').value, cf = document.getElementById('f-cfm-pwd').value;
-            if (!n) { toast('Nhập mật khẩu mới', 'error'); return; }
-            if (n.length < 4) { toast('Mật khẩu ≥ 4 ký tự', 'error'); return; }
+            if (!n || n.length < 4) { toast('Mật khẩu ≥ 4 ký tự', 'error'); return; }
             if (n !== cf) { toast('Mật khẩu không khớp', 'error'); return; }
             const c = gc(); c.passwordHash = hash(n); sc(c);
             document.getElementById('f-new-pwd').value = ''; document.getElementById('f-cfm-pwd').value = '';
             toast('Đã đổi mật khẩu!', 'success');
         }
 
-        function loadUsers() {
+        // ============== USERS (SUPABASE + FALLBACK) ==============
+        async function loadUsers() {
             users = [];
-            try { JSON.parse(localStorage.getItem('kgen_all_sessions') || '[]').forEach(s => { if (!users.find(u => u.email === s.email)) users.push(s); }); } catch { }
-            try { const cs = JSON.parse(localStorage.getItem('kgen_session') || 'null'); if (cs && cs.email && !users.find(u => u.email === cs.email)) users.push(cs); } catch { }
-            try { JSON.parse(localStorage.getItem(UK) || '[]').forEach(u => { if (!users.find(e => e.email === u.email)) users.push(u); }); } catch { }
-            users = users.map(u => ({ name: u.name || u.email?.split('@')[0] || 'User', email: u.email || '', tier: u.tier || 'free', createdAt: u.createdAt || new Date().toISOString(), imagesCreated: u.imagesCreated || 0, status: u.status || 'active', avatar: (u.name || u.email || 'U')[0].toUpperCase() }));
-            users.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            if (sb) {
+                try {
+                    const { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+                    if (!error && data) { users = data.map(u => ({ ...u, name: u.name || u.email?.split('@')[0] || 'User', avatar: (u.name || u.email || 'U')[0].toUpperCase() })); }
+                } catch (e) { console.error('Supabase load users error:', e); }
+            }
+            // Fallback to localStorage
+            if (!users.length) {
+                try { JSON.parse(localStorage.getItem('kgen_all_sessions') || '[]').forEach(s => { if (!users.find(u => u.email === s.email)) users.push(s); }); } catch { }
+                try { const cs = JSON.parse(localStorage.getItem('kgen_session') || 'null'); if (cs && cs.email && !users.find(u => u.email === cs.email)) users.push(cs); } catch { }
+                try { JSON.parse(localStorage.getItem(UK) || '[]').forEach(u => { if (!users.find(e => e.email === u.email)) users.push(u); }); } catch { }
+                users = users.map(u => ({ name: u.name || u.email?.split('@')[0] || 'User', email: u.email || '', tier: u.tier || 'free', created_at: u.createdAt || u.created_at || new Date().toISOString(), credits: u.credits || 0, credits_used: u.credits_used || u.imagesCreated || 0, status: u.status || 'active', avatar: (u.name || u.email || 'U')[0].toUpperCase() }));
+            }
             document.getElementById('nav-user-count').textContent = users.length;
             document.getElementById('u-badge').textContent = users.length + ' users';
             document.getElementById('d-badge').textContent = users.length;
@@ -511,121 +595,246 @@
         function renderTable() {
             const tb = document.getElementById('users-body'); if (!tb) return;
             const s = (pg - 1) * PP, e = s + PP, pu = filtered.slice(s, e);
-            if (!pu.length) { tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">${users.length ? '🔍 Không tìm thấy' : '📭 Chưa có user'}</td></tr>`; }
-            else { tb.innerHTML = pu.map(u => `<tr><td><div class="user-info"><div class="user-avatar">${u.avatar}</div><div><div class="user-name">${esc(u.name)}</div><div class="user-email">${esc(u.email)}</div></div></div></td><td><span class="badge ${u.tier === 'pro' ? 'badge-blue' : u.tier === 'premium' ? 'badge-orange' : 'badge-purple'}">${u.tier.toUpperCase()}</span></td><td>${u.imagesCreated}</td><td>${fmtDate(u.createdAt)}</td><td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-red'}">${u.status === 'active' ? 'Active' : 'Banned'}</span></td><td><div class="user-actions"><button class="btn btn-sm" onclick="chTier('${u.email}')" title="Đổi gói">💎</button><button class="btn btn-sm" onclick="chBan('${u.email}')" title="Ban/Unban">${u.status === 'active' ? '🚫' : '✅'}</button></div></td></tr>`).join(''); }
+            if (!pu.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">${users.length ? '🔍 Không tìm thấy' : '📭 Chưa có user'}</td></tr>`; }
+            else {
+                tb.innerHTML = pu.map(u => `<tr>
+                    <td><div class="user-info"><div class="user-avatar">${u.avatar}</div><div><div class="user-name">${esc(u.name)}</div><div class="user-email">${esc(u.email)}</div></div></div></td>
+                    <td><span class="badge ${u.tier === 'pro' ? 'badge-blue' : u.tier === 'premium' ? 'badge-orange' : 'badge-purple'}">${u.tier.toUpperCase()}</span></td>
+                    <td><strong style="color:var(--accent-green)">${(u.credits || 0).toLocaleString()}</strong></td>
+                    <td>${(u.credits_used || 0).toLocaleString()}</td>
+                    <td>${fmtDate(u.created_at)}</td>
+                    <td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-red'}">${u.status === 'active' ? 'Active' : 'Banned'}</span></td>
+                    <td><div class="user-actions">
+                        <button class="btn btn-sm" onclick="chTier('${u.email}')" title="Đổi gói">💎</button>
+                        <button class="btn btn-sm" onclick="quickAddCredits('${u.email}')" title="Cộng Credits">🪙</button>
+                        <button class="btn btn-sm" onclick="chBan('${u.email}')" title="Ban/Unban">${u.status === 'active' ? '🚫' : '✅'}</button>
+                    </div></td>
+                </tr>`).join('');
+            }
             document.getElementById('pg-info').textContent = `${Math.min(s + 1, filtered.length)}-${Math.min(e, filtered.length)} / ${filtered.length}`;
         }
 
         function renderRecent() {
             const tb = document.getElementById('recent-body'), r = users.slice(0, 5);
             if (!r.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted)">📭 Chưa có user</td></tr>'; return; }
-            tb.innerHTML = r.map(u => `<tr><td><div class="user-info"><div class="user-avatar">${u.avatar}</div><div><div class="user-name">${esc(u.name)}</div><div class="user-email">${esc(u.email)}</div></div></div></td><td><span class="badge ${u.tier === 'pro' ? 'badge-blue' : u.tier === 'premium' ? 'badge-orange' : 'badge-purple'}">${u.tier.toUpperCase()}</span></td><td>${fmtDate(u.createdAt)}</td><td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-red'}">${u.status === 'active' ? 'Active' : 'Banned'}</span></td></tr>`).join('');
+            tb.innerHTML = r.map(u => `<tr><td><div class="user-info"><div class="user-avatar">${u.avatar}</div><div><div class="user-name">${esc(u.name)}</div><div class="user-email">${esc(u.email)}</div></div></div></td><td><span class="badge ${u.tier === 'pro' ? 'badge-blue' : u.tier === 'premium' ? 'badge-orange' : 'badge-purple'}">${u.tier.toUpperCase()}</span></td><td>${fmtDate(u.created_at)}</td><td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-red'}">${u.status === 'active' ? 'Active' : 'Banned'}</span></td></tr>`).join('');
         }
 
-        function chTier(em) { const u = users.find(x => x.email === em); if (!u) return; const ts = ['free', 'pro', 'premium']; u.tier = ts[(ts.indexOf(u.tier) + 1) % 3]; saveU(); filterUsers(); renderRecent(); updateStats(); toast(`${u.name} → ${u.tier.toUpperCase()}`, 'success'); }
-        function chBan(em) { const u = users.find(x => x.email === em); if (!u) return; u.status = u.status === 'active' ? 'banned' : 'active'; saveU(); filterUsers(); renderRecent(); toast(u.status === 'banned' ? `🚫 Banned ${u.name}` : `✅ Unbanned ${u.name}`, u.status === 'banned' ? 'error' : 'success'); }
+        async function chTier(em) {
+            const u = users.find(x => x.email === em); if (!u) return;
+            const ts = ['free', 'pro', 'premium'];
+            const newTier = ts[(ts.indexOf(u.tier) + 1) % 3];
+            u.tier = newTier;
+            if (sb) {
+                await sb.from('profiles').update({ tier: newTier }).eq('email', em);
+            }
+            saveU(); filterUsers(); renderRecent(); updateStats();
+            toast(`${u.name} → ${newTier.toUpperCase()}`, 'success');
+        }
+
+        async function chBan(em) {
+            const u = users.find(x => x.email === em); if (!u) return;
+            const newStatus = u.status === 'active' ? 'banned' : 'active';
+            u.status = newStatus;
+            if (sb) {
+                await sb.from('profiles').update({ status: newStatus }).eq('email', em);
+            }
+            saveU(); filterUsers(); renderRecent();
+            toast(newStatus === 'banned' ? `🚫 Banned ${u.name}` : `✅ Unbanned ${u.name}`, newStatus === 'banned' ? 'error' : 'success');
+        }
+
+        function quickAddCredits(email) {
+            const amount = prompt(`Nhập số Credits muốn cộng cho ${email}:`, '100');
+            if (amount === null) return;
+            const num = parseInt(amount);
+            if (isNaN(num)) { toast('Số không hợp lệ', 'error'); return; }
+            document.getElementById('cr-email').value = email;
+            document.getElementById('cr-amount').value = num;
+            document.getElementById('cr-reason').value = 'Admin cộng thủ công';
+            switchTab('credits');
+        }
+
         function saveU() { localStorage.setItem(UK, JSON.stringify(users)); }
 
-        function toggleExportMenu() {
-            const m = document.getElementById('export-menu');
-            m.style.display = m.style.display === 'none' ? 'block' : 'none';
-        }
-        document.addEventListener('click', e => {
-            if (!e.target.closest('.export-dropdown')) {
-                const m = document.getElementById('export-menu');
-                if (m) m.style.display = 'none';
+        // ============== ORDERS ==============
+        async function loadOrders() {
+            orders = [];
+            if (sb) {
+                try {
+                    const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+                    if (!error && data) orders = data;
+                } catch (e) { console.error('Load orders error:', e); }
             }
-        });
+            // Fallback
+            if (!orders.length) {
+                try { orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]'); } catch { orders = []; }
+            }
+            const pendingCount = orders.filter(o => o.status === 'pending').length;
+            document.getElementById('nav-order-count').textContent = pendingCount || orders.length;
+            document.getElementById('o-badge').textContent = orders.length + ' đơn';
+            filterOrders();
+        }
+
+        function filterOrders() {
+            const q = (document.getElementById('order-search')?.value || '').toLowerCase();
+            const st = document.getElementById('f-order-status')?.value || 'all';
+            filteredOrders = orders.filter(o => {
+                if (q && !(o.order_code || o.orderCode || '').toLowerCase().includes(q) && !(o.user_email || o.user || '').toLowerCase().includes(q)) return false;
+                if (st !== 'all' && o.status !== st) return false;
+                return true;
+            });
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const tb = document.getElementById('orders-body'); if (!tb) return;
+            if (!filteredOrders.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">📭 Chưa có đơn hàng</td></tr>'; return; }
+            tb.innerHTML = filteredOrders.map(o => {
+                const code = o.order_code || o.orderCode || '—';
+                const email = o.user_email || o.user || '—';
+                const tier = o.tier || '—';
+                const amount = (o.amount || 0).toLocaleString('vi') + 'đ';
+                const date = fmtDate(o.created_at || o.date);
+                const statusBadge = o.status === 'paid' ? 'badge-green' : o.status === 'cancelled' ? 'badge-red' : 'badge-orange';
+                const statusText = o.status === 'paid' ? '✅ Đã TT' : o.status === 'cancelled' ? '❌ Huỷ' : '⏳ Chờ';
+                return `<tr>
+                    <td><code style="font-size:0.8rem">${esc(code)}</code></td>
+                    <td style="font-size:0.85rem">${esc(email)}</td>
+                    <td><span class="badge badge-blue">${esc(tier.toUpperCase())}</span></td>
+                    <td><strong>${amount}</strong></td>
+                    <td style="font-size:0.8rem">${date}</td>
+                    <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                    <td><div class="user-actions">
+                        ${o.status === 'pending' ? `<button class="btn btn-sm" onclick="confirmOrder('${code}')" title="Xác nhận đã TT">✅</button><button class="btn btn-sm" onclick="cancelOrder('${code}')" title="Huỷ đơn">❌</button>` : '—'}
+                    </div></td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function confirmOrder(code) {
+            if (!confirm(`Xác nhận đã thanh toán đơn: ${code}?`)) return;
+            const o = orders.find(x => (x.order_code || x.orderCode) === code);
+            if (!o) { toast('Không tìm thấy đơn', 'error'); return; }
+            o.status = 'paid';
+            o.confirmed_at = new Date().toISOString();
+            if (sb) {
+                await sb.from('orders').update({ status: 'paid', confirmed_at: o.confirmed_at, confirmed_by: 'admin' }).eq('order_code', code);
+                // Add credits to user based on tier/topup
+                const creditsMap = { 'pro': 500, 'premium': 2500, 'topup_50': 500, 'topup_100': 1200, 'topup_200': 2800 };
+                const creditsToAdd = creditsMap[o.tier] || 0;
+                const userEmail = o.user_email || o.user;
+                if (creditsToAdd > 0 && userEmail) {
+                    const { data: profile } = await sb.from('profiles').select('credits, tier').eq('email', userEmail).single();
+                    const updates = { credits: (profile?.credits || 0) + creditsToAdd };
+                    if (!o.tier.startsWith('topup_')) updates.tier = o.tier;
+                    await sb.from('profiles').update(updates).eq('email', userEmail);
+                    await sb.from('credit_logs').insert({ user_email: userEmail, amount: creditsToAdd, reason: `Thanh toán đơn ${code} (${o.tier})` });
+                }
+            }
+            localStorage.setItem('kgen_orders', JSON.stringify(orders));
+            filterOrders(); updateStats();
+            toast(`✅ Đã xác nhận đơn ${code}`, 'success');
+            await loadUsers();
+        }
+
+        async function cancelOrder(code) {
+            if (!confirm(`Huỷ đơn: ${code}?`)) return;
+            const o = orders.find(x => (x.order_code || x.orderCode) === code);
+            if (!o) return;
+            o.status = 'cancelled';
+            if (sb) { await sb.from('orders').update({ status: 'cancelled' }).eq('order_code', code); }
+            localStorage.setItem('kgen_orders', JSON.stringify(orders));
+            filterOrders(); toast(`❌ Đã huỷ đơn ${code}`, 'error');
+        }
+
+        // ============== CREDITS ==============
+        async function applyCredits() {
+            const email = document.getElementById('cr-email').value.trim();
+            const amount = parseInt(document.getElementById('cr-amount').value);
+            const reason = document.getElementById('cr-reason').value.trim() || 'Admin điều chỉnh';
+            if (!email) { toast('Nhập email user', 'error'); return; }
+            if (isNaN(amount) || amount === 0) { toast('Nhập số Credits hợp lệ', 'error'); return; }
+
+            if (sb) {
+                const { data: profile } = await sb.from('profiles').select('credits').eq('email', email).single();
+                if (!profile) { toast('Không tìm thấy user trong database', 'error'); return; }
+                const newCredits = Math.max(0, (profile.credits || 0) + amount);
+                await sb.from('profiles').update({ credits: newCredits }).eq('email', email);
+                await sb.from('credit_logs').insert({ user_email: email, amount, reason });
+            }
+            // Also update local
+            const u = users.find(x => x.email === email);
+            if (u) { u.credits = Math.max(0, (u.credits || 0) + amount); }
+
+            toast(`🪙 ${amount > 0 ? '+' : ''}${amount} Credits cho ${email}`, 'success');
+            document.getElementById('cr-email').value = '';
+            document.getElementById('cr-amount').value = '500';
+            document.getElementById('cr-reason').value = '';
+            await loadUsers(); loadCreditLog();
+        }
+
+        async function loadCreditLog() {
+            const tb = document.getElementById('credit-log-body'); if (!tb) return;
+            let logs = [];
+            if (sb) {
+                try {
+                    const { data } = await sb.from('credit_logs').select('*').order('created_at', { ascending: false }).limit(50);
+                    if (data) logs = data;
+                } catch (e) { console.error(e); }
+            }
+            if (!logs.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Chưa có lịch sử</td></tr>'; return; }
+            tb.innerHTML = logs.map(l => `<tr>
+                <td style="font-size:0.8rem">${fmtDate(l.created_at)}</td>
+                <td>${esc(l.user_email)}</td>
+                <td><strong style="color:${l.amount >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${l.amount >= 0 ? '+' : ''}${l.amount}</strong></td>
+                <td style="font-size:0.85rem">${esc(l.reason)}</td>
+            </tr>`).join('');
+        }
+
+        // ============== STATS ==============
+        function updateStats() {
+            const pro = users.filter(u => u.tier === 'pro').length, prem = users.filter(u => u.tier === 'premium').length;
+            document.getElementById('s-users').textContent = users.length.toLocaleString();
+            document.getElementById('s-users-sub').textContent = `Pro: ${pro} · Premium: ${prem}`;
+            const totalCreditsUsed = users.reduce((s, u) => s + (u.credits_used || 0), 0);
+            document.getElementById('s-images').textContent = totalCreditsUsed.toLocaleString();
+            const paidOrders = orders.filter(o => o.status === 'paid');
+            const rev = paidOrders.reduce((s, o) => s + (o.amount || 0), 0);
+            document.getElementById('s-revenue').textContent = rev.toLocaleString() + 'đ';
+            document.getElementById('s-revenue-sub').textContent = rev > 0 ? `${paidOrders.length} giao dịch` : 'Chưa có';
+            document.getElementById('s-revenue-sub').className = 'stat-change ' + (rev > 0 ? 'up' : '');
+        }
+
+        // ============== EXPORT ==============
+        function toggleExportMenu() { const m = document.getElementById('export-menu'); m.style.display = m.style.display === 'none' ? 'block' : 'none'; }
+        document.addEventListener('click', e => { if (!e.target.closest('.export-dropdown')) { const m = document.getElementById('export-menu'); if (m) m.style.display = 'none'; } });
 
         function exportCSV() {
-            const h = ['Name', 'Email', 'Tier', 'Images Created', 'Joined Date', 'Status'];
-            const rows = filtered.map(u => [
-                `"${(u.name || '').replace(/"/g, '""')}"`,
-                `"${u.email}"`,
-                u.tier.toUpperCase(),
-                u.imagesCreated,
-                `"${fmtDate(u.createdAt)}"`,
-                u.status
-            ]);
-            const bom = '\uFEFF'; // UTF-8 BOM for Excel
-            const csv = bom + [h, ...rows].map(r => r.join(',')).join('\n');
+            const h = ['Name', 'Email', 'Tier', 'Credits', 'Used', 'Joined Date', 'Status'];
+            const rows = filtered.map(u => [`"${(u.name || '').replace(/"/g, '""')}"`, `"${u.email}"`, u.tier.toUpperCase(), u.credits || 0, u.credits_used || 0, `"${fmtDate(u.created_at)}"`, u.status]);
+            const csv = '\uFEFF' + [h, ...rows].map(r => r.join(',')).join('\n');
             const b = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(b);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `kgen-users-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `kgen-users-${new Date().toISOString().split('T')[0]}.csv`; a.click();
             document.getElementById('export-menu').style.display = 'none';
-            toast('📄 Đã xuất file CSV — mở bằng Excel hoặc Google Sheets', 'success');
+            toast('📄 Đã xuất CSV', 'success');
         }
-
         function exportToGoogleSheets() {
-            // Build TSV data for Google Sheets
-            const h = ['Tên', 'Email', 'Gói', 'Số ảnh', 'Ngày tạo', 'Trạng thái'];
-            const rows = filtered.map(u => [
-                u.name || '', u.email || '', u.tier.toUpperCase(),
-                u.imagesCreated || 0, fmtDate(u.createdAt), u.status === 'active' ? 'Active' : 'Banned'
-            ]);
-            const tsv = [h, ...rows].map(r => r.join('\t')).join('\n');
-
-            // Copy to clipboard then open Google Sheets
-            navigator.clipboard.writeText(tsv).then(() => {
-                toast('📋 Đã copy dữ liệu! Paste (Ctrl+V) vào Google Sheets đang mở...', 'success');
-                window.open('https://sheets.new', '_blank');
-            }).catch(() => {
-                // Fallback: download as CSV and tell user to import
-                exportCSV();
-                toast('Mở Google Sheets → File → Import → chọn file CSV vừa tải', 'info');
-            });
+            const h = ['Tên', 'Email', 'Gói', 'Credits', 'Đã dùng', 'Ngày tạo', 'Trạng thái'];
+            const rows = filtered.map(u => [u.name || '', u.email || '', u.tier.toUpperCase(), u.credits || 0, u.credits_used || 0, fmtDate(u.created_at), u.status === 'active' ? 'Active' : 'Banned']);
+            navigator.clipboard.writeText([h, ...rows].map(r => r.join('\t')).join('\n')).then(() => { toast('📋 Paste vào Google Sheets!', 'success'); window.open('https://sheets.new', '_blank'); });
             document.getElementById('export-menu').style.display = 'none';
         }
-
         function exportFullBackup() {
-            const backup = {
-                exportDate: new Date().toISOString(),
-                version: 'KGen Admin v7',
-                adminConfig: gc(),
-                users: users,
-                stats: {
-                    totalUsers: users.length,
-                    proUsers: users.filter(u => u.tier === 'pro').length,
-                    premiumUsers: users.filter(u => u.tier === 'premium').length,
-                    bannedUsers: users.filter(u => u.status === 'banned').length,
-                    totalImages: users.reduce((s, u) => s + (u.imagesCreated || 0), 0),
-                },
-                generationHistory: (() => { try { return JSON.parse(localStorage.getItem('kgen_gen_history') || '[]'); } catch { return []; } })(),
-            };
-            // Remove sensitive data
-            if (backup.adminConfig.passwordHash) delete backup.adminConfig.passwordHash;
-
-            const json = JSON.stringify(backup, null, 2);
-            const b = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(b);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `kgen-backup-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            document.getElementById('export-menu').style.display = 'none';
-            toast('💾 Đã sao lưu toàn bộ dữ liệu hệ thống!', 'success');
+            const backup = { exportDate: new Date().toISOString(), version: 'KGen Admin v8 (Credits)', users, orders, creditLogs: 'See Supabase credit_logs table' };
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })); a.download = `kgen-backup-${new Date().toISOString().split('T')[0]}.json`; a.click();
+            document.getElementById('export-menu').style.display = 'none'; toast('💾 Đã sao lưu!', 'success');
         }
 
         function pgPrev() { if (pg > 1) { pg--; renderTable(); } }
         function pgNext() { if (pg * PP < filtered.length) { pg++; renderTable(); } }
 
-        function updateStats() {
-            const pro = users.filter(u => u.tier === 'pro').length, prem = users.filter(u => u.tier === 'premium').length;
-            document.getElementById('s-users').textContent = users.length.toLocaleString();
-            document.getElementById('s-users-sub').textContent = `Pro: ${pro} · Premium: ${prem}`;
-            try { const t = new Date().toISOString().split('T')[0]; const h = JSON.parse(localStorage.getItem('kgen_gen_history') || '[]'); document.getElementById('s-images').textContent = h.filter(x => x.date?.startsWith(t)).length; } catch { document.getElementById('s-images').textContent = '0'; }
-            const rev = (pro * 39000) + (prem * 199000);
-            document.getElementById('s-revenue').textContent = rev.toLocaleString() + 'đ';
-            document.getElementById('s-revenue-sub').textContent = rev > 0 ? `${pro + prem} gói trả phí` : 'Chưa có';
-            document.getElementById('s-revenue-sub').className = 'stat-change ' + (rev > 0 ? 'up' : '');
-        }
-
-        const TITLES = { dashboard: '📊 Dashboard', users: '👥 Quản lý User', api: '🔑 API & Model AI', plans: '💎 Gói dịch vụ', security: '🛡️ Bảo mật' };
+        // ============== NAV ==============
+        const TITLES = { dashboard: '📊 Dashboard', users: '👥 Quản lý User', orders: '🧾 Đơn hàng', credits: '🪙 Quản lý Credits', api: '🔑 API & Model AI', plans: '💎 Gói dịch vụ', security: '🛡️ Bảo mật' };
         function switchTab(t) {
             document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item[data-tab]').forEach(n => n.classList.remove('active'));
