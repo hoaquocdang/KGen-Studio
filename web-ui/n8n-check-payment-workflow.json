@@ -1,0 +1,227 @@
+{
+    "name": "KGen Check Payment Status",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "sepay-payment",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "wh-sepay",
+            "name": "SePay Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                250,
+                300
+            ],
+            "webhookId": "sepay-payment"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parse SePay webhook payload\nconst body = $input.first().json.body || $input.first().json;\nconst content = (body.content || body.description || '').toUpperCase();\nconst amount = parseInt(body.transferAmount || body.amount || 0);\nconst transferType = (body.transferType || body.transfer_type || '').toUpperCase();\n\n// Only process incoming transfers\nif (transferType !== 'IN' && amount <= 0) {\n  return [{ json: { skip: true, reason: 'Not incoming' } }];\n}\n\n// Parse: KGEN PRO 54321 or KGEN PREMIUM 12345\nconst match = content.match(/KGEN\\s+(PRO|PREMIUM)\\s+(\\d{5})/);\nif (!match) {\n  return [{ json: { skip: true, reason: 'No KGEN code', content } }];\n}\n\nconst tier = match[1].toLowerCase();\nconst orderCode = `KGEN ${match[1]} ${match[2]}`;\nconst expectedAmount = tier === 'pro' ? 39000 : 199000;\n\nif (amount < expectedAmount) {\n  return [{ json: { skip: true, reason: `Amount ${amount} < ${expectedAmount}` } }];\n}\n\n// Store in workflow static data\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.paidOrders) staticData.paidOrders = {};\nstaticData.paidOrders[orderCode] = {\n  status: 'paid',\n  tier,\n  amount,\n  paidAt: new Date().toISOString(),\n  transactionId: body.id || body.tid || ''\n};\n\nreturn [{ json: { skip: false, orderCode, tier, amount } }];"
+            },
+            "id": "parse-save",
+            "name": "Parse & Save Payment",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "id": "check-skip",
+                            "leftValue": "={{ $json.skip }}",
+                            "rightValue": false,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equals",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "id": "if-valid",
+            "name": "Is Valid?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                700,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={ \"success\": true, \"orderCode\": \"{{ $('Parse & Save Payment').item.json.orderCode }}\", \"message\": \"Payment recorded\" }",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "id": "resp-ok",
+            "name": "Respond OK",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                920,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={ \"success\": true, \"message\": \"Skipped\" }",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "id": "resp-skip",
+            "name": "Respond Skip",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                920,
+                400
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "check-payment",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "wh-check",
+            "name": "Check Payment Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                250,
+                600
+            ],
+            "webhookId": "check-payment"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Check if order code has been paid\nconst code = ($input.first().json.query?.code || '').toUpperCase();\nconst staticData = $getWorkflowStaticData('global');\nconst paidOrders = staticData.paidOrders || {};\n\nif (paidOrders[code]) {\n  return [{ json: { status: 'paid', ...paidOrders[code] } }];\n}\n\nreturn [{ json: { status: 'pending' } }];"
+            },
+            "id": "check-status",
+            "name": "Check Order Status",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                600
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify($json) }}",
+                "options": {
+                    "responseCode": 200,
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "GET, OPTIONS"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "resp-check",
+            "name": "Respond Status",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                700,
+                600
+            ]
+        }
+    ],
+    "connections": {
+        "SePay Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Parse & Save Payment",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse & Save Payment": {
+            "main": [
+                [
+                    {
+                        "node": "Is Valid?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Is Valid?": {
+            "main": [
+                [
+                    {
+                        "node": "Respond OK",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Respond Skip",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check Payment Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Check Order Status",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check Order Status": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Status",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}

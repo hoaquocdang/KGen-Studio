@@ -2774,37 +2774,93 @@ function handleLogout() {
 }
 
 function updateAuthUI() {
-    const loggedOut = document.getElementById('user-logged-out');
-    const loggedIn = document.getElementById('user-logged-in');
-    const avatar = document.getElementById('user-avatar');
-    const displayName = document.getElementById('user-display-name');
+    const userProfile = document.getElementById('sidebar-user-profile');
+    const loginCta = document.getElementById('sidebar-login-cta');
 
     if (isLoggedIn()) {
-        loggedOut.classList.add('hidden');
-        loggedIn.classList.remove('hidden');
-        displayName.textContent = APP_STATE.currentUser.name;
+        const user = APP_STATE.currentUser;
 
-        // Show Google avatar or initial
-        if (APP_STATE.currentUser.picture) {
-            avatar.innerHTML = `<img src="${APP_STATE.currentUser.picture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-        } else {
-            avatar.textContent = APP_STATE.currentUser.name.charAt(0).toUpperCase();
-            avatar.innerHTML = APP_STATE.currentUser.name.charAt(0).toUpperCase();
+        // Show profile, hide login
+        if (userProfile) userProfile.style.display = 'block';
+        if (loginCta) loginCta.style.display = 'none';
+
+        // Update avatar
+        const avatarEl = document.getElementById('sidebar-avatar');
+        if (avatarEl) {
+            if (user.picture) {
+                avatarEl.innerHTML = `<img src="${user.picture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+            } else {
+                avatarEl.textContent = (user.name || 'U').charAt(0).toUpperCase();
+            }
         }
 
-        // Show provider badge
-        const roleEl = document.querySelector('.user-role');
-        if (roleEl) {
-            roleEl.textContent = APP_STATE.currentUser.provider === 'google' ? '🔑 Google Account' : 'PRO Member';
+        // Update name + email
+        const nameEl = document.getElementById('sidebar-user-name');
+        const emailEl = document.getElementById('sidebar-user-email');
+        if (nameEl) nameEl.textContent = user.name || 'User';
+        if (emailEl) emailEl.textContent = user.email || '';
+
+        // Update plan badge
+        const tier = user.tier || 'free';
+        const badgeEl = document.getElementById('sidebar-plan-badge');
+        if (badgeEl) {
+            const badges = { free: '🌱 FREE', pro: '⚡ PRO', premium: '🔥 PREMIUM' };
+            const colors = { free: '', pro: 'background:#3b82f6; color:white;', premium: 'background:#f59e0b; color:white;' };
+            badgeEl.textContent = badges[tier] || badges.free;
+            badgeEl.style.cssText = `font-size:0.75rem; font-weight:600; padding:3px 10px; border-radius:100px; ${colors[tier] || 'background:var(--bg-tertiary); color:var(--text-secondary);'}`;
+        }
+
+        // Update token info
+        const tokenEl = document.getElementById('sidebar-token-info');
+        const tokenBar = document.getElementById('sidebar-token-bar');
+        const limits = { free: 10, pro: 1000, premium: 5000 };
+        const used = user.imagesUsed || 0;
+        const limit = limits[tier] || 10;
+        if (tokenEl) tokenEl.textContent = `${used} / ${limit} ảnh`;
+        if (tokenBar) tokenBar.style.width = `${Math.min((used / limit) * 100, 100)}%`;
+
+        // Hide upgrade button if already pro/premium
+        const upgradeBtn = document.getElementById('btn-upgrade-sidebar');
+        if (upgradeBtn) upgradeBtn.style.display = tier === 'free' ? 'flex' : 'none';
+
+        // Setup logout button
+        const logoutBtn = document.getElementById('btn-sidebar-logout');
+        if (logoutBtn && !logoutBtn._bound) {
+            logoutBtn._bound = true;
+            logoutBtn.addEventListener('click', () => {
+                if (typeof logoutUser === 'function') logoutUser();
+            });
         }
 
         // Hide guest banner if exists
         document.getElementById('guest-banner')?.remove();
-    } else {
-        loggedOut?.classList.remove('hidden');
-        loggedIn?.classList.add('hidden');
 
-        // No guest banner - prompts are fully visible to everyone
+        // Also update old hidden elements for backward compatibility
+        const loggedOut = document.getElementById('user-logged-out');
+        const loggedIn = document.getElementById('user-logged-in');
+        const displayName = document.getElementById('user-display-name');
+        if (loggedOut) loggedOut.classList.add('hidden');
+        if (loggedIn) loggedIn.classList.remove('hidden');
+        if (displayName) displayName.textContent = user.name;
+    } else {
+        // Show login, hide profile
+        if (userProfile) userProfile.style.display = 'none';
+        if (loginCta) loginCta.style.display = 'block';
+
+        // Setup login button
+        const loginBtn = document.getElementById('btn-sidebar-login');
+        if (loginBtn && !loginBtn._bound) {
+            loginBtn._bound = true;
+            loginBtn.addEventListener('click', () => {
+                if (typeof openAuthModal === 'function') openAuthModal();
+            });
+        }
+
+        // Old elements
+        const loggedOut = document.getElementById('user-logged-out');
+        const loggedIn = document.getElementById('user-logged-in');
+        if (loggedOut) loggedOut.classList.remove('hidden');
+        if (loggedIn) loggedIn.classList.add('hidden');
     }
 }
 

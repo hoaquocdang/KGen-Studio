@@ -200,7 +200,69 @@
         </nav>
 
         <div class="sidebar-footer">
-            <!-- NÚT INFO (DANH THIẾP) THÊM LÊN TRÊN CHỌN NGÔN NGỮ -->
+            <!-- User Profile Section (shown when logged in) -->
+            <div class="sidebar-user-profile" id="sidebar-user-profile"
+                style="display:none; padding:14px; border-radius:14px; background:var(--bg-secondary); border:1px solid var(--border-light); margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <div id="sidebar-avatar"
+                        style="width:36px; height:36px; border-radius:50%; background:var(--accent-blue); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0; overflow:hidden;">
+                        U</div>
+                    <div style="flex:1; min-width:0;">
+                        <div id="sidebar-user-name"
+                            style="font-size:0.85rem; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            User</div>
+                        <div id="sidebar-user-email"
+                            style="font-size:0.72rem; color:var(--text-tertiary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            email@example.com</div>
+                    </div>
+                    <button id="btn-sidebar-logout" title="Đăng xuất"
+                        style="background:transparent; border:none; color:var(--text-tertiary); cursor:pointer; padding:4px; border-radius:6px; transition:all 0.2s;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h2M10.5 11.5L14 8l-3.5-3.5M14 8H6"
+                                stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Plan badge + tokens -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span id="sidebar-plan-badge"
+                        style="font-size:0.75rem; font-weight:600; padding:3px 10px; border-radius:100px; background:var(--bg-tertiary); color:var(--text-secondary);">🌱
+                        FREE</span>
+                    <span id="sidebar-token-info" style="font-size:0.72rem; color:var(--text-tertiary);">0 / 10
+                        ảnh</span>
+                </div>
+                <div
+                    style="height:5px; background:var(--bg-tertiary); border-radius:3px; overflow:hidden; margin-bottom:10px;">
+                    <div id="sidebar-token-bar"
+                        style="height:100%; background:var(--accent-blue); width:0%; transition:width 0.3s ease; border-radius:3px;">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btn-upgrade-sidebar" onclick="switchTab('pricing')"
+                    style="width:100%; font-size:0.8rem; height:32px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    Nâng cấp Pro
+                </button>
+            </div>
+
+            <!-- Login Button (shown when NOT logged in) -->
+            <div id="sidebar-login-cta" style="margin-bottom:12px;">
+                <button class="btn btn-primary" id="btn-sidebar-login"
+                    style="width:100%; padding:10px; border-radius:12px; font-size:0.9rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    Đăng nhập
+                </button>
+            </div>
+
+            <!-- NÚT INFO (DANH THIẾP) -->
             <a href="/info/" target="_blank" class="nav-link-item"
                 style="background:var(--bg-tertiary); border:1px solid var(--border-light); width:100%; text-align:left; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; margin-bottom:12px; color:var(--text-primary); font-weight: 500;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -221,52 +283,6 @@
                 <a href="#" onclick="openLegalModal('privacy'); return false;">Privacy</a> ·
                 <a href="#" onclick="openLegalModal('dmca'); return false;">DMCA</a> ·
                 <a href="#" onclick="openLegalModal('refund'); return false;">Refund</a>
-            </div>
-            <!-- Sidebar User Stats / Tokens (hidden until logged in/fetched) -->
-            <div class="sidebar-user-stats" id="sidebar-user-stats"
-                style="display:none; padding:12px; border-radius:12px; background:var(--bg-secondary); margin-bottom:12px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
-                    <strong style="font-size:0.85rem;" id="sidebar-plan-name">Gói FREE</strong>
-                    <span style="font-size:0.75rem; color:var(--text-tertiary);" id="sidebar-token-count">0 / 10</span>
-                </div>
-                <div style="height:6px; background:var(--bg-tertiary); border-radius:3px; overflow:hidden;">
-                    <div id="sidebar-token-bar"
-                        style="height:100%; background:var(--primary); width:0%; transition: width 0.3s ease;"></div>
-                </div>
-                <button class="btn btn-primary btn-sm" id="btn-upgrade-pro-sidebar" onclick="switchTab('pricing')"
-                    style="width: 100%; margin-top: 12px; font-size: 0.8rem; height: 32px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                    Nâng cấp Pro
-                </button>
-            </div>
-
-            <div class="sidebar-cta-row" id="sidebar-user-cta">
-                <button class="btn-cta-dark" id="btn-open-login">Get Started</button>
-                <button class="btn-cta-outline" id="mobile-credits-btn-sb">Free Credits Daily</button>
-            </div>
-            <!-- Hidden elements -->
-            <div class="user-area" id="user-area" style="display:none">
-                <div class="user-logged-out" id="user-logged-out">
-                    <button class="btn btn-primary btn-sm" id="btn-open-login-alt" style="width:100%">Đăng
-                        nhập</button>
-                </div>
-                <div class="user-logged-in hidden" id="user-logged-in">
-                    <div class="user-avatar" id="user-avatar">U</div>
-                    <div class="user-info">
-                        <span class="user-name" id="user-display-name">User</span>
-                        <span class="user-role">PRO Member</span>
-                    </div>
-                    <button class="btn-icon" id="btn-logout" title="Đăng xuất">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h2M10.5 11.5L14 8l-3.5-3.5M14 8H6"
-                                stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </button>
-                </div>
             </div>
             <div class="provider-status" id="provider-status" style="display:none">
                 <div class="status-dot offline"></div>
