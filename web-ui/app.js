@@ -2825,9 +2825,21 @@ function updateAuthUI() {
         if (tokenEl) tokenEl.textContent = `${used} / ${limit} ảnh`;
         if (tokenBar) tokenBar.style.width = `${Math.min((used / limit) * 100, 100)}%`;
 
-        // Hide upgrade button if already pro/premium
+        // Update upgrade button dynamically instead of hiding it
         const upgradeBtn = document.getElementById('btn-upgrade-sidebar');
-        if (upgradeBtn) upgradeBtn.style.display = tier === 'free' ? 'flex' : 'none';
+        if (upgradeBtn) {
+            upgradeBtn.style.display = 'flex';
+            if (tier === 'free') {
+                upgradeBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Nâng cấp Pro`;
+                upgradeBtn.className = 'btn btn-primary btn-sm';
+            } else if (tier === 'pro') {
+                upgradeBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Nâng cấp Premium`;
+                upgradeBtn.className = 'btn btn-primary btn-sm';
+            } else {
+                upgradeBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>Xem bảng giá`;
+                upgradeBtn.className = 'btn btn-outline btn-sm';
+            }
+        }
 
         // Setup logout button
         const logoutBtn = document.getElementById('btn-sidebar-logout');

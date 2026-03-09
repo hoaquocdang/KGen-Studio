@@ -761,6 +761,7 @@ const PRICING_TIERS = [
         period: '/tháng',
         features: [
             '1000 ảnh / tháng (Không cần cấu hình)',
+            'Dùng chung tài khoản hệ sinh thái KGen',
             'Sử dụng Nanobanana Pro / Gemini Imagen 3',
             'Mở khoá 100% tài nguyên và 1300+ prompt gốc',
             'Server ưu tiên tốc độ cao',
@@ -779,9 +780,10 @@ const PRICING_TIERS = [
         period: '/tháng',
         features: [
             '5000 ảnh / tháng (Gói doanh nghiệp/đội nhóm)',
+            'Công cụ Tạo Nội dung Viral (Carousel God Mode)',
+            'Dùng chung tài khoản hệ sinh thái KGen',
             'Bao gồm tất cả đặc quyền PRO',
-            'Hỗ trợ khách hàng ưu tiên 24/7',
-            'Truy cập model mới sớm nhất',
+            'Trợ lý hỗ trợ khách hàng ưu tiên 24/7',
             'API access trực tiếp'
         ],
         limitations: [],
