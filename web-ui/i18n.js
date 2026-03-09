@@ -20,6 +20,7 @@ const TRANSLATIONS = {
     'nav.collection': { vi: 'Bộ sưu tập', en: 'My Collection', ja: 'コレクション', es: 'Mi Colección', hi: 'मेरा संग्रह' },
     'nav.recent': { vi: 'Cập nhật mới', en: 'Recent Updates', ja: '最新', es: 'Recientes', hi: 'हाल के' },
     'nav.aitools': { vi: 'Công cụ AI khác', en: 'Other AI Tools', ja: '他のAIツール', es: 'Otras Herramientas IA', hi: 'अन्य AI टूल' },
+    'nav.carousel': { vi: 'Tạo Content Viral', en: 'Viral Content Creator', ja: 'バイラルコンテンツ制作', es: 'Creador de Contenido Viral', hi: 'वायरल कंटेंट क्रिएटर' },
     'nav.seo': { vi: 'Công cụ SEO - AIO', en: 'SEO-AIO Tools', ja: 'SEOツール', es: 'Herramientas SEO', hi: 'SEO टूल' },
     'nav.docs': { vi: 'Tài liệu hướng dẫn', en: 'Documentation', ja: 'ドキュメント', es: 'Documentación', hi: 'दस्तावेज़' },
     'nav.categories': { vi: 'DANH MỤC', en: 'CATEGORIES', ja: 'カテゴリー', es: 'CATEGORÍAS', hi: 'श्रेणियाँ' },
