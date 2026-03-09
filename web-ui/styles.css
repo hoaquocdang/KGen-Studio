@@ -1864,6 +1864,11 @@ a {
     justify-content: center;
     border-radius: var(--radius-sm);
     padding-bottom: 32px;
+    transition: opacity 0.3s ease;
+}
+
+.prompt-lock-overlay.unlocked {
+    display: none;
 }
 
 .lock-content {
