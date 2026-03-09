@@ -450,6 +450,7 @@ async function isInCollection(imageUrl) {
 
 function createCheckoutSession(tier) {
     const pCfg = (window.SITE_CONFIG && window.SITE_CONFIG.payment) || { bankId: 'MB', accountNo: '3333333333', accountName: 'TEST' };
+    const webhookBase = (window.SITE_CONFIG && window.SITE_CONFIG.payment && window.SITE_CONFIG.payment.webhookBase) || '';
     const user = APP_STATE.currentUser;
 
     if (!user) {
@@ -462,6 +463,18 @@ function createCheckoutSession(tier) {
     const rndCode = Math.floor(Math.random() * 90000) + 10000;
     const orderCode = `KGEN ${tier.toUpperCase()} ${rndCode}`;
     const qrUrl = `https://img.vietqr.io/image/${pCfg.bankId}-${pCfg.accountNo}-compact2.png?amount=${priceVnd}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(pCfg.accountName)}`;
+
+    // Save order to localStorage for tracking
+    const orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+    orders.push({
+        user: user.email,
+        orderCode,
+        tier,
+        amount: priceVnd,
+        date: new Date().toISOString(),
+        status: 'pending'
+    });
+    localStorage.setItem('kgen_orders', JSON.stringify(orders));
 
     // Generate Modal HTML
     const existing = document.getElementById('qr-modal-overlay');
@@ -483,6 +496,7 @@ function createCheckoutSession(tier) {
 
     // Modern animated timer script logic wrapper
     const countdownId = 'qr-countdown-' + Date.now();
+    const statusId = 'payment-status-' + Date.now();
 
     overlay.innerHTML = `
         <div class="pricing-modal" style="position:relative; max-width:440px; width:100%; border-radius:24px; padding:0; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5), 0 0 120px ${accentGlow}; overflow:hidden; animation:modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
@@ -534,6 +548,15 @@ function createCheckoutSession(tier) {
                     </div>
                 </div>
 
+                <!-- Payment status indicator -->
+                <div id="${statusId}" style="display:none; text-align:center; padding:16px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:14px; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <div style="width:20px; height:20px; border:2px solid ${accentColor}; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        <span style="color:white; font-weight:600; font-size:0.95rem;">Đang chờ xác nhận thanh toán...</span>
+                    </div>
+                    <p style="color:var(--text-tertiary); font-size:0.8rem; margin-top:8px;">Hệ thống tự động kiểm tra mỗi 5 giây</p>
+                </div>
+
                 <button class="btn" id="btn-confirm-paid" style="width:100%; padding:16px; border-radius:16px; background:white; color:black; font-size:1.05rem; font-weight:700; letter-spacing:0.5px; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(255,255,255,0.15); transition:transform 0.2s;">
                     Tôi đã chuyển khoản xong
                 </button>
@@ -548,46 +571,73 @@ function createCheckoutSession(tier) {
 
     document.body.appendChild(overlay);
 
-    // Setup countdown
-    let timeLeft = 15 * 60; // 15 minutes
-    const cntTimer = setInterval(() => {
-        timeLeft--;
-        const el = document.getElementById(countdownId);
-        if (!el) {
-            clearInterval(cntTimer);
-            return;
-        }
-        if (timeLeft <= 0) {
-            clearInterval(cntTimer);
-            el.innerHTML = "Hết hạn";
-            overlay.innerHTML = `<div class="pricing-modal" style="text-align:center; padding:40px;"><h2 style="margin-bottom:16px;">Mã QR đã hết hạn</h2><button class="btn btn-primary" onclick="document.getElementById('qr-modal-overlay').remove()">Đóng</button></div>`;
-            return;
-        }
-        const m = Math.floor(timeLeft / 60);
-        const s = timeLeft % 60;
-        el.innerText = `${m}:${s.toString().padStart(2, '0')}`;
-    }, 1000);
+    // Add spin keyframe if not exists
+    if (!document.getElementById('kgen-payment-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'kgen-payment-keyframes';
+        style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+        document.head.appendChild(style);
+    }
 
-    document.getElementById('qr-close').addEventListener('click', () => {
+    // Payment polling variables
+    let paymentPoller = null;
+    let isPolling = false;
+
+    // Function to check payment status via webhook endpoint
+    function startPaymentPolling() {
+        if (isPolling) return;
+        isPolling = true;
+        const statusEl = document.getElementById(statusId);
+        if (statusEl) statusEl.style.display = 'block';
+
+        paymentPoller = setInterval(async () => {
+            try {
+                // Check local order status (updated by webhook → n8n → or manual)
+                const storedOrders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+                const currentOrder = storedOrders.find(o => o.orderCode === orderCode);
+
+                // Also try to check via webhook endpoint if configured
+                if (webhookBase) {
+                    try {
+                        const resp = await fetch(`${webhookBase}/webhook/check-payment?code=${encodeURIComponent(orderCode)}`);
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (data.status === 'paid') {
+                                // Update local order
+                                if (currentOrder) currentOrder.status = 'paid';
+                                localStorage.setItem('kgen_orders', JSON.stringify(storedOrders));
+                                onPaymentConfirmed();
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        // Webhook check failed, continue polling
+                    }
+                }
+
+                // Check if order was manually confirmed
+                if (currentOrder && currentOrder.status === 'paid') {
+                    onPaymentConfirmed();
+                }
+            } catch (e) {
+                console.warn('Payment poll error:', e);
+            }
+        }, 5000); // Poll every 5 seconds
+    }
+
+    // Function called when payment is confirmed
+    function onPaymentConfirmed() {
+        clearInterval(paymentPoller);
         clearInterval(cntTimer);
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
-    });
+        isPolling = false;
 
-    document.getElementById('btn-confirm-paid').addEventListener('click', () => {
-        clearInterval(cntTimer);
-        // Save local order to simulate for admin check
-        const orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
-        orders.push({
-            user: user.email,
-            orderCode,
-            tier,
-            amount: priceVnd,
-            date: new Date().toISOString(),
-            status: 'pending'
-        });
-        localStorage.setItem('kgen_orders', JSON.stringify(orders));
+        // Activate tier locally
+        if (APP_STATE.currentUser) {
+            APP_STATE.currentUser.tier = tier;
+            localStorage.setItem('kgen_session', JSON.stringify(APP_STATE.currentUser));
+        }
 
+        // Show success animation
         overlay.innerHTML = `
             <div class="pricing-modal" style="position:relative; max-width:400px; width:100%; border-radius:24px; padding:48px 32px 40px; text-align:center; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5);">
                 <!-- Animated success circle -->
@@ -596,17 +646,93 @@ function createCheckoutSession(tier) {
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation:scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </div>
                 
-                <h2 style="font-size:1.5rem; font-weight:700; color:white; margin-bottom:16px;">Thanh toán thành công!</h2>
-                <p style="color:var(--text-secondary); font-size:0.95rem; line-height:1.6; margin-bottom:32px;">Hệ thống đã ghi nhận mã <strong style="color:white; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px;">${orderCode}</strong>. Quản trị viên sẽ kích hoạt gói <strong style="color:${accentColor}">${tier.toUpperCase()}</strong> cho tài khoản của bạn trong vòng vài phút tiếp theo.</p>
+                <h2 style="font-size:1.5rem; font-weight:700; color:white; margin-bottom:12px;">🎉 Thanh toán thành công!</h2>
+                <p style="color:#10b981; font-size:1.1rem; font-weight:600; margin-bottom:8px;">Gói ${tier.toUpperCase()} đã được kích hoạt!</p>
+                <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:32px;">Đơn hàng <strong style="color:white; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px;">${orderCode}</strong> đã được xác nhận tự động. Hãy tận hưởng sức mạnh AI không giới hạn!</p>
                 
-                <button class="btn" style="width:100%; padding:14px; border-radius:14px; background:white; color:black; font-weight:700; cursor:pointer;" onclick="document.getElementById('qr-modal-overlay').remove()">
-                    Hoàn tất
+                <button class="btn" style="width:100%; padding:14px; border-radius:14px; background:white; color:black; font-weight:700; cursor:pointer;" onclick="document.getElementById('qr-modal-overlay').remove(); if(typeof updateAuthUI==='function') updateAuthUI(); if(typeof refreshGalleryForAuth==='function') refreshGalleryForAuth(); if(typeof closePricingModal==='function') closePricingModal();">
+                    ✨ Bắt đầu sử dụng
                 </button>
             </div>
         `;
+
+        showToast(`🎉 Gói ${tier.toUpperCase()} đã được kích hoạt thành công!`, 'success');
+    }
+
+    // Setup countdown
+    let timeLeft = 15 * 60; // 15 minutes
+    const cntTimer = setInterval(() => {
+        timeLeft--;
+        const el = document.getElementById(countdownId);
+        if (!el) {
+            clearInterval(cntTimer);
+            clearInterval(paymentPoller);
+            return;
+        }
+        if (timeLeft <= 0) {
+            clearInterval(cntTimer);
+            clearInterval(paymentPoller);
+            el.innerHTML = "Hết hạn";
+            overlay.innerHTML = `<div class="pricing-modal" style="text-align:center; padding:40px; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border-radius:24px;"><h2 style="margin-bottom:16px; color:white;">⏰ Mã QR đã hết hạn</h2><p style="color:var(--text-secondary); margin-bottom:20px;">Vui lòng tạo mã thanh toán mới</p><button class="btn btn-primary" onclick="document.getElementById('qr-modal-overlay').remove()">Đóng</button></div>`;
+            return;
+        }
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        el.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+    }, 1000);
+
+    // Close button
+    document.getElementById('qr-close').addEventListener('click', () => {
+        clearInterval(cntTimer);
+        clearInterval(paymentPoller);
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
     });
-}
-requestAnimationFrame(() => overlay.classList.add('active'));
+
+    // "Tôi đã chuyển khoản xong" button - start polling
+    document.getElementById('btn-confirm-paid').addEventListener('click', () => {
+        const btn = document.getElementById('btn-confirm-paid');
+        btn.innerHTML = '⏳ Đang xác nhận thanh toán...';
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+
+        startPaymentPolling();
+
+        // Fallback: after 2 minutes of polling with no confirmation, show manual message
+        setTimeout(() => {
+            if (isPolling) {
+                clearInterval(paymentPoller);
+                isPolling = false;
+
+                // Update local order status
+                const storedOrders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+                const currentOrder = storedOrders.find(o => o.orderCode === orderCode);
+                if (currentOrder) currentOrder.status = 'awaiting_review';
+                localStorage.setItem('kgen_orders', JSON.stringify(storedOrders));
+
+                overlay.innerHTML = `
+                    <div class="pricing-modal" style="position:relative; max-width:400px; width:100%; border-radius:24px; padding:48px 32px 40px; text-align:center; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5);">
+                        <div style="width:64px; height:64px; border-radius:50%; background:rgba(245, 158, 11, 0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        </div>
+                        <h2 style="font-size:1.3rem; font-weight:700; color:white; margin-bottom:12px;">Đang chờ xác nhận</h2>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin-bottom:24px;">
+                            Đơn hàng <strong style="color:white;">${orderCode}</strong> đã được ghi nhận.<br>
+                            Hệ thống sẽ tự động kích hoạt gói <strong style="color:${accentColor}">${tier.toUpperCase()}</strong> khi nhận được tiền (thường 1-5 phút).<br><br>
+                            Bạn có thể đóng cửa sổ này và tiếp tục sử dụng.
+                        </p>
+                        <button class="btn" style="width:100%; padding:14px; border-radius:14px; background:white; color:black; font-weight:700; cursor:pointer;" onclick="document.getElementById('qr-modal-overlay').remove()">
+                            Đã hiểu
+                        </button>
+                    </div>
+                `;
+            }
+        }, 120000); // 2 minutes timeout
+    });
+
+    // Auto-start polling immediately (passive background check)
+    startPaymentPolling();
 }
 
 // ============================================================

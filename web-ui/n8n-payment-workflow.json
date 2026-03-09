@@ -1,0 +1,236 @@
+{
+    "name": "KGen Payment Webhook (SePay)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "sepay-payment",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-sepay",
+            "name": "SePay Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                250,
+                300
+            ],
+            "webhookId": "sepay-payment"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parse SePay webhook payload\nconst body = $input.first().json.body || $input.first().json;\n\n// SePay sends: { id, gateway, transactionDate, accountNumber, \n//   subAccount, transferType, transferAmount, accumulated, code, \n//   content, referenceCode, description }\nconst content = (body.content || body.description || '').toUpperCase();\nconst amount = parseInt(body.transferAmount || body.amount || 0);\nconst transferType = (body.transferType || body.transfer_type || '').toUpperCase();\n\n// Only process incoming transfers (IN = credit)\nif (transferType !== 'IN' && amount <= 0) {\n  return [{ json: { skip: true, reason: 'Not an incoming transfer' } }];\n}\n\n// Parse order code from content: \"KGEN PRO 54321\" or \"KGEN PREMIUM 12345\"\nconst match = content.match(/KGEN\\s+(PRO|PREMIUM)\\s+(\\d{5})/);\n\nif (!match) {\n  return [{ json: { skip: true, reason: 'No KGEN order code found', content } }];\n}\n\nconst tier = match[1].toLowerCase(); // 'pro' or 'premium'\nconst orderCode = `KGEN ${match[1]} ${match[2]}`;\nconst rndCode = match[2];\n\n// Validate amount matches tier\nconst expectedAmount = tier === 'pro' ? 39000 : 199000;\nif (amount < expectedAmount) {\n  return [{ json: { skip: true, reason: `Amount ${amount} < expected ${expectedAmount}`, orderCode } }];\n}\n\nreturn [{\n  json: {\n    skip: false,\n    orderCode,\n    tier,\n    amount,\n    rndCode,\n    transactionId: body.id || body.tid || '',\n    transactionDate: body.transactionDate || body.when || new Date().toISOString(),\n    rawContent: content\n  }\n}];"
+            },
+            "id": "parse-payment",
+            "name": "Parse Payment",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "id": "skip-check",
+                            "leftValue": "={{ $json.skip }}",
+                            "rightValue": false,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equals",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "id": "if-valid",
+            "name": "Is Valid Order?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                700,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $vars.SUPABASE_URL }}/rest/v1/kgen_orders",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "={{ $vars.SUPABASE_ANON_KEY }}"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "=Bearer {{ $vars.SUPABASE_SERVICE_KEY }}"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Prefer",
+                            "value": "resolution=merge-duplicates"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"order_code\": \"{{ $json.orderCode }}\",\n  \"tier\": \"{{ $json.tier }}\",\n  \"amount\": {{ $json.amount }},\n  \"status\": \"paid\",\n  \"transaction_id\": \"{{ $json.transactionId }}\",\n  \"paid_at\": \"{{ $json.transactionDate }}\"\n}",
+                "options": {}
+            },
+            "id": "upsert-order",
+            "name": "Upsert Order (Supabase)",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                940,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "method": "PATCH",
+                "url": "={{ $vars.SUPABASE_URL }}/rest/v1/kgen_orders?order_code=eq.{{ $json.orderCode }}&status=eq.pending",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "={{ $vars.SUPABASE_ANON_KEY }}"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "=Bearer {{ $vars.SUPABASE_SERVICE_KEY }}"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"status\": \"paid\",\n  \"transaction_id\": \"{{ $json.transactionId }}\",\n  \"paid_at\": \"{{ $json.transactionDate }}\"\n}",
+                "options": {}
+            },
+            "id": "update-order-status",
+            "name": "Update Order → Paid",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                940,
+                400
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={ \"success\": true, \"message\": \"Payment processed\", \"orderCode\": \"{{ $('Parse Payment').item.json.orderCode }}\" }",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "id": "respond-ok",
+            "name": "Respond OK",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1200,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={ \"success\": true, \"message\": \"Skipped - not a valid KGEN order\" }",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "id": "respond-skip",
+            "name": "Respond Skip",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                940,
+                550
+            ]
+        }
+    ],
+    "connections": {
+        "SePay Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Payment",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Payment": {
+            "main": [
+                [
+                    {
+                        "node": "Is Valid Order?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Is Valid Order?": {
+            "main": [
+                [
+                    {
+                        "node": "Update Order → Paid",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Respond Skip",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update Order → Paid": {
+            "main": [
+                [
+                    {
+                        "node": "Respond OK",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": [
+        {
+            "name": "payment"
+        }
+    ]
+}
