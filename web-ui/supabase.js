@@ -483,12 +483,7 @@ function createCheckoutSession(tier) {
     const overlay = document.createElement('div');
     overlay.id = 'qr-modal-overlay';
     overlay.className = 'pricing-overlay';
-    overlay.style.zIndex = '10000';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.style.backdropFilter = 'blur(16px)';
-    overlay.style.backgroundColor = 'rgba(0,0,0,0.85)';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(16px); background-color:rgba(0,0,0,0.85);';
 
     // Brand accent color tracking tier
     const accentColor = tier === 'pro' ? '#4a90e2' : '#f59e0b';
