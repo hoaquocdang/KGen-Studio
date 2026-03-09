@@ -763,17 +763,9 @@ async function handleUpgrade(tier) {
         return;
     }
 
-    if (isSupabaseEnabled()) {
-        await createCheckoutSession(tier);
-    } else {
-        // Demo mode: simulate upgrade
-        showToast(`🎉 Demo: Đã nâng cấp lên ${tier.toUpperCase()} !(Cấu hình Stripe / Supabase để thanh toán thật)`, 'success');
-        APP_STATE.currentUser.tier = tier;
-        localStorage.setItem('kgen_session', JSON.stringify(APP_STATE.currentUser));
-        closePricingModal();
-        updateAuthUI();
-        refreshGalleryForAuth();
-    }
+    // Always show the QR payment modal, regardless of Supabase status.
+    await createCheckoutSession(tier);
+
 }
 
 // Make functions globally available
