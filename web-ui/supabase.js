@@ -459,9 +459,27 @@ function createCheckoutSession(tier) {
         return;
     }
 
-    const priceVnd = tier === 'pro' ? 39000 : 199000;
+    // Find package in both arrays
+    const isTopup = tier.startsWith('topup_');
+    const packTiers = [...PRICING_TIERS, ...(typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : [])];
+    const pack = packTiers.find(t => t.id === tier);
+
+    // Default fallback if not found
+    let priceVnd = tier === 'pro' ? 39000 : 199000;
+
+    // Process price
+    if (pack) {
+        if (typeof pack.price === 'number') {
+            priceVnd = pack.price;
+        } else if (typeof pack.price === 'string') {
+            const num = parseInt(pack.price.replace(/\D/g, ''));
+            if (!isNaN(num)) priceVnd = num;
+        }
+    }
+
     const rndCode = Math.floor(Math.random() * 90000) + 10000;
-    const orderCode = `KGEN ${tier.toUpperCase()} ${rndCode}`;
+    const orderPrefix = isTopup ? 'NAP' : 'KGEN ' + tier.toUpperCase();
+    const orderCode = `${orderPrefix} ${rndCode}`;
     const qrUrl = `https://img.vietqr.io/image/${pCfg.bankId}-${pCfg.accountNo}-compact2.png?amount=${priceVnd}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(pCfg.accountName)}`;
 
     // Save order to localStorage for tracking
