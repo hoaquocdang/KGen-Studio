@@ -494,7 +494,7 @@ function createCheckoutSession(tier) {
     const statusId = 'payment-status-' + Date.now();
 
     overlay.innerHTML = `
-        <div class="pricing-modal" style="position:relative; max-width:440px; width:100%; border-radius:24px; padding:0; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5), 0 0 120px ${accentGlow}; overflow:hidden; animation:modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div class="pricing-modal" style="position:relative; max-width:440px; width:100%; border-radius:24px; padding:0; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5), 0 0 120px ${accentGlow}; overflow-y:auto; max-height:90vh; animation:modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
             <!-- Glow background -->
             <div style="position:absolute; top:-100px; left:-100px; right:-100px; height:200px; background:${accentColor}; filter:blur(100px); opacity:0.15; z-index:0; border-radius:50%; pointer-events:none;"></div>
             
