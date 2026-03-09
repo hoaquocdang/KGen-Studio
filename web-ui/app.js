@@ -2596,7 +2596,7 @@ function setupAuth() {
     updateAuthUI();
 
     // Auth modal events
-    document.getElementById('btn-open-login').addEventListener('click', openAuthModal);
+    document.getElementById('btn-open-login')?.addEventListener('click', openAuthModal);
     document.getElementById('auth-modal-close').addEventListener('click', closeAuthModal);
     document.getElementById('auth-modal-overlay').addEventListener('click', (e) => {
         if (e.target.id === 'auth-modal-overlay') closeAuthModal();
@@ -2618,7 +2618,7 @@ function setupAuth() {
     });
 
     // Logout
-    document.getElementById('btn-logout').addEventListener('click', handleLogout);
+    document.getElementById('btn-logout')?.addEventListener('click', handleLogout);
 
     // Google Sign-In buttons
     document.getElementById('btn-google-login').addEventListener('click', handleGoogleSignIn);
