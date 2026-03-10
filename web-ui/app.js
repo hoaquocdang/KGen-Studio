@@ -1951,34 +1951,58 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         : { 'Authorization': `Bearer ${apiKey}` };
 
     const model = selectedModel || getAdminAPIKey('kieModel') || 'nano-banana-pro';
-    const isNB2 = model === 'nano-banana-2';
 
-    // Collect reference images if any
-    const maxRefs = isNB2 ? 14 : 8;
-    const imageInput = APP_STATE.referenceImages.length > 0 ? APP_STATE.referenceImages.slice(0, maxRefs) : [];
+    // Model configuration map
+    // apiModel: exact model identifier for Kie AI API
+    // inputField: 'image_input' | 'input_urls' | null (text-only)
+    // hasOutputFormat: whether model supports output_format param
+    const MODEL_CONFIG = {
+        'nano-banana-pro': { apiModel: 'nano-banana-pro', maxRefs: 8, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
+        'nano-banana-2': { apiModel: 'nano-banana-2', maxRefs: 14, defaultRes: '1K', defaultAR: 'auto', pollType: 'recordInfo', inputField: 'image_input', hasOutputFormat: true, supportsSearch: true },
+        '4o-image': { apiModel: '4o-image', maxRefs: 4, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
+        'flux-kontext': { apiModel: 'flux-kontext', maxRefs: 4, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
+        'flux-pro-i2i': { apiModel: 'flux-2/pro-image-to-image', maxRefs: 8, defaultRes: '1K', defaultAR: '4:3', pollType: 'recordInfo', inputField: 'input_urls', hasOutputFormat: false, supportsSearch: false },
+        'flux-flex-t2i': { apiModel: 'flux-2/flex-text-to-image', maxRefs: 0, defaultRes: '1K', defaultAR: '1:1', pollType: 'recordInfo', inputField: null, hasOutputFormat: false, supportsSearch: false },
+        'flux-flex-i2i': { apiModel: 'flux-2/flex-image-to-image', maxRefs: 8, defaultRes: '1K', defaultAR: '1:1', pollType: 'recordInfo', inputField: 'input_urls', hasOutputFormat: false, supportsSearch: false },
+        'midjourney': { apiModel: 'midjourney', maxRefs: 4, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
+        'grok-imagine': { apiModel: 'grok-imagine', maxRefs: 4, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
+    };
+
+    const config = MODEL_CONFIG[model] || MODEL_CONFIG['nano-banana-pro'];
+    const isRecordInfo = config.pollType === 'recordInfo';
+
+    // Collect reference images if any (skip for text-only models)
+    const maxRefs = config.maxRefs;
+    const imageInput = (maxRefs > 0 && APP_STATE.referenceImages.length > 0)
+        ? APP_STATE.referenceImages.slice(0, maxRefs)
+        : [];
 
     // Map resolution value
-    const resolutionValue = resolution || (isNB2 ? '1K' : '2K');
+    const resolutionValue = resolution || config.defaultRes;
 
     const inputParams = {
         prompt: prompt,
-        aspect_ratio: aspectRatio || (isNB2 ? 'auto' : '1:1'),
+        aspect_ratio: aspectRatio || config.defaultAR,
         resolution: resolutionValue,
-        output_format: 'png',
     };
 
-    // Only include image_input if there are images
-    if (imageInput.length > 0) {
-        inputParams.image_input = imageInput;
+    // Add output_format only if model supports it
+    if (config.hasOutputFormat) {
+        inputParams.output_format = 'png';
     }
 
-    // Nano Banana 2 supports google_search
-    if (isNB2) {
+    // Add reference images using the correct field name for the model
+    if (config.inputField && imageInput.length > 0) {
+        inputParams[config.inputField] = imageInput;
+    }
+
+    // Some models support google_search
+    if (config.supportsSearch) {
         inputParams.google_search = false;
     }
 
     const requestBody = {
-        model: model,
+        model: config.apiModel,
         input: inputParams,
     };
 
@@ -2041,11 +2065,11 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     // Step 2: Poll for result
     let pollUrl;
     if (useProxy && !userKieKey) {
-        pollUrl = isNB2
+        pollUrl = isRecordInfo
             ? `${baseUrl}/recordInfo?taskId=${taskId}`
             : `${baseUrl}/queryTask/${taskId}`;
     } else {
-        pollUrl = isNB2
+        pollUrl = isRecordInfo
             ? `${baseUrl}/api/v1/jobs/recordInfo?taskId=${taskId}`
             : `${baseUrl}/api/v1/jobs/queryTask/${taskId}`;
     }
@@ -3810,6 +3834,30 @@ function setupGenControls() {
             });
         });
     });
+
+    // --- Model Grid Cards ---
+    const modelGrid = document.querySelector('.gen-model-grid');
+    if (modelGrid) {
+        const modelCards = modelGrid.querySelectorAll('.gen-model-card');
+        const modelHiddenInput = modelGrid.parentNode.querySelector('input[type="hidden"]');
+        const btnCredits = document.getElementById('gen-btn-credits');
+
+        modelCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                modelCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+
+                if (modelHiddenInput) {
+                    modelHiddenInput.value = card.dataset.value;
+                }
+                // Update credits on generate button
+                if (btnCredits && card.dataset.credits) {
+                    btnCredits.textContent = card.dataset.credits;
+                }
+            });
+        });
+    }
 
     // Close all dropdowns on outside click
     document.addEventListener('click', (e) => {

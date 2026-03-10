@@ -1224,14 +1224,111 @@ a {
 
 /* Spinner animation for adapt-to-ref loading */
 @keyframes adapt-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .adapt-spinner {
     animation: adapt-spin 1s linear infinite;
 }
 
+/* ===== MODEL PICKER GRID ===== */
+.gen-model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.gen-model-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 6px 8px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-sans);
+    text-align: center;
+}
+
+.gen-model-card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.1);
+}
+
+.gen-model-card.active {
+    border-color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.04);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
+
+.gen-model-provider {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.gen-model-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.gen-model-cost {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.08);
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    margin-top: 2px;
+}
+
+.gen-model-tag {
+    position: absolute;
+    top: -5px;
+    right: -4px;
+    font-size: 0.5rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.gen-model-tag.new {
+    background: var(--accent-blue);
+    color: #fff;
+}
+
+.gen-model-tag.hot {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .gen-model-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .gen-model-name {
+        font-size: 0.65rem;
+    }
+}
 
 .gen-prompt-label {
     font-size: 0.88rem;
