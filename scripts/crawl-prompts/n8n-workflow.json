@@ -1,0 +1,479 @@
+{
+    "name": "KGen Gallery - Auto Crawl Prompts",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours",
+                            "hoursInterval": 6
+                        }
+                    ]
+                }
+            },
+            "id": "schedule-trigger",
+            "name": "⏰ Every 6 Hours",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.apify.com/v2/acts/apidojo~tweet-scraper/runs?token=YOUR_APIFY_TOKEN",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"searchTerms\": [\n    \"#NanoBanana prompt min_faves:50\",\n    \"#GPTImage prompt min_faves:50\",\n    \"#FluxKontext prompt min_faves:50\",\n    \"nanobanana prompt min_faves:100\",\n    \"4o image generation prompt min_faves:100\"\n  ],\n  \"searchMode\": \"live\",\n  \"maxTweets\": 100,\n  \"since\": \"{{ $now.minus(3, 'days').format('yyyy-MM-dd') }}\",\n  \"addUserInfo\": true\n}",
+                "options": {}
+            },
+            "id": "crawl-twitter",
+            "name": "🐦 Crawl X/Twitter",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                250,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.apify.com/v2/acts/curious_coder~threads-scraper/runs?token=YOUR_APIFY_TOKEN",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"usernames\": [\n    \"nanobanana\",\n    \"midjourney\",\n    \"openai\"\n  ],\n  \"maxItems\": 50\n}",
+                "options": {}
+            },
+            "id": "crawl-threads",
+            "name": "🧵 Crawl Threads",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=YOUR_APIFY_TOKEN",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"search\": \"aiart\",\n  \"searchType\": \"hashtag\",\n  \"resultsLimit\": 50\n}",
+                "options": {}
+            },
+            "id": "crawl-instagram",
+            "name": "📸 Crawl Instagram",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                250,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "amount": 120,
+                "unit": "seconds"
+            },
+            "id": "wait-twitter",
+            "name": "⏳ Wait Twitter",
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                500,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "amount": 120,
+                "unit": "seconds"
+            },
+            "id": "wait-threads",
+            "name": "⏳ Wait Threads",
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "amount": 120,
+                "unit": "seconds"
+            },
+            "id": "wait-instagram",
+            "name": "⏳ Wait Instagram",
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                500,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://api.apify.com/v2/acts/apidojo~tweet-scraper/runs/last/dataset/items?token=YOUR_APIFY_TOKEN",
+                "options": {}
+            },
+            "id": "get-twitter-results",
+            "name": "📥 Get Twitter Results",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                750,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://api.apify.com/v2/acts/curious_coder~threads-scraper/runs/last/dataset/items?token=YOUR_APIFY_TOKEN",
+                "options": {}
+            },
+            "id": "get-threads-results",
+            "name": "📥 Get Threads Results",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                750,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://api.apify.com/v2/acts/apify~instagram-scraper/runs/last/dataset/items?token=YOUR_APIFY_TOKEN",
+                "options": {}
+            },
+            "id": "get-instagram-results",
+            "name": "📥 Get Instagram Results",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                750,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Merge all platform results - use try-catch since some may not have run yet\nlet twitterItems = [];\ntry { twitterItems = $('📥 Get Twitter Results').all(); } catch(e) {}\nlet threadsItems = [];\ntry { threadsItems = $('📥 Get Threads Results').all(); } catch(e) {}\nlet instagramItems = [];\ntry { instagramItems = $('📥 Get Instagram Results').all(); } catch(e) {}\n\n// Also include any items passed directly via $input\nconst inputItems = $input.all() || [];\n\nconst results = [];\n\n// Process Twitter\nfor (const item of twitterItems) {\n  const d = item.json;\n  const text = d.full_text || d.text || '';\n  const author = d.user?.screen_name || d.author?.userName || '';\n  const likes = d.favorite_count || d.likeCount || 0;\n  const views = d.views_count || d.viewCount || 0;\n  const id = String(d.id || d.id_str || '');\n  \n  const images = [];\n  if (d.entities?.media) d.entities.media.forEach(m => { if (m.media_url_https) images.push(m.media_url_https); });\n  if (d.extended_entities?.media) d.extended_entities.media.forEach(m => { if (m.media_url_https && !images.includes(m.media_url_https)) images.push(m.media_url_https); });\n  if (d.media?.photos) d.media.photos.forEach(p => { if (p.url && !images.includes(p.url)) images.push(p.url); });\n  \n  let prompt = text.replace(/https?:\\/\\/\\S+/g, '').replace(/\\n{3,}/g, '\\n\\n').replace(/(\\n\\s*#\\w+\\s*)+$/g, '').trim();\n  \n  if (prompt.length >= 50 && likes >= 50 && images.length > 0 && !prompt.startsWith('RT @')) {\n    results.push({\n      id: `tw_${id}`, prompt, author,\n      author_name: d.user?.name || d.author?.name || author,\n      likes, views, images,\n      date: d.created_at ? new Date(d.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],\n      source_url: `https://x.com/${author}/status/${id}`,\n      platform: 'twitter'\n    });\n  }\n}\n\n// Process Threads\nfor (const item of threadsItems) {\n  const d = item.json;\n  const text = d.text || d.caption || '';\n  const author = d.username || d.user?.username || '';\n  const likes = d.like_count || d.likeCount || 0;\n  const id = String(d.id || d.pk || '');\n  \n  const images = [];\n  if (d.image_urls) images.push(...d.image_urls);\n  if (d.carousel_media) d.carousel_media.forEach(m => { if (m.image_url) images.push(m.image_url); });\n  if (d.displayUrl) images.push(d.displayUrl);\n  if (d.image_versions2?.candidates?.[0]?.url) images.push(d.image_versions2.candidates[0].url);\n  \n  let prompt = text.replace(/https?:\\/\\/\\S+/g, '').trim();\n  \n  if (prompt.length >= 50 && likes >= 20 && images.length > 0) {\n    results.push({\n      id: `th_${id}`, prompt, author,\n      author_name: d.user?.full_name || author,\n      likes, views: d.view_count || 0, images,\n      date: d.taken_at ? new Date(d.taken_at * 1000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],\n      source_url: d.url || `https://www.threads.net/@${author}/post/${id}`,\n      platform: 'threads'\n    });\n  }\n}\n\n// Process Instagram\nfor (const item of instagramItems) {\n  const d = item.json;\n  const text = d.caption || d.alt || '';\n  const author = d.ownerUsername || d.owner?.username || '';\n  const likes = d.likesCount || d.like_count || 0;\n  const id = String(d.id || d.shortCode || '');\n  \n  const images = [];\n  if (d.displayUrl) images.push(d.displayUrl);\n  if (d.childPosts) d.childPosts.forEach(c => { if (c.displayUrl) images.push(c.displayUrl); });\n  \n  let prompt = text.replace(/https?:\\/\\/\\S+/g, '').trim();\n  \n  if (prompt.length >= 50 && likes >= 30 && images.length > 0) {\n    results.push({\n      id: `ig_${id}`, prompt, author,\n      author_name: d.ownerFullName || author,\n      likes, views: d.videoViewCount || 0, images,\n      date: d.timestamp ? new Date(d.timestamp).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],\n      source_url: d.url || `https://instagram.com/p/${d.shortCode || id}/`,\n      platform: 'instagram'\n    });\n  }\n}\n\n// Deduplicate\nconst seen = new Set();\nconst unique = results.filter(r => {\n  if (seen.has(r.id)) return false;\n  seen.add(r.id);\n  return true;\n});\n\nif (unique.length === 0) {\n  return [{ json: { _empty: true, message: 'No valid prompts found' } }];\n}\n\nreturn unique.map(r => ({ json: r }));\n"
+            },
+            "id": "process-results",
+            "name": "⚙️ Process & Merge Results",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1050,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Auto-detect model and categories\nconst items = $input.all();\n\nfunction detectModel(prompt, sourceUrl) {\n  const lower = (prompt + ' ' + sourceUrl).toLowerCase();\n  if (/gpt.?image|4o.?image/i.test(lower)) return 'gptimage';\n  if (/midjourney/i.test(lower)) return 'midjourney';\n  if (/flux.*kontext/i.test(lower)) return 'flux';\n  if (/nano.?banana.?2/i.test(lower)) return 'nanobanana2';\n  if (/nano.?banana/i.test(lower)) return 'nanobanana';\n  if (/imagen/i.test(lower)) return 'imagen';\n  if (/grok/i.test(lower)) return 'grok';\n  return 'nanobanana';\n}\n\nfunction categorize(prompt) {\n  const lower = prompt.toLowerCase();\n  const cats = [];\n  if (prompt.includes('{') && prompt.includes('}')) cats.push('JSON');\n  \n  const map = {\n    'Photograph': ['photo', 'portrait', 'camera', 'lens', 'f/', 'cinematic', 'photorealistic'],\n    'Girl': ['woman', 'girl', 'female', 'blonde', 'brunette'],\n    'Boy': ['man', 'boy', 'male', 'beard'],\n    'Product': ['product', 'bottle', 'packaging', 'brand', 'mockup'],\n    'Food': ['food', 'dish', 'recipe', 'cuisine', 'ingredient'],\n    '3D': ['3d', 'render', 'isometric', 'voxel'],\n    'Anime': ['anime', 'manga', 'chibi'],\n    'Logo': ['logo', 'branding', 'emblem'],\n  };\n  for (const [cat, kws] of Object.entries(map)) {\n    if (kws.some(kw => lower.includes(kw))) cats.push(cat);\n  }\n  if (cats.length === 0) cats.push('Other');\n  return cats;\n}\n\nreturn items.map(item => {\n  const d = item.json;\n  return {\n    json: {\n      ...d,\n      model: detectModel(d.prompt, d.source_url),\n      categories: categorize(d.prompt),\n      image: d.images[0] || '',\n    }\n  };\n});\n"
+            },
+            "id": "classify",
+            "name": "🏷️ Classify Model & Categories",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1300,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Read existing prompts, merge new ones, save\nconst fs = require('fs');\nconst PROMPTS_PATH = '/opt/kgen-gallery/web-ui/data/trending-prompts.json';\n\n// Load existing\nlet existing = [];\ntry {\n  existing = JSON.parse(fs.readFileSync(PROMPTS_PATH, 'utf-8'));\n} catch (e) {\n  // File doesn't exist yet\n}\n\nconst existingIds = new Set(existing.map(p => p.id));\nconst newItems = $input.all().map(i => i.json);\nconst added = [];\n\nfor (const item of newItems) {\n  if (!existingIds.has(item.id)) {\n    added.push({\n      rank: 0,\n      id: item.id,\n      prompt: item.prompt,\n      author: item.author,\n      author_name: item.author_name,\n      likes: item.likes,\n      views: item.views,\n      image: item.image,\n      images: item.images,\n      model: item.model,\n      categories: item.categories,\n      date: item.date,\n      source_url: item.source_url,\n    });\n    existingIds.add(item.id);\n  }\n}\n\nif (added.length > 0) {\n  const merged = [...existing, ...added];\n  merged.sort((a, b) => (b.likes || 0) - (a.likes || 0));\n  merged.forEach((p, i) => p.rank = i + 1);\n  fs.writeFileSync(PROMPTS_PATH, JSON.stringify(merged, null, 2), 'utf-8');\n}\n\nreturn [{\n  json: {\n    totalExisting: existing.length,\n    newAdded: added.length,\n    totalAfter: existing.length + added.length,\n    addedPrompts: added.map(a => ({\n      author: a.author,\n      prompt: a.prompt.substring(0, 80) + '...',\n      likes: a.likes,\n      model: a.model,\n      platform: a.source_url.includes('threads') ? 'threads' : a.source_url.includes('instagram') ? 'instagram' : 'twitter',\n      categories: a.categories,\n    })),\n  }\n}];\n"
+            },
+            "id": "save-to-json",
+            "name": "💾 Save to JSON",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1550,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict"
+                    },
+                    "conditions": [
+                        {
+                            "id": "check-new",
+                            "leftValue": "={{ $json.newAdded }}",
+                            "rightValue": 0,
+                            "operator": {
+                                "type": "number",
+                                "operation": "gt"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "id": "check-new",
+            "name": "🔀 New Prompts?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2,
+            "position": [
+                1800,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Build Telegram notification message\nconst data = $input.first().json;\n\nconst platformEmoji = {\n  twitter: '🐦',\n  threads: '🧵',\n  instagram: '📸'\n};\n\nlet message = `🎨 *KGen Gallery Update*\\n\\n`;\nmessage += `✅ *${data.newAdded}* prompt mới đã thêm!\\n`;\nmessage += `📊 Tổng gallery: *${data.totalAfter}* prompts\\n\\n`;\n\nif (data.addedPrompts && data.addedPrompts.length > 0) {\n  message += `📝 *Chi tiết:*\\n`;\n  for (const p of data.addedPrompts.slice(0, 10)) {\n    const emoji = platformEmoji[p.platform] || '📄';\n    const cleanPrompt = p.prompt.replace(/[_*\\[\\]()~`>#+=|{}.!-]/g, '');\n    message += `${emoji} @${p.author} (${p.likes}❤️)\\n`;\n    message += `   \\\\[${p.model}\\\\] ${p.categories.join(', ')}\\n`;\n    message += `   _\"${cleanPrompt}\"_\\n\\n`;\n  }\n  \n  if (data.addedPrompts.length > 10) {\n    message += `...và ${data.addedPrompts.length - 10} prompt khác\\n`;\n  }\n}\n\nconst now = new Date();\nconst vnTime = now.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });\nmessage += `\\n⏰ ${vnTime}`;\n\nreturn [{ json: { message, newAdded: data.newAdded } }];"
+            },
+            "id": "build-telegram-msg",
+            "name": "📝 Build Telegram Message",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2050,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "sendMessage",
+                "chatId": "YOUR_TELEGRAM_CHAT_ID",
+                "text": "={{ $json.message }}",
+                "additionalFields": {
+                    "parse_mode": "Markdown"
+                }
+            },
+            "id": "send-telegram",
+            "name": "📱 Send Telegram",
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "position": [
+                2300,
+                200
+            ],
+            "credentials": {
+                "telegramApi": {
+                    "id": "",
+                    "name": "KGen Bot"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// No new prompts - just log\nconst data = $input.first().json;\nreturn [{ json: { status: 'no_updates', totalGallery: data.totalAfter } }];"
+            },
+            "id": "no-updates",
+            "name": "💤 No Updates",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2050,
+                400
+            ]
+        }
+    ],
+    "connections": {
+        "⏰ Every 6 Hours": {
+            "main": [
+                [
+                    {
+                        "node": "🐦 Crawl X/Twitter",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "🧵 Crawl Threads",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "📸 Crawl Instagram",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🐦 Crawl X/Twitter": {
+            "main": [
+                [
+                    {
+                        "node": "⏳ Wait Twitter",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🧵 Crawl Threads": {
+            "main": [
+                [
+                    {
+                        "node": "⏳ Wait Threads",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📸 Crawl Instagram": {
+            "main": [
+                [
+                    {
+                        "node": "⏳ Wait Instagram",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "⏳ Wait Twitter": {
+            "main": [
+                [
+                    {
+                        "node": "📥 Get Twitter Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "⏳ Wait Threads": {
+            "main": [
+                [
+                    {
+                        "node": "📥 Get Threads Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "⏳ Wait Instagram": {
+            "main": [
+                [
+                    {
+                        "node": "📥 Get Instagram Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📥 Get Twitter Results": {
+            "main": [
+                [
+                    {
+                        "node": "⚙️ Process & Merge Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📥 Get Threads Results": {
+            "main": [
+                [
+                    {
+                        "node": "⚙️ Process & Merge Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📥 Get Instagram Results": {
+            "main": [
+                [
+                    {
+                        "node": "⚙️ Process & Merge Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "⚙️ Process & Merge Results": {
+            "main": [
+                [
+                    {
+                        "node": "🏷️ Classify Model & Categories",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🏷️ Classify Model & Categories": {
+            "main": [
+                [
+                    {
+                        "node": "💾 Save to JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "💾 Save to JSON": {
+            "main": [
+                [
+                    {
+                        "node": "🔀 New Prompts?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🔀 New Prompts?": {
+            "main": [
+                [
+                    {
+                        "node": "📝 Build Telegram Message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "💤 No Updates",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📝 Build Telegram Message": {
+            "main": [
+                [
+                    {
+                        "node": "📱 Send Telegram",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": [
+        {
+            "name": "KGen Gallery"
+        },
+        {
+            "name": "Automation"
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "name": "kgen-prompt-crawler",
+    "version": "1.0.0",
+    "description": "Auto-crawl trending AI image prompts from X/Twitter for KGen Gallery",
+    "type": "module",
+    "scripts": {
+        "crawl": "node crawl.js",
+        "test": "node crawl.js --dry-run"
+    },
+    "dependencies": {
+        "apify-client": "^2.9.0",
+        "node-fetch": "^3.3.0"
+    }
+}

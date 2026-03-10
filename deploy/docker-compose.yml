@@ -12,6 +12,8 @@ services:
     volumes:
       # Mount site-config.js separately (contains API key, not in git)
       - ./web-ui/site-config.js:/app/web-ui/site-config.js:ro
+      # Mount data directory so n8n auto-crawl can update prompts live
+      - ./web-ui/data:/app/web-ui/data
     labels:
       # Traefik auto-discovery
       - "traefik.enable=true"
