@@ -4016,6 +4016,50 @@ button[data-tab="settings"] {
     border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+/* ===== IMAGE MODAL RESPONSIVE ===== */
+.modal-header-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.modal-action-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.modal-btn-main,
+.modal-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    flex: 1 1 20%;
+    min-width: fit-content;
+}
+
+.modal-btn {
+    border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .modal-btn-main {
+        flex: 1 1 100%;
+        padding: 12px;
+        font-size: 1.05rem;
+    }
+
+    .modal-btn {
+        flex: 1 1 45%;
+        font-size: 0.9rem;
+    }
+}
+
 .hidden {
     display: none !important;
 }
