@@ -1478,7 +1478,7 @@ async function adaptPromptToReference() {
             throw new Error('Không thể đọc ảnh tham chiếu');
         }
 
-        const geminiModel = 'gemini-2.0-flash';
+        const geminiModel = 'gemini-2.5-flash';
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
 
         const systemPrompt = `You are an expert image prompt editor. You will receive:
@@ -3891,7 +3891,7 @@ function setupGenControls() {
                     const base64Data = match[2];
 
                     try {
-                        const geminiModel = 'gemini-2.0-flash';
+                        const geminiModel = 'gemini-2.5-flash';
                         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
 
                         const response = await fetch(geminiUrl, {
