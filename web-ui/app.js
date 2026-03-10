@@ -1275,6 +1275,14 @@ function setupGenerateEvents() {
         if (e.key === 'Enter') addReferenceImage();
     });
 
+    // Adapt prompt to reference image
+    document.getElementById('btn-adapt-to-ref')?.addEventListener('click', adaptPromptToReference);
+
+    // Update adapt-ref button visibility when prompt changes
+    document.getElementById('gen-prompt')?.addEventListener('input', () => {
+        updateAdaptRefButtonVisibility();
+    });
+
     // Generate button
     document.getElementById('btn-generate').addEventListener('click', generateImage);
 
@@ -1395,6 +1403,162 @@ function renderRefPreviews() {
             renderRefPreviews();
         });
     });
+
+    // Toggle "Adapt to Reference" button visibility
+    updateAdaptRefButtonVisibility();
+}
+
+/**
+ * Show/hide the "Adapt to Reference" button based on whether
+ * reference images exist and prompt has content
+ */
+function updateAdaptRefButtonVisibility() {
+    const btn = document.getElementById('btn-adapt-to-ref');
+    if (!btn) return;
+    const hasRef = APP_STATE.referenceImages.length > 0;
+    const hasPrompt = (document.getElementById('gen-prompt')?.value?.trim() || '').length > 0;
+    if (hasRef && hasPrompt) {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+
+/**
+ * Adapt Prompt to Reference — Uses Gemini Vision to analyze the reference image
+ * and adjust the prompt to match the subject (gender, appearance, ethnicity, etc.)
+ * Solves the common issue: prompt says "young woman" but ref image is a man.
+ */
+async function adaptPromptToReference() {
+    const prompt = document.getElementById('gen-prompt').value.trim();
+    if (!prompt) {
+        showToast('⚠️ Vui lòng nhập prompt trước', 'error');
+        return;
+    }
+
+    if (APP_STATE.referenceImages.length === 0) {
+        showToast('⚠️ Vui lòng thêm ảnh tham chiếu trước', 'error');
+        return;
+    }
+
+    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
+    if (!userGoogleKey) {
+        showToast('⚠️ Cần Google API Key để phân tích ảnh. Vào Cài đặt API Key để thêm.', 'error', 4000);
+        return;
+    }
+
+    const btn = document.getElementById('btn-adapt-to-ref');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" class="adapt-spinner"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31" stroke-linecap="round"/></svg><span class="adapt-ref-label">Đang phân tích...</span>`;
+
+    try {
+        // Get the first reference image as base64
+        const refUrl = APP_STATE.referenceImages[0];
+        let base64Data, mimeType;
+
+        if (refUrl.startsWith('data:')) {
+            const match = refUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+            if (match) {
+                mimeType = match[1];
+                base64Data = match[2];
+            }
+        } else if (refUrl.startsWith('http')) {
+            const imgResponse = await fetch(refUrl);
+            const blob = await imgResponse.blob();
+            mimeType = blob.type || 'image/jpeg';
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let binary = '';
+            uint8Array.forEach(b => binary += String.fromCharCode(b));
+            base64Data = btoa(binary);
+        }
+
+        if (!base64Data || !mimeType) {
+            throw new Error('Không thể đọc ảnh tham chiếu');
+        }
+
+        const geminiModel = 'gemini-2.0-flash';
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
+
+        const systemPrompt = `You are an expert image prompt editor. You will receive:
+1. A reference image of a person/subject
+2. An existing image generation prompt
+
+Your task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.
+
+RULES:
+- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.
+- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.
+- For example: if prompt says "young woman" but the reference is clearly a man, change it to "young man" and adjust all related pronouns and descriptions (her→his, she→he, woman→man, dress→suit, etc.).
+- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.
+- Keep ALL text overlay instructions unchanged.
+- Keep the same language as the original prompt.
+- Output ONLY the modified prompt text, nothing else. No explanation, no labels, no quotes.`;
+
+        const response = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Data,
+                            }
+                        },
+                        {
+                            text: `${systemPrompt}\n\n--- EXISTING PROMPT ---\n${prompt}\n--- END PROMPT ---\n\nPlease output the modified prompt:`
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.3,
+                    maxOutputTokens: 4096,
+                },
+            }),
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('Adapt to ref error:', response.status, errText);
+            throw new Error(`API Error ${response.status}`);
+        }
+
+        const data = await response.json();
+        const candidates = data.candidates || [];
+        let resultText = '';
+        if (candidates.length > 0) {
+            const parts = candidates[0].content?.parts || [];
+            for (const part of parts) {
+                if (part.text) resultText += part.text;
+            }
+        }
+
+        if (resultText.trim()) {
+            // Clean up any wrapping quotes or labels the model might add
+            let cleanResult = resultText.trim();
+            if (cleanResult.startsWith('"') && cleanResult.endsWith('"')) {
+                cleanResult = cleanResult.slice(1, -1);
+            }
+            if (cleanResult.startsWith('```') && cleanResult.endsWith('```')) {
+                cleanResult = cleanResult.replace(/^```\w*\n?/, '').replace(/\n?```$/, '').trim();
+            }
+
+            document.getElementById('gen-prompt').value = cleanResult;
+            updateCharCount();
+            showToast('✅ Prompt đã được điều chỉnh theo ảnh tham chiếu!', 'success', 4000);
+        } else {
+            showToast('⚠️ Không thể phân tích. Thử lại hoặc dùng ảnh rõ hơn.', 'error');
+        }
+    } catch (err) {
+        console.error('Adapt to reference error:', err);
+        showToast('❌ Lỗi phân tích: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
 }
 
 async function generateImage() {
