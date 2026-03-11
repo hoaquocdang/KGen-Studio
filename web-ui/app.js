@@ -1605,42 +1605,41 @@ async function generateImage() {
     }
 
     // Determine which API to use
-    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
-    const adminKieKey = getAdminAPIKey('kie');
+    // NOTE: Google API key is ONLY used for adaptPromptToReference (Gemini text/vision)
+    // Image generation ALWAYS uses KIE.ai — either via n8n gateway or direct user key
     const userKieKey = APP_STATE.settings.kieApiKey || '';
+    const adminKieKey = getAdminAPIKey('kie');
 
-    // Check n8n gateway (always available when configured — API key is server-side)
+    // Check n8n gateway (always available — KIE.ai API key is server-side in n8n)
     const n8nGw = window.SITE_CONFIG?.n8nGateway || {
         baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
         enabled: true,
     };
     const hasN8nGateway = !!(n8nGw?.enabled && n8nGw?.baseUrl);
 
-    const useGoogleApi = !!userGoogleKey;
-    // KIE via n8n (no user key needed) or via direct key
     const useKieApi = !!(userKieKey || adminKieKey || hasN8nGateway);
 
-    if (!useGoogleApi && !useKieApi) {
-        showApiKeyGuideModal();
+    if (!useKieApi) {
+        showToast('❌ Không thể kết nối hệ thống tạo ảnh. Vui lòng thử lại sau.', 'error');
         return;
     }
 
     // Check quota if using n8n gateway (admin-paid) — not needed if user has own key
-    const usingAdminServer = hasN8nGateway && !userKieKey && !userGoogleKey;
+    const usingAdminServer = hasN8nGateway && !userKieKey;
     if (usingAdminServer) {
         if (!canGenerateImage()) {
             const plan = getUserPlan();
             const limit = getUserImageLimit();
             if (plan === 'free') {
                 showToast(`⚠️ Bạn đã hết ${limit} lượt tạo ảnh miễn phí. Nâng cấp gói để tiếp tục!`, 'error', 5000);
-                switchTab('pricing');
             } else {
-                showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói để tiếp tục!`, 'error', 5000);
-                switchTab('pricing');
+                showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói!`, 'error', 5000);
             }
+            switchTab('pricing');
             return;
         }
     }
+
 
     const quality = document.getElementById('gen-quality').value;
     const aspectRatio = document.querySelector('.gen-ar-opt.active')?.dataset.ratio || '3:4';
@@ -1669,15 +1668,9 @@ async function generateImage() {
             finalPrompt = `[CRITICAL INSTRUCTION: Any text, typography, fonts, or labels rendered in the image MUST strictly be written in ${langCode} language.]\n\n` + prompt;
         }
 
-        if (useGoogleApi) {
-            // Use user's Google Gemini API key
-            result = await generateViaGemini(finalPrompt, aspectRatio, quality, userGoogleKey);
-            provider = 'google-gemini';
-        } else {
-            // Use Kie AI (admin key or user's own Kie key)
-            result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel);
-            provider = 'kie-ai';
-        }
+        // Always use KIE.ai for image generation (via n8n gateway or direct key)
+        result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel);
+        provider = 'kie-ai';
 
         // Show result
         clearInterval(timerInterval);
@@ -1689,8 +1682,8 @@ async function generateImage() {
 
             document.getElementById('result-image-wrap').classList.remove('hidden');
 
-            // Track usage quota (only for admin key usage)
-            if (!useGoogleApi && !userKieKey) {
+            // Track usage quota (only when using admin server, not personal key)
+            if (usingAdminServer) {
                 incrementImageUsage();
             }
 
