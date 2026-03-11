@@ -82,12 +82,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.body) }}",
         "options": {
-          "timeout": 30000,
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
+          "timeout": 30000
         }
       },
       "id": "proxy-create-task",
@@ -106,9 +101,8 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json.body || $json) }}",
+        "responseBody": "={{ JSON.stringify($json) }}",
         "options": {
-          "responseCode": "={{ $json.statusCode || 200 }}",
           "responseHeaders": {
             "entries": [
               { "name": "Access-Control-Allow-Origin", "value": "*" },
@@ -131,12 +125,7 @@
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
-          "timeout": 15000,
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
+          "timeout": 15000
         }
       },
       "id": "proxy-query-task",
@@ -155,9 +144,8 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json.body || $json) }}",
+        "responseBody": "={{ JSON.stringify($json) }}",
         "options": {
-          "responseCode": "={{ $json.statusCode || 200 }}",
           "responseHeaders": {
             "entries": [
               { "name": "Access-Control-Allow-Origin", "value": "*" },
@@ -180,12 +168,7 @@
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
-          "timeout": 15000,
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
+          "timeout": 15000
         }
       },
       "id": "proxy-record-info",
@@ -204,9 +187,8 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json.body || $json) }}",
+        "responseBody": "={{ JSON.stringify($json) }}",
         "options": {
-          "responseCode": "={{ $json.statusCode || 200 }}",
           "responseHeaders": {
             "entries": [
               { "name": "Access-Control-Allow-Origin", "value": "*" },
