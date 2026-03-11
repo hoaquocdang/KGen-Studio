@@ -75,7 +75,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.KIE_API_BASE || 'https://api.kie.ai' }}/api/v1/jobs/createTask",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -127,7 +127,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ $env.KIE_API_BASE || 'https://api.kie.ai' }}/api/v1/jobs/queryTask/{{ $json.params.taskId }}",
+        "url": "https://api.kie.ai/api/v1/jobs/queryTask/{{ $json.params.taskId }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
@@ -176,7 +176,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ $env.KIE_API_BASE || 'https://api.kie.ai' }}/api/v1/jobs/recordInfo?taskId={{ $json.query.taskId }}",
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo?taskId={{ $json.query.taskId }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
@@ -225,7 +225,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyB-ZVpdJn_Y8SpmZg84cQdFFMYF9p0kuxM",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'You are an expert AI image prompt engineer. Transform the following idea into a highly detailed, professional image generation prompt.\\n\\nStyle: ' + (($json.body.style || 'realistic')) + '\\nMode: ' + (($json.body.mode || 'none')) + '\\nCamera angle: ' + (($json.body.angle || 'none')) + '\\n\\nUser idea: ' + ($json.body.prompt || '') + '\\n\\nRules:\\n- Write in English\\n- Add rich visual details: lighting, composition, colors, textures, atmosphere\\n- Add technical quality terms: resolution, rendering style, artistic quality\\n- Keep the core subject and intent of the original idea\\n- Output ONLY the enhanced prompt, no explanation, no quotes, no markdown\\n- Length: 2-4 sentences maximum' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 512 } }) }}",
@@ -273,7 +273,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyB-ZVpdJn_Y8SpmZg84cQdFFMYF9p0kuxM",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'You are an expert image prompt editor. You will receive:\\n1. A reference image of a person/subject\\n2. An existing image generation prompt\\n\\nYour task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.\\n\\nRULES:\\n- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.\\n- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.\\n- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.\\n- Keep ALL text overlay instructions unchanged.\\n- Keep the same language as the original prompt.\\n- Output ONLY the modified prompt text, nothing else.\\n\\n--- EXISTING PROMPT ---\\n' + ($json.body.prompt || '') + '\\n--- END PROMPT ---\\n\\nPlease output the modified prompt:' } ] }], generationConfig: { temperature: 0.3, maxOutputTokens: 4096 } }) }}",
