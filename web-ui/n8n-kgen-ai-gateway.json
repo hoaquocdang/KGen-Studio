@@ -18,7 +18,7 @@
     {
       "parameters": {
         "httpMethod": "GET",
-        "path": "kie/queryTask/:taskId",
+        "path": "kie/queryTask",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -121,7 +121,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.kie.ai/api/v1/jobs/queryTask/{{ $json.params.taskId }}",
+        "url": "https://api.kie.ai/api/v1/jobs/queryTask/{{ $json.query.taskId }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {

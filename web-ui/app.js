@@ -2114,7 +2114,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     if (useN8nGateway) {
         pollUrl = isRecordInfo
             ? `${baseUrl}/recordInfo?taskId=${taskId}`
-            : `${baseUrl}/queryTask/${taskId}`;
+            : `${baseUrl}/queryTask?taskId=${taskId}`;
     } else {
         pollUrl = isRecordInfo
             ? `${baseUrl}/api/v1/jobs/recordInfo?taskId=${taskId}`
