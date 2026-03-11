@@ -1442,7 +1442,10 @@ async function adaptPromptToReference() {
     }
 
     // Check if n8n gateway is available OR user has Google API key
-    const n8nGw = window.SITE_CONFIG?.n8nGateway;
+    const n8nGw = window.SITE_CONFIG?.n8nGateway || {
+        baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
+        enabled: true,
+    };
     const useN8nGateway = n8nGw?.enabled && n8nGw?.baseUrl;
     const userGoogleKey = APP_STATE.settings.googleApiKey || '';
 
@@ -1967,7 +1970,10 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     const adminKieKey = getAdminAPIKey('kie');
 
     // Check if n8n gateway is enabled (API key stored server-side in n8n)
-    const n8nGw = window.SITE_CONFIG?.n8nGateway;
+    const n8nGw = window.SITE_CONFIG?.n8nGateway || {
+        baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
+        enabled: true,
+    };
     const useN8nGateway = n8nGw?.enabled && n8nGw?.baseUrl && !userKieKey;
 
     // Determine if we have any API access
