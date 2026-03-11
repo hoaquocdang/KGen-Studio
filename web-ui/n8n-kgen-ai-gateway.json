@@ -121,7 +121,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.kie.ai/api/v1/jobs/queryTask/{{ $json.query.taskId }}",
+        "url": "={{ 'https://api.kie.ai/api/v1/jobs/queryTask/' + $json.query.taskId }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
@@ -164,7 +164,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.kie.ai/api/v1/jobs/recordInfo?taskId={{ $json.query.taskId }}",
+        "url": "={{ 'https://api.kie.ai/api/v1/jobs/recordInfo?taskId=' + $json.query.taskId }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
