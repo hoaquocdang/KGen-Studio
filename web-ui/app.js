@@ -2016,9 +2016,12 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     const isRecordInfo = config.pollType === 'recordInfo';
 
     // Collect reference images if any (skip for text-only models)
+    // Only include valid HTTP(S) URLs — KIE.ai can't handle blob:, data:, or local URLs
     const maxRefs = config.maxRefs;
     const imageInput = (maxRefs > 0 && APP_STATE.referenceImages.length > 0)
-        ? APP_STATE.referenceImages.slice(0, maxRefs)
+        ? APP_STATE.referenceImages
+            .filter(url => url && (url.startsWith('https://') || url.startsWith('http://')) && !url.includes('blob:'))
+            .slice(0, maxRefs)
         : [];
 
     // Map resolution value
