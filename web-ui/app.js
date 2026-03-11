@@ -2243,7 +2243,7 @@ function setupEnhanceEvents() {
     });
 }
 
-function enhancePrompt() {
+async function enhancePrompt() {
     const input = document.getElementById('enhance-input').value.trim();
     if (!input) {
         showToast('Vui lòng nhập ý tưởng', 'error');
@@ -2254,13 +2254,40 @@ function enhancePrompt() {
     const mode = document.querySelector('#mode-picker .style-btn.active')?.dataset.mode || 'none';
     const angle = document.querySelector('#angle-picker .style-btn.active')?.dataset.angle || 'none';
 
-    // Local enhancement rules
-    const enhanced = localEnhancePrompt(input, style, mode, angle);
+    // Show loading
+    const btn = document.querySelector('.enhance-run-btn') || document.querySelector('[onclick*="enhancePrompt"]');
+    const originalHtml = btn?.innerHTML;
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳ AI đang nâng cấp...'; }
 
+    const n8nBase = window.SITE_CONFIG?.n8nGateway?.baseUrl || 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook';
+
+    try {
+        const res = await fetch(`${n8nBase}/enhance-prompt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: input, style, mode, angle }),
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.enhanced) {
+                document.querySelector('.enhance-placeholder')?.classList.add('hidden');
+                document.getElementById('enhanced-prompt').classList.remove('hidden');
+                document.getElementById('enhanced-text').textContent = data.enhanced;
+                showToast('✨ Prompt đã được nâng cấp bởi Gemini AI!', 'success');
+                return;
+            }
+        }
+    } catch (err) {
+        console.warn('n8n enhance failed, using local fallback:', err);
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    }
+
+    // Fallback: local rules
+    const enhanced = localEnhancePrompt(input, style, mode, angle);
     document.querySelector('.enhance-placeholder')?.classList.add('hidden');
     document.getElementById('enhanced-prompt').classList.remove('hidden');
     document.getElementById('enhanced-text').textContent = enhanced;
-
     showToast('✨ Prompt đã được nâng cấp!', 'success');
 }
 

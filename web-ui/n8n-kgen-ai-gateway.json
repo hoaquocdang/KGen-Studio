@@ -224,13 +224,29 @@
 
     {
       "parameters": {
-        "jsCode": "// Enhance prompt using template rules — no external API needed\nconst body = $input.first().json.body;\nconst prompt = body.prompt || '';\nconst style = body.style || 'realistic';\nconst mode = body.mode || 'none';\nconst angle = body.angle || 'none';\n\nif (!prompt.trim()) {\n  return [{ json: { success: false, error: 'Prompt is empty' } }];\n}\n\nconst styleGuides = {\n  realistic: {\n    prefix: '',\n    details: ['Shot with a professional DSLR camera','Natural lighting with soft diffusion','Sharp focus with bokeh background','Rich color grading with cinematic tones','High dynamic range','Photorealistic rendering, 8K resolution'],\n    suffix: 'Ultra-detailed, photorealistic, professional photography, masterful composition'\n  },\n  anime: {\n    prefix: 'Anime-style illustration. ',\n    details: ['Clean line art with cel shading','Vibrant saturated colors','Dynamic pose and expressive features','Detailed background with depth layers','Sparkle and light effects','Studio quality anime production art'],\n    suffix: 'High-quality anime art, detailed illustration, trending on Pixiv, by top anime artists'\n  },\n  illustration: {\n    prefix: 'Digital illustration. ',\n    details: ['Concept art quality with painterly strokes','Dramatic lighting and atmosphere','Rich texture and material details','Cinematic composition with strong focal point','Professional color palette','ArtStation quality, trending concept art'],\n    suffix: 'Award-winning illustration, concept art, digital painting, masterpiece quality'\n  }\n};\n\nconst modeGuides = {\n  none: { prefix: '', details: [], suffix: '' },\n  infographic: { prefix: 'Infographic design layout. ', details: ['Clean data visualization with charts and icons','Organized information hierarchy','Modern flat design with bold typography','Color-coded categories','Professional business style'], suffix: 'Infographic poster, data-driven design, clean layout' },\n  'remove-bg': { prefix: 'Subject isolated on pure white background. ', details: ['Clean cutout with no background','Pure white seamless backdrop','Subject perfectly centered','Studio product lighting','No background shadows'], suffix: 'Isolated subject, white background, product photography' },\n  storyboard: { prefix: 'Storyboard panel sequence. ', details: ['Comic multi-panel grid layout','Sequential storytelling frames','Clear panel borders','Action arrows and movement indicators','Consistent character design'], suffix: 'Storyboard art, sequential panels, cinematic frames' }\n};\n\nconst angleGuides = {\n  none: '',\n  front: 'Front-facing shot, eye-level direct view, symmetrical composition. ',\n  wide: 'Extreme wide-angle shot, establishing shot, panoramic view. ',\n  shoulder: 'Over-the-shoulder shot, depth perspective, cinematic framing. ',\n  low: 'Low-angle shot, dramatic heroic perspective, subject appears powerful. ',\n  high: \"High-angle bird's-eye view, overhead perspective, top-down composition. \",\n  behind: 'Rear view from behind the subject, atmospheric depth, mysterious mood. '\n};\n\nconst guide = styleGuides[style] || styleGuides.realistic;\nconst modeGuide = modeGuides[mode] || modeGuides.none;\nconst anglePrefix = angleGuides[angle] || '';\n\nconst mainPrompt = guide.prefix + modeGuide.prefix + anglePrefix + prompt.charAt(0).toUpperCase() + prompt.slice(1) + '.';\nconst allDetails = [...guide.details, ...modeGuide.details];\nconst combinedSuffix = [guide.suffix, modeGuide.suffix].filter(Boolean).join('. ');\n\nconst enhanced = [mainPrompt, '', 'Visual Details:', ...allDetails.map(d => `- ${d}`), '', combinedSuffix].join('\\n');\n\nreturn [{ json: { success: true, enhanced } }];"
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'You are an expert AI image prompt engineer. Transform the following idea into a highly detailed, professional image generation prompt.\\n\\nStyle: ' + (($json.body.style || 'realistic')) + '\\nMode: ' + (($json.body.mode || 'none')) + '\\nCamera angle: ' + (($json.body.angle || 'none')) + '\\n\\nUser idea: ' + ($json.body.prompt || '') + '\\n\\nRules:\\n- Write in English\\n- Add rich visual details: lighting, composition, colors, textures, atmosphere\\n- Add technical quality terms: resolution, rendering style, artistic quality\\n- Keep the core subject and intent of the original idea\\n- Output ONLY the enhanced prompt, no explanation, no quotes, no markdown\\n- Length: 2-4 sentences maximum' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 512 } }) }}",
+        "options": { "timeout": 20000 }
       },
-      "id": "enhance-code",
-      "name": "Enhance Prompt Logic",
+      "id": "gemini-enhance",
+      "name": "Gemini → Enhance Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 940],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst candidates = data.candidates || [];\nlet resultText = '';\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.text) resultText += part.text;\n  }\n}\nif (resultText.trim()) {\n  let clean = resultText.trim();\n  if (clean.startsWith('\"') && clean.endsWith('\"')) clean = clean.slice(1, -1);\n  if (clean.startsWith('```') && clean.endsWith('```')) clean = clean.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').trim();\n  return [{ json: { success: true, enhanced: clean } }];\n}\nreturn [{ json: { success: false, error: 'Could not enhance prompt', enhanced: $input.first().json.body?.prompt || '' } }];"
+      },
+      "id": "parse-enhance",
+      "name": "Parse Enhance Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 940]
+      "position": [760, 940]
     },
     {
       "parameters": {
@@ -250,8 +266,9 @@
       "name": "Respond: Enhance",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [760, 940]
+      "position": [1020, 940]
     },
+
 
     {
       "parameters": {
@@ -320,9 +337,12 @@
       "main": [[{ "node": "Respond: recordInfo", "type": "main", "index": 0 }]]
     },
     "WH: Enhance Prompt": {
-      "main": [[{ "node": "Enhance Prompt Logic", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Gemini → Enhance Prompt", "type": "main", "index": 0 }]]
     },
-    "Enhance Prompt Logic": {
+    "Gemini → Enhance Prompt": {
+      "main": [[{ "node": "Parse Enhance Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Enhance Response": {
       "main": [[{ "node": "Respond: Enhance", "type": "main", "index": 0 }]]
     },
     "WH: Adapt Prompt Ref": {
