@@ -3034,7 +3034,7 @@ function updateAuthUI() {
         if (logoutBtn && !logoutBtn._bound) {
             logoutBtn._bound = true;
             logoutBtn.addEventListener('click', () => {
-                if (typeof logoutUser === 'function') logoutUser();
+                handleLogout();
             });
         }
 
@@ -3099,16 +3099,20 @@ function openUserProfileModal() {
 
     document.getElementById('up-tier-icon').textContent = tierIcons[tier] || '🌱';
     document.getElementById('up-tier-name').textContent = tier.toUpperCase();
-    document.getElementById('up-tier-name').style.color = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#f59e0b' : 'white';
+    document.getElementById('up-tier-name').style.color = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#f59e0b' : 'var(--text-primary)';
     document.getElementById('up-tier-desc').textContent = tierDesc[tier] || '';
 
-    // Show modal
+    // Show modal - remove hidden class first, then animate in
     modal.classList.remove('hidden');
+    modal.style.display = 'flex';
     // small delay for css transition
     requestAnimationFrame(() => {
-        modal.style.opacity = '1';
-        modal.style.pointerEvents = 'auto';
-        modal.querySelector('.modal-content').style.transform = 'scale(1)';
+        requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            const content = modal.querySelector('.modal-content');
+            if (content) content.style.transform = 'scale(1)';
+        });
     });
 
     refreshOrderHistory();
@@ -3120,10 +3124,12 @@ function closeUserProfileModal() {
 
     modal.style.opacity = '0';
     modal.style.pointerEvents = 'none';
-    modal.querySelector('.modal-content').style.transform = 'scale(0.95)';
+    const content = modal.querySelector('.modal-content');
+    if (content) content.style.transform = 'scale(0.95)';
 
     setTimeout(() => {
         modal.classList.add('hidden');
+        modal.style.display = '';
     }, 300);
 }
 
@@ -3136,10 +3142,10 @@ function saveUserProfile() {
 
     if (APP_STATE.currentUser) {
         APP_STATE.currentUser.name = newName;
-        // update localstorage
+        // update localstorage - session is stored as a flat user object
         const session = JSON.parse(localStorage.getItem('kgen_session'));
-        if (session && session.user) {
-            session.user.name = newName;
+        if (session) {
+            session.name = newName;
             localStorage.setItem('kgen_session', JSON.stringify(session));
         }
 
