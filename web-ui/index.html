@@ -304,18 +304,7 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main id="main-content" class="main-content">
 
-        <!-- Minimal API Key Icon Button (top-right corner) -->
-        <button class="api-key-mini-btn" id="btn-quick-api" title="Thêm API Key của bạn để tạo ảnh không giới hạn">
-            <svg id="api-key-mini-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                    d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
-                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <svg id="api-key-ok-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none">
-                <path d="M9 12l2 2 4-4M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777z"
-                    stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-        </button>
+
 
         <!-- ===== GALLERY TAB ===== -->
         <section id="tab-gallery" class="tab-content active">
@@ -1019,24 +1008,23 @@
             </header>
 
             <div class="settings-layout">
+                <!-- n8n Gateway Status -->
                 <div class="settings-card">
                     <h3 class="settings-title">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 2l2.5 5 5.5.8-4 3.9.9 5.3L10 14.5 5.1 17l.9-5.3-4-3.9 5.5-.8L10 2z"
-                                stroke="currentColor" stroke-width="1.5" fill="none" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                         </svg>
-                        Kie AI — Nanobanana Pro
+                        AI Engine — n8n Gateway
                     </h3>
                     <div class="form-section">
-                        <label class="form-label" for="setting-kie-key">API Key</label>
-                        <div class="input-group">
-                            <input type="password" id="setting-kie-key" class="form-input"
-                                placeholder="Nhập API Key từ Kie AI...">
-                            <button class="btn btn-sm btn-ghost" id="btn-toggle-kie-key">👁️</button>
+                        <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--bg-secondary); border-radius:10px; border:1px solid var(--border-light);">
+                            <span style="width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:0.88rem;font-weight:600;color:var(--text-primary);">Đang hoạt động</div>
+                                <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:2px;">Tất cả yêu cầu AI được xử lý bảo mật qua n8n</div>
+                            </div>
                         </div>
-                        <p class="form-hint">Lấy API key tại <a href="https://kie.ai" target="_blank">kie.ai</a>
-                            → API Key Management. Model: Nanobanana Pro (Google DeepMind).</p>
-
+                        <p class="form-hint" style="margin-top:10px;">✅ Tạo ảnh &amp; nâng cấp prompt tự động — không cần API key cá nhân.</p>
                     </div>
                 </div>
 
