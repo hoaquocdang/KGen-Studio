@@ -1975,7 +1975,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
         enabled: true,
     };
-    const useN8nGateway = n8nGw?.enabled && n8nGw?.baseUrl && !userKieKey;
+    const useN8nGateway = !!(n8nGw?.enabled && n8nGw?.baseUrl);
 
     // Determine if we have any API access
     if (!useN8nGateway && !userKieKey && !adminKieKey) {
