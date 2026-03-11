@@ -1604,6 +1604,11 @@ async function generateImage() {
         return;
     }
 
+    // Determine which API to use
+    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
+    const adminKieKey = getAdminAPIKey('kie');
+    const userKieKey = APP_STATE.settings.kieApiKey || '';
+
     // Check n8n gateway (always available when configured — API key is server-side)
     const n8nGw = window.SITE_CONFIG?.n8nGateway || {
         baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
@@ -1637,9 +1642,9 @@ async function generateImage() {
         }
     }
 
-
     const quality = document.getElementById('gen-quality').value;
     const aspectRatio = document.querySelector('.gen-ar-opt.active')?.dataset.ratio || '3:4';
+
 
     // Show loading
     document.getElementById('result-placeholder').classList.add('hidden');
