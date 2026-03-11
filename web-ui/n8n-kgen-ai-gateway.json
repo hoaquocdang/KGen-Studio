@@ -225,7 +225,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'You are an expert AI image prompt engineer. Transform the following idea into a highly detailed, professional image generation prompt.\\n\\nStyle: ' + (($json.body.style || 'realistic')) + '\\nMode: ' + (($json.body.mode || 'none')) + '\\nCamera angle: ' + (($json.body.angle || 'none')) + '\\n\\nUser idea: ' + ($json.body.prompt || '') + '\\n\\nRules:\\n- Write in English\\n- Add rich visual details: lighting, composition, colors, textures, atmosphere\\n- Add technical quality terms: resolution, rendering style, artistic quality\\n- Keep the core subject and intent of the original idea\\n- Output ONLY the enhanced prompt, no explanation, no quotes, no markdown\\n- Length: 2-4 sentences maximum' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 512 } }) }}",
