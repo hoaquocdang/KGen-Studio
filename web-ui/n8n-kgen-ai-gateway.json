@@ -1,0 +1,341 @@
+{
+  "name": "KGen AI Gateway — Proxy & Prompt Tools",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kie/createTask",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-create-task",
+      "name": "WH: createTask",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 200],
+      "webhookId": "kie-create-task"
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "kie/queryTask/:taskId",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-query-task",
+      "name": "WH: queryTask",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 460],
+      "webhookId": "kie-query-task"
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "kie/recordInfo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-record-info",
+      "name": "WH: recordInfo",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 700],
+      "webhookId": "kie-record-info"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "enhance-prompt",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-enhance",
+      "name": "WH: Enhance Prompt",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 940],
+      "webhookId": "enhance-prompt"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "adapt-prompt-ref",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-adapt",
+      "name": "WH: Adapt Prompt Ref",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 1200],
+      "webhookId": "adapt-prompt-ref"
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KIE_API_BASE || 'https://api.kie.ai' }}/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "proxy-create-task",
+      "name": "Proxy → KIE createTask",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KIE_CREDENTIAL_ID",
+          "name": "KIE AI Bearer Token"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body || $json) }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode || 200 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+            ]
+          }
+        }
+      },
+      "id": "resp-create-task",
+      "name": "Respond: createTask",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [760, 200]
+    },
+
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KIE_API_BASE || 'https://api.kie.ai' }}/api/v1/jobs/queryTask/{{ $json.params.taskId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "proxy-query-task",
+      "name": "Proxy → KIE queryTask",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 460],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KIE_CREDENTIAL_ID",
+          "name": "KIE AI Bearer Token"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body || $json) }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode || 200 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+            ]
+          }
+        }
+      },
+      "id": "resp-query-task",
+      "name": "Respond: queryTask",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [760, 460]
+    },
+
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KIE_API_BASE || 'https://api.kie.ai' }}/api/v1/jobs/recordInfo?taskId={{ $json.query.taskId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "proxy-record-info",
+      "name": "Proxy → KIE recordInfo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 700],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KIE_CREDENTIAL_ID",
+          "name": "KIE AI Bearer Token"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body || $json) }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode || 200 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+            ]
+          }
+        }
+      },
+      "id": "resp-record-info",
+      "name": "Respond: recordInfo",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [760, 700]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// Enhance prompt using template rules — no external API needed\nconst body = $input.first().json.body;\nconst prompt = body.prompt || '';\nconst style = body.style || 'realistic';\nconst mode = body.mode || 'none';\nconst angle = body.angle || 'none';\n\nif (!prompt.trim()) {\n  return [{ json: { success: false, error: 'Prompt is empty' } }];\n}\n\nconst styleGuides = {\n  realistic: {\n    prefix: '',\n    details: ['Shot with a professional DSLR camera','Natural lighting with soft diffusion','Sharp focus with bokeh background','Rich color grading with cinematic tones','High dynamic range','Photorealistic rendering, 8K resolution'],\n    suffix: 'Ultra-detailed, photorealistic, professional photography, masterful composition'\n  },\n  anime: {\n    prefix: 'Anime-style illustration. ',\n    details: ['Clean line art with cel shading','Vibrant saturated colors','Dynamic pose and expressive features','Detailed background with depth layers','Sparkle and light effects','Studio quality anime production art'],\n    suffix: 'High-quality anime art, detailed illustration, trending on Pixiv, by top anime artists'\n  },\n  illustration: {\n    prefix: 'Digital illustration. ',\n    details: ['Concept art quality with painterly strokes','Dramatic lighting and atmosphere','Rich texture and material details','Cinematic composition with strong focal point','Professional color palette','ArtStation quality, trending concept art'],\n    suffix: 'Award-winning illustration, concept art, digital painting, masterpiece quality'\n  }\n};\n\nconst modeGuides = {\n  none: { prefix: '', details: [], suffix: '' },\n  infographic: { prefix: 'Infographic design layout. ', details: ['Clean data visualization with charts and icons','Organized information hierarchy','Modern flat design with bold typography','Color-coded categories','Professional business style'], suffix: 'Infographic poster, data-driven design, clean layout' },\n  'remove-bg': { prefix: 'Subject isolated on pure white background. ', details: ['Clean cutout with no background','Pure white seamless backdrop','Subject perfectly centered','Studio product lighting','No background shadows'], suffix: 'Isolated subject, white background, product photography' },\n  storyboard: { prefix: 'Storyboard panel sequence. ', details: ['Comic multi-panel grid layout','Sequential storytelling frames','Clear panel borders','Action arrows and movement indicators','Consistent character design'], suffix: 'Storyboard art, sequential panels, cinematic frames' }\n};\n\nconst angleGuides = {\n  none: '',\n  front: 'Front-facing shot, eye-level direct view, symmetrical composition. ',\n  wide: 'Extreme wide-angle shot, establishing shot, panoramic view. ',\n  shoulder: 'Over-the-shoulder shot, depth perspective, cinematic framing. ',\n  low: 'Low-angle shot, dramatic heroic perspective, subject appears powerful. ',\n  high: \"High-angle bird's-eye view, overhead perspective, top-down composition. \",\n  behind: 'Rear view from behind the subject, atmospheric depth, mysterious mood. '\n};\n\nconst guide = styleGuides[style] || styleGuides.realistic;\nconst modeGuide = modeGuides[mode] || modeGuides.none;\nconst anglePrefix = angleGuides[angle] || '';\n\nconst mainPrompt = guide.prefix + modeGuide.prefix + anglePrefix + prompt.charAt(0).toUpperCase() + prompt.slice(1) + '.';\nconst allDetails = [...guide.details, ...modeGuide.details];\nconst combinedSuffix = [guide.suffix, modeGuide.suffix].filter(Boolean).join('. ');\n\nconst enhanced = [mainPrompt, '', 'Visual Details:', ...allDetails.map(d => `- ${d}`), '', combinedSuffix].join('\\n');\n\nreturn [{ json: { success: true, enhanced } }];"
+      },
+      "id": "enhance-code",
+      "name": "Enhance Prompt Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 940]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "resp-enhance",
+      "name": "Respond: Enhance",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [760, 940]
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'You are an expert image prompt editor. You will receive:\\n1. A reference image of a person/subject\\n2. An existing image generation prompt\\n\\nYour task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.\\n\\nRULES:\\n- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.\\n- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.\\n- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.\\n- Keep ALL text overlay instructions unchanged.\\n- Keep the same language as the original prompt.\\n- Output ONLY the modified prompt text, nothing else.\\n\\n--- EXISTING PROMPT ---\\n' + ($json.body.prompt || '') + '\\n--- END PROMPT ---\\n\\nPlease output the modified prompt:' } ] }], generationConfig: { temperature: 0.3, maxOutputTokens: 4096 } }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "gemini-adapt",
+      "name": "Gemini → Adapt Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 1200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst candidates = data.candidates || [];\nlet resultText = '';\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.text) resultText += part.text;\n  }\n}\nif (resultText.trim()) {\n  let clean = resultText.trim();\n  if (clean.startsWith('\"') && clean.endsWith('\"')) clean = clean.slice(1, -1);\n  if (clean.startsWith('```') && clean.endsWith('```')) clean = clean.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').trim();\n  return [{ json: { success: true, adaptedPrompt: clean } }];\n}\nreturn [{ json: { success: false, error: 'Could not analyze reference image' } }];"
+      },
+      "id": "parse-adapt",
+      "name": "Parse Gemini Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 1200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "resp-adapt",
+      "name": "Respond: Adapt",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1020, 1200]
+    }
+  ],
+  "connections": {
+    "WH: createTask": {
+      "main": [[{ "node": "Proxy → KIE createTask", "type": "main", "index": 0 }]]
+    },
+    "Proxy → KIE createTask": {
+      "main": [[{ "node": "Respond: createTask", "type": "main", "index": 0 }]]
+    },
+    "WH: queryTask": {
+      "main": [[{ "node": "Proxy → KIE queryTask", "type": "main", "index": 0 }]]
+    },
+    "Proxy → KIE queryTask": {
+      "main": [[{ "node": "Respond: queryTask", "type": "main", "index": 0 }]]
+    },
+    "WH: recordInfo": {
+      "main": [[{ "node": "Proxy → KIE recordInfo", "type": "main", "index": 0 }]]
+    },
+    "Proxy → KIE recordInfo": {
+      "main": [[{ "node": "Respond: recordInfo", "type": "main", "index": 0 }]]
+    },
+    "WH: Enhance Prompt": {
+      "main": [[{ "node": "Enhance Prompt Logic", "type": "main", "index": 0 }]]
+    },
+    "Enhance Prompt Logic": {
+      "main": [[{ "node": "Respond: Enhance", "type": "main", "index": 0 }]]
+    },
+    "WH: Adapt Prompt Ref": {
+      "main": [[{ "node": "Gemini → Adapt Prompt", "type": "main", "index": 0 }]]
+    },
+    "Gemini → Adapt Prompt": {
+      "main": [[{ "node": "Parse Gemini Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Gemini Response": {
+      "main": [[{ "node": "Respond: Adapt", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "KGen Gallery" }],
+  "pinData": {}
+}

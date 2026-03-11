@@ -1441,8 +1441,12 @@ async function adaptPromptToReference() {
         return;
     }
 
+    // Check if n8n gateway is available OR user has Google API key
+    const n8nGw = window.SITE_CONFIG?.n8nGateway;
+    const useN8nGateway = n8nGw?.enabled && n8nGw?.baseUrl;
     const userGoogleKey = APP_STATE.settings.googleApiKey || '';
-    if (!userGoogleKey) {
+
+    if (!useN8nGateway && !userGoogleKey) {
         showToast('⚠️ Cần Google API Key để phân tích ảnh. Vào Cài đặt API Key để thêm.', 'error', 4000);
         return;
     }
@@ -1478,10 +1482,39 @@ async function adaptPromptToReference() {
             throw new Error('Không thể đọc ảnh tham chiếu');
         }
 
-        const geminiModel = 'gemini-2.5-flash';
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
+        let resultText = '';
 
-        const systemPrompt = `You are an expert image prompt editor. You will receive:
+        if (useN8nGateway && !userGoogleKey) {
+            // Route through n8n gateway — Gemini key is stored server-side
+            console.log('🔒 Using n8n AI Gateway for Gemini adapt-prompt');
+            const response = await fetch(`${n8nGw.baseUrl}/adapt-prompt-ref`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    refImageBase64: base64Data,
+                    refImageMime: mimeType,
+                }),
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('Adapt to ref error:', response.status, errText);
+                throw new Error(`API Error ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success && data.adaptedPrompt) {
+                resultText = data.adaptedPrompt;
+            } else {
+                throw new Error(data.error || 'Could not analyze reference image');
+            }
+        } else {
+            // Direct Gemini API call with user's own key
+            const geminiModel = 'gemini-2.5-flash';
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
+
+            const systemPrompt = `You are an expert image prompt editor. You will receive:
 1. A reference image of a person/subject
 2. An existing image generation prompt
 
@@ -1496,43 +1529,43 @@ RULES:
 - Keep the same language as the original prompt.
 - Output ONLY the modified prompt text, nothing else. No explanation, no labels, no quotes.`;
 
-        const response = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        {
-                            inlineData: {
-                                mimeType: mimeType,
-                                data: base64Data,
+            const response = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64Data,
+                                }
+                            },
+                            {
+                                text: `${systemPrompt}\n\n--- EXISTING PROMPT ---\n${prompt}\n--- END PROMPT ---\n\nPlease output the modified prompt:`
                             }
-                        },
-                        {
-                            text: `${systemPrompt}\n\n--- EXISTING PROMPT ---\n${prompt}\n--- END PROMPT ---\n\nPlease output the modified prompt:`
-                        }
-                    ]
-                }],
-                generationConfig: {
-                    temperature: 0.3,
-                    maxOutputTokens: 4096,
-                },
-            }),
-        });
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.3,
+                        maxOutputTokens: 4096,
+                    },
+                }),
+            });
 
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error('Adapt to ref error:', response.status, errText);
-            throw new Error(`API Error ${response.status}`);
-        }
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('Adapt to ref error:', response.status, errText);
+                throw new Error(`API Error ${response.status}`);
+            }
 
-        const data = await response.json();
-        const candidates = data.candidates || [];
-        let resultText = '';
-        if (candidates.length > 0) {
-            const parts = candidates[0].content?.parts || [];
-            for (const part of parts) {
-                if (part.text) resultText += part.text;
+            const data = await response.json();
+            const candidates = data.candidates || [];
+            if (candidates.length > 0) {
+                const parts = candidates[0].content?.parts || [];
+                for (const part of parts) {
+                    if (part.text) resultText += part.text;
+                }
             }
         }
 
@@ -1930,32 +1963,36 @@ function showGenerationError(message) {
  */
 async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) {
     const cfg = getSiteConfig();
-    const useProxy = cfg.useProxy === true;
     const userKieKey = APP_STATE.settings.kieApiKey || '';
     const adminKieKey = getAdminAPIKey('kie');
 
-    // Determine if we use proxy or direct
-    const directKey = userKieKey || adminKieKey;
+    // Check if n8n gateway is enabled (API key stored server-side in n8n)
+    const n8nGw = window.SITE_CONFIG?.n8nGateway;
+    const useN8nGateway = n8nGw?.enabled && n8nGw?.baseUrl && !userKieKey;
 
-    if (!useProxy && !directKey) {
-        throw new Error('Kie AI API Key chưa được cấu hình. Nhấn nút 🔑 API Key ở góc trên phải để thêm key.');
+    // Determine if we have any API access
+    if (!useN8nGateway && !userKieKey && !adminKieKey) {
+        showApiKeyGuideModal();
+        throw new Error('API Key chưa được cấu hình.');
     }
 
-    // If using proxy, base URL is same origin; if direct, use Kie AI base
-    const baseUrl = useProxy && !userKieKey
-        ? (window.location.origin + '/api/proxy')
-        : (getAdminAPIKey('kieBase') || 'https://api.kie.ai');
-    const apiKey = userKieKey || adminKieKey;
-    const authHeaders = useProxy && !userKieKey
-        ? {} // proxy adds auth header server-side
-        : { 'Authorization': `Bearer ${apiKey}` };
+    // Set base URL and auth headers based on mode
+    let baseUrl, authHeaders;
+    if (useN8nGateway) {
+        // Route through n8n — no API key sent from browser
+        baseUrl = n8nGw.baseUrl + '/kie';
+        authHeaders = {};
+        console.log('🔒 Using n8n AI Gateway for KIE.ai');
+    } else {
+        // Direct API call (user's own key or admin key)
+        baseUrl = getAdminAPIKey('kieBase') || 'https://api.kie.ai';
+        const apiKey = userKieKey || adminKieKey;
+        authHeaders = { 'Authorization': `Bearer ${apiKey}` };
+    }
 
     const model = selectedModel || getAdminAPIKey('kieModel') || 'nano-banana-pro';
 
     // Model configuration map
-    // apiModel: exact model identifier for Kie AI API
-    // inputField: 'image_input' | 'input_urls' | null (text-only)
-    // hasOutputFormat: whether model supports output_format param
     const MODEL_CONFIG = {
         'nano-banana-pro': { apiModel: 'nano-banana-pro', maxRefs: 8, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
         'nano-banana-2': { apiModel: 'nano-banana-2', maxRefs: 14, defaultRes: '1K', defaultAR: 'auto', pollType: 'recordInfo', inputField: 'image_input', hasOutputFormat: true, supportsSearch: true },
@@ -2009,8 +2046,8 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     console.log('🎨 Kie AI Request:', JSON.stringify(requestBody, null, 2));
 
     // Step 1: Create task
-    // Proxy mode: /api/proxy/createTask | Direct: /api/v1/jobs/createTask
-    const createUrl = useProxy && !userKieKey
+    // n8n gateway: /kie/createTask | Direct: /api/v1/jobs/createTask
+    const createUrl = useN8nGateway
         ? `${baseUrl}/createTask`
         : `${baseUrl}/api/v1/jobs/createTask`;
 
@@ -2026,7 +2063,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         });
     } catch (fetchErr) {
         console.error('Fetch error:', fetchErr);
-        throw new Error('Không kết nối được tới Kie AI server. Kiểm tra kết nối mạng.');
+        throw new Error('Không kết nối được tới server. Kiểm tra kết nối mạng.');
     }
 
     const responseText = await createResponse.text();
@@ -2036,8 +2073,8 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         let err = {};
         try { err = JSON.parse(responseText); } catch (e) { }
         const errMsg = err.message || err.error || responseText || `HTTP ${createResponse.status}`;
-        if (createResponse.status === 401) throw new Error('Kie AI API key không hợp lệ. Kiểm tra lại key.');
-        if (createResponse.status === 402) throw new Error('Hết credit Kie AI. Nạp thêm tại kie.ai.');
+        if (createResponse.status === 401) throw new Error('API key không hợp lệ. Kiểm tra lại key.');
+        if (createResponse.status === 402) throw new Error('Hết credit. Nạp thêm tại kie.ai.');
         if (createResponse.status === 429) throw new Error('Quá nhiều request. Đợi vài giây rồi thử lại.');
         throw new Error(`API Error (${createResponse.status}): ${errMsg}`);
     }
@@ -2060,11 +2097,11 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         throw new Error('Không nhận được taskId. Response: ' + JSON.stringify(createData).substring(0, 300));
     }
 
-    console.log('🎨 Task created:', taskId, '| Model:', model);
+    console.log('🎨 Task created:', taskId, '| Model:', model, '| Via:', useN8nGateway ? 'n8n gateway' : 'direct');
 
     // Step 2: Poll for result
     let pollUrl;
-    if (useProxy && !userKieKey) {
+    if (useN8nGateway) {
         pollUrl = isRecordInfo
             ? `${baseUrl}/recordInfo?taskId=${taskId}`
             : `${baseUrl}/queryTask/${taskId}`;
@@ -3080,27 +3117,72 @@ function openUserProfileModal() {
     const modal = document.getElementById('user-profile-modal');
     if (!modal) return;
 
-    // Set info
-    document.getElementById('up-name').value = user.name || 'User';
+    // Set name and email
+    document.getElementById('up-name').value = user.name || user.displayName || '';
     document.getElementById('up-email').textContent = user.email || '';
 
     // Avatar
     const avatar = document.getElementById('up-avatar');
-    if (user.picture) {
-        avatar.innerHTML = `<img src="${user.picture}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    if (user.picture || user.avatar_url) {
+        const imgUrl = user.picture || user.avatar_url;
+        avatar.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.parentElement.innerHTML='${(user.name || user.email || 'U').charAt(0).toUpperCase()}'">`;
     } else {
-        avatar.innerHTML = (user.name || 'U').charAt(0).toUpperCase();
+        avatar.innerHTML = (user.name || user.email || 'U').charAt(0).toUpperCase();
     }
 
-    // Tier
+    // Plan / Tier
     const tierIcons = { free: '🌱', pro: '⚡', premium: '🔥' };
-    const tierDesc = { free: 'Miễn phí trọn đời', pro: 'Tạo 1000 ảnh / tháng', premium: 'Tạo 5000 ảnh / tháng' };
-    const tier = user.tier || 'free';
+    const tierDesc = { free: 'Miễn phí trọn đời', pro: '1,000 token / tháng', premium: '5,000 token / tháng' };
+    const plan = getUserPlan();
+    const tier = user.tier || plan;
 
     document.getElementById('up-tier-icon').textContent = tierIcons[tier] || '🌱';
     document.getElementById('up-tier-name').textContent = tier.toUpperCase();
     document.getElementById('up-tier-name').style.color = tier === 'pro' ? '#3b82f6' : tier === 'premium' ? '#f59e0b' : 'var(--text-primary)';
     document.getElementById('up-tier-desc').textContent = tierDesc[tier] || '';
+
+    // Token usage
+    const used = getUserImagesUsed();
+    const limit = getUserImageLimit();
+    const percentage = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
+
+    document.getElementById('up-token-count').textContent = `${used} / ${limit}`;
+    const tokenBar = document.getElementById('up-token-bar');
+    if (tokenBar) {
+        tokenBar.style.width = `${percentage}%`;
+        // Change color when usage is high
+        if (percentage > 80) {
+            tokenBar.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
+        } else {
+            tokenBar.style.background = 'linear-gradient(90deg, var(--accent-blue), #8b5cf6)';
+        }
+    }
+
+    // Personal API key indicator
+    const personalKeyEl = document.getElementById('up-personal-key');
+    if (personalKeyEl) {
+        personalKeyEl.style.display = hasPersonalApiKey() ? 'block' : 'none';
+    }
+
+    // Renewal date (for paid plans)
+    const renewalEl = document.getElementById('up-renewal');
+    if (renewalEl) {
+        if (tier !== 'free') {
+            const quota = getUserQuota();
+            if (quota.monthStart) {
+                const startDate = new Date(quota.monthStart);
+                const renewDate = new Date(startDate);
+                renewDate.setMonth(renewDate.getMonth() + 1);
+                const formattedDate = renewDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                document.getElementById('up-renewal-text').textContent = `Gia hạn: ${formattedDate}`;
+                renewalEl.style.display = 'block';
+            } else {
+                renewalEl.style.display = 'none';
+            }
+        } else {
+            renewalEl.style.display = 'none';
+        }
+    }
 
     // Show modal - remove hidden class first, then animate in
     modal.classList.remove('hidden');

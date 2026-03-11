@@ -1902,67 +1902,96 @@
     <div id="user-profile-modal" class="modal-overlay hidden"
         style="z-index: 10000; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="modal-content"
-            style="background: var(--bg-primary); border-radius: 24px; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.4); transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div
-                style="padding: 24px 32px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);">
-                <h3 style="margin:0; font-size: 1.4rem; font-weight: 700;">Hồ sơ của bạn</h3>
+            style="background: var(--bg-primary); border-radius: 24px; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--border-light); box-shadow: 0 20px 60px rgba(0,0,0,0.15); transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div style="padding: 24px 28px 20px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0; font-size: 1.3rem; font-weight: 700; color: var(--text-primary);">Hồ sơ của bạn</h3>
                 <button onclick="closeUserProfileModal()"
-                    style="background:transparent; border:none; color: var(--text-tertiary); cursor: pointer; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items:center; justify-content:center; transition: all 0.2s;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    style="background:var(--bg-hover); border:none; color: var(--text-secondary); cursor: pointer; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items:center; justify-content:center; transition: all 0.2s;"
+                    onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='var(--bg-hover)'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
             </div>
-            <div style="padding: 32px;">
-                <div style="display:flex; align-items:center; gap:20px; margin-bottom: 32px;">
-                    <div id="up-avatar"
-                        style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), #8b5cf6); color: white; display: flex; align-items:center; justify-content:center; font-size: 2rem; font-weight: 700; box-shadow: 0 4px 16px rgba(59,130,246,0.3);">
-                        U</div>
-                    <div style="flex:1;">
-                        <input type="text" id="up-name"
-                            style="width:100%; background:transparent; border:none; border-bottom: 1px solid rgba(255,255,255,0.1); color:white; font-size: 1.4rem; font-weight: 700; padding-bottom: 4px; margin-bottom: 8px; transition: border-color 0.2s;">
-                        <div id="up-email" style="color:var(--text-secondary); font-size: 0.9rem;">email@example.com
+
+            <div style="padding: 28px;">
+                <!-- Avatar + Info -->
+                <div style="display:flex; align-items:center; gap:20px; margin-bottom: 28px;">
+                    <div style="position:relative;">
+                        <div id="up-avatar"
+                            style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), #8b5cf6); color: white; display: flex; align-items:center; justify-content:center; font-size: 1.8rem; font-weight: 700; box-shadow: 0 4px 16px rgba(59,130,246,0.2); overflow:hidden;">
+                            U</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom: 6px;">
+                            <input type="text" id="up-name" placeholder="Tên của bạn"
+                                style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius: 8px; color:var(--text-primary); font-size: 1.1rem; font-weight: 600; padding: 6px 12px; transition: border-color 0.2s; outline:none; min-width:0;"
+                                onfocus="this.style.borderColor='var(--accent-blue)'" onblur="this.style.borderColor='var(--border-color)'">
                         </div>
+                        <div id="up-email" style="color:var(--text-secondary); font-size: 0.85rem; padding-left: 2px;">email@example.com</div>
                     </div>
                 </div>
 
-                <div
-                    style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-                    <h4 style="margin:0 0 16px 0; font-size: 1rem; color: var(--text-secondary);">Gói cước hiện tại</h4>
-                    <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <div style="display:flex; align-items:center; gap: 12px;">
-                            <span id="up-tier-icon" style="font-size: 1.8rem;">🌱</span>
-                            <div>
-                                <strong id="up-tier-name" style="display:block; font-size: 1.1rem;">FREE</strong>
-                                <span id="up-tier-desc" style="font-size: 0.8rem; color:var(--text-tertiary);">Miễn phí
-                                    trọn đời</span>
-                            </div>
+                <!-- Token Usage Section -->
+                <div style="background: var(--bg-secondary); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-light);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px;">
+                        <h4 style="margin:0; font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">Gói cước & Token</h4>
+                        <button onclick="closeUserProfileModal(); switchTab('pricing');" class="btn btn-sm"
+                            style="border-radius:100px; font-size: 0.75rem; background: var(--accent-blue); color: white; border: none; padding: 4px 14px; cursor: pointer;">Đổi gói</button>
+                    </div>
+                    <!-- Plan badge -->
+                    <div style="display:flex; align-items:center; gap: 12px; margin-bottom: 16px;">
+                        <span id="up-tier-icon" style="font-size: 1.6rem;">🌱</span>
+                        <div>
+                            <strong id="up-tier-name" style="display:block; font-size: 1.05rem; color: var(--text-primary);">FREE</strong>
+                            <span id="up-tier-desc" style="font-size: 0.78rem; color:var(--text-tertiary);">Miễn phí trọn đời</span>
                         </div>
-                        <button onclick="closeUserProfileModal(); switchTab('pricing');" class="btn btn-outline btn-sm"
-                            style="border-radius:100px; font-size: 0.8rem;">Đổi gói</button>
+                    </div>
+                    <!-- Token usage bar -->
+                    <div style="margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Token đã dùng</span>
+                            <span id="up-token-count" style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">0 / 10</span>
+                        </div>
+                        <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow:hidden;">
+                            <div id="up-token-bar" style="height: 100%; background: linear-gradient(90deg, var(--accent-blue), #8b5cf6); border-radius: 4px; transition: width 0.5s ease; width: 0%;"></div>
+                        </div>
+                    </div>
+                    <!-- Renewal date -->
+                    <div id="up-renewal" style="font-size: 0.78rem; color: var(--text-tertiary); margin-top: 10px; display:none;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+                            <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="up-renewal-text">Gia hạn: --</span>
+                    </div>
+                    <!-- Personal API key indicator -->
+                    <div id="up-personal-key" style="font-size: 0.78rem; color: var(--accent-green); margin-top: 8px; display:none;">
+                        🔑 Đang dùng API key cá nhân — Không giới hạn
                     </div>
                 </div>
 
-                <div>
-                    <h4
-                        style="margin:0 0 16px 0; font-size: 1rem; color: var(--text-secondary); display:flex; align-items:center; justify-content:space-between;">
+                <!-- Order History -->
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin:0 0 12px 0; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); display:flex; align-items:center; justify-content:space-between;">
                         <span>Lịch sử đơn hàng</span>
                         <button onclick="refreshOrderHistory()"
-                            style="background:transparent; border:none; color:var(--accent-blue); font-size:0.8rem; cursor:pointer; font-weight:600;">Làm
-                            mới</button>
+                            style="background:transparent; border:none; color:var(--accent-blue); font-size:0.78rem; cursor:pointer; font-weight:600;">Làm mới</button>
                     </h4>
                     <div id="up-orders-list"
-                        style="max-height: 200px; overflow-y: auto; padding-right: 8px; font-size: 0.9rem;">
-                        <!-- Orders will be injected here -->
-                        <div style="text-align:center; padding: 20px; color: var(--text-tertiary); font-style: italic;">
+                        style="max-height: 180px; overflow-y: auto; padding-right: 4px; font-size: 0.85rem;">
+                        <div style="text-align:center; padding: 16px; color: var(--text-tertiary); font-style: italic; font-size: 0.82rem;">
                             Đang tải...</div>
                     </div>
                 </div>
 
-                <div style="margin-top: 32px; text-align:right;">
-                    <button class="btn btn-primary" onclick="saveUserProfile()"
-                        style="border-radius: 100px; padding: 10px 24px; font-weight: 600;">Lưu thay đổi</button>
+                <!-- Actions -->
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="btn btn-ghost btn-sm" onclick="closeUserProfileModal()"
+                        style="border-radius: 100px; padding: 8px 20px;">Đóng</button>
+                    <button class="btn btn-primary btn-sm" onclick="saveUserProfile()"
+                        style="border-radius: 100px; padding: 8px 20px; font-weight: 600;">Lưu thay đổi</button>
                 </div>
             </div>
         </div>
