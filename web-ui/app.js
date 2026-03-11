@@ -1604,26 +1604,31 @@ async function generateImage() {
         return;
     }
 
-    // Determine which API to use: user's Google key or admin's Kie AI key
-    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
-    const adminKieKey = getAdminAPIKey('kie');
-    const userKieKey = APP_STATE.settings.kieApiKey || '';
+    // Check n8n gateway (always available when configured — API key is server-side)
+    const n8nGw = window.SITE_CONFIG?.n8nGateway || {
+        baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
+        enabled: true,
+    };
+    const hasN8nGateway = !!(n8nGw?.enabled && n8nGw?.baseUrl);
 
     const useGoogleApi = !!userGoogleKey;
-    const useKieApi = !!(userKieKey || adminKieKey);
+    // KIE via n8n (no user key needed) or via direct key
+    const useKieApi = !!(userKieKey || adminKieKey || hasN8nGateway);
 
     if (!useGoogleApi && !useKieApi) {
         showApiKeyGuideModal();
         return;
     }
 
-    // If using admin key (not user's own key), check quota
-    if (!useGoogleApi && !userKieKey && adminKieKey) {
+    // Check quota if using n8n gateway (admin-paid) — not needed if user has own key
+    const usingAdminServer = hasN8nGateway && !userKieKey && !userGoogleKey;
+    if (usingAdminServer) {
         if (!canGenerateImage()) {
             const plan = getUserPlan();
             const limit = getUserImageLimit();
             if (plan === 'free') {
-                showApiKeyGuideModal();
+                showToast(`⚠️ Bạn đã hết ${limit} lượt tạo ảnh miễn phí. Nâng cấp gói để tiếp tục!`, 'error', 5000);
+                switchTab('pricing');
             } else {
                 showToast(`⚠️ Bạn đã sử dụng hết ${limit} token tháng này. Nâng cấp gói để tiếp tục!`, 'error', 5000);
                 switchTab('pricing');
@@ -1631,6 +1636,7 @@ async function generateImage() {
             return;
         }
     }
+
 
     const quality = document.getElementById('gen-quality').value;
     const aspectRatio = document.querySelector('.gen-ar-opt.active')?.dataset.ratio || '3:4';
@@ -1883,9 +1889,6 @@ function showApiKeyGuideModal() {
                 <div style="display:flex;gap:8px;margin-top:12px;">
                     <input type="text" id="guide-kie-key" placeholder="Nhập API Key từ Kie AI..." style="flex:1;padding:10px 12px;border:1px solid var(--border-light,#ddd);border-radius:8px;font-size:0.85rem;background:var(--bg-primary,#fff);">
                     <button onclick="saveGuideKey('kie')" style="padding:10px 16px;background:var(--accent,#4a90d9);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Lưu</button>
-                </div>
-                <div style="margin-top:10px;padding:10px;background:var(--bg-primary,#fff);border-radius:8px;font-size:0.78rem;color:var(--text-secondary,#888);">
-                    💰 Giá: 1K/2K = 18 credits (~$0.09) · 4K = 24 credits (~$0.12)
                 </div>
             </div>
 

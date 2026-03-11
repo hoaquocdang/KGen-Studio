@@ -1036,14 +1036,7 @@
                         </div>
                         <p class="form-hint">Lấy API key tại <a href="https://kie.ai" target="_blank">kie.ai</a>
                             → API Key Management. Model: Nanobanana Pro (Google DeepMind).</p>
-                        <div
-                            style="margin-top:12px;padding:12px;background:var(--bg-secondary,#f5f7fa);border-radius:8px;font-size:0.82rem;color:var(--text-secondary,#666);">
-                            <strong>💰 Bảng giá:</strong><br>
-                            • 1K/2K: 18 credits (~$0.09/ảnh)<br>
-                            • 4K: 24 credits (~$0.12/ảnh)<br>
-                            <span style="color:var(--accent,#4a90d9);">High-tier top-up +10% bonus → ~$0.082 (1K/2K) /
-                                ~$0.11 (4K)</span>
-                        </div>
+
                     </div>
                 </div>
 
@@ -1845,51 +1838,20 @@
                 <button class="quick-api-close" id="quick-api-close">&times;</button>
             </div>
 
-            <!-- Tab switcher -->
-            <div class="quick-api-tabs" style="display:flex;gap:4px;padding:0 16px;margin-bottom:8px;">
-                <button class="quick-api-tab active" data-provider="google"
-                    style="flex:1;padding:8px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-active);cursor:pointer;font-size:0.82rem;font-weight:600;font-family:var(--font-sans);">
-                    🌐 Google (Miễn phí)
-                </button>
-                <button class="quick-api-tab" data-provider="kie"
-                    style="flex:1;padding:8px;border:1px solid var(--border-color);border-radius:8px;background:transparent;cursor:pointer;font-size:0.82rem;font-family:var(--font-sans);">
-                    ✨ Kie AI (Nâng cao)
-                </button>
-            </div>
-
             <div class="quick-api-body">
-                <!-- Google Gemini (Primary for users - FREE) -->
+                <!-- Google Gemini - để phân tích ảnh tham chiếu -->
                 <div class="quick-api-pane active" id="pane-google">
                     <p class="quick-api-hint">
-                        <strong>Google Gemini API</strong> — Tạo ảnh bằng Imagen 3 (Google DeepMind).
-                        <span style="color:var(--accent-green,#22c55e);font-weight:600;">Miễn phí hoàn toàn!</span>
+                        <strong>Google Gemini API</strong> — Dùng để phân tích ảnh tham chiếu (Adapt to Ref).
+                        <span style="color:var(--accent-green,#22c55e);font-weight:600;">Miễn phí!</span>
                     </p>
                     <div class="quick-api-input-row">
                         <input type="password" id="qk-google" placeholder="Nhập Google API Key..."
                             class="quick-api-input" autocomplete="off">
                         <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-google')">👁</button>
                     </div>
-                    <a href="https://aistudio.google.com/apikey" target="_blank" class="quick-api-link">→ Lấy key miễn
-                        phí tại Google AI Studio</a>
-                    <div style="margin:8px 0;font-size:0.78rem;color:var(--text-secondary,#888);">
-                        ✅ Miễn phí • ✅ Không giới hạn ảnh • ✅ Imagen 3 chất lượng cao
-                    </div>
+                    <a href="https://aistudio.google.com/apikey" target="_blank" class="quick-api-link">→ Lấy key miễn phí tại Google AI Studio</a>
                     <button class="quick-api-save-btn" onclick="saveQuickKey('google')">✅ Lưu & Kích hoạt</button>
-                </div>
-
-                <!-- Kie AI (Secondary - paid) -->
-                <div class="quick-api-pane hidden" id="pane-kie">
-                    <p class="quick-api-hint">Model: <strong>Nanobanana Pro</strong> (Google DeepMind). 2K sắc nét, 4K
-                        scaling.</p>
-                    <div class="quick-api-input-row">
-                        <input type="password" id="qk-kie" placeholder="Nhập API Key từ Kie AI..."
-                            class="quick-api-input" autocomplete="off">
-                        <button class="quick-api-toggle" onclick="toggleQKVisibility('qk-kie')">👁</button>
-                    </div>
-                    <a href="https://kie.ai" target="_blank" class="quick-api-link">→ Lấy key tại kie.ai</a>
-                    <div style="margin:8px 0;font-size:0.78rem;color:var(--text-secondary,#888);">💰 1K/2K: 18 credits
-                        (~$0.09) · 4K: 24 credits (~$0.12)</div>
-                    <button class="quick-api-save-btn" onclick="saveQuickKey('kie')">✅ Lưu & Kích hoạt</button>
                 </div>
             </div>
 
