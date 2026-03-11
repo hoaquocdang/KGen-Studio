@@ -1947,10 +1947,166 @@
         </div>
     </div>
 
+
+    <!-- ===== WELCOME OFFER POPUP ===== -->
+    <div id="welcome-popup" style="
+        display:none; position:fixed; inset:0; z-index:99999;
+        background:rgba(0,0,0,0.75); backdrop-filter:blur(16px);
+        align-items:center; justify-content:center; padding:16px;
+    ">
+        <div id="welcome-popup-card" style="
+            position:relative; max-width:560px; width:100%;
+            background:linear-gradient(145deg,#0f0f1a,#161628);
+            border-radius:24px; overflow:hidden;
+            box-shadow:0 0 0 1.5px rgba(139,92,246,0.4), 0 40px 80px rgba(0,0,0,0.6);
+            animation: popupIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        ">
+            <!-- Animated gradient top bar -->
+            <div style="height:4px; background:linear-gradient(90deg,#7c3aed,#3b82f6,#06b6d4,#8b5cf6); background-size:200%; animation:gradientShift 3s linear infinite;"></div>
+
+            <!-- Close -->
+            <button onclick="closeWelcomePopup()" style="
+                position:absolute; top:16px; right:16px; z-index:10;
+                width:32px; height:32px; border-radius:50%; border:none;
+                background:rgba(255,255,255,0.1); color:#aaa; font-size:18px;
+                cursor:pointer; display:flex; align-items:center; justify-content:center;
+                transition:all 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
+
+            <div style="padding:32px 28px 28px;">
+                <!-- Header -->
+                <div style="text-align:center; margin-bottom:24px;">
+                    <div style="font-size:2.4rem; margin-bottom:8px; line-height:1;">🎁</div>
+                    <div style="
+                        display:inline-block; padding:4px 14px; border-radius:100px;
+                        background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(59,130,246,0.3));
+                        border:1px solid rgba(139,92,246,0.4); font-size:0.72rem;
+                        color:#a78bfa; font-weight:700; letter-spacing:1px; margin-bottom:12px;
+                    ">ƯU ĐÃI ĐẶC BIỆT CHO THÀNH VIÊN MỚI</div>
+                    <h2 style="font-size:1.5rem; font-weight:800; color:#fff; margin:0 0 8px 0; line-height:1.3;">
+                        Tạo ảnh AI không giới hạn<br>
+                        <span style="background:linear-gradient(90deg,#8b5cf6,#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">chỉ từ 99K/tháng</span>
+                    </h2>
+                    <p style="color:#9ca3af; font-size:0.85rem; margin:0;">Tham gia hơn <strong style="color:#e5e7eb;">5,000+ người dùng</strong> đang tạo nội dung với KGen AI</p>
+                </div>
+
+                <!-- Plans row -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
+                    <!-- Free -->
+                    <div style="padding:14px 10px; background:rgba(255,255,255,0.04); border-radius:14px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+                        <div style="font-size:1.2rem;">🆓</div>
+                        <div style="font-size:0.8rem; font-weight:700; color:#e5e7eb; margin:4px 0 2px;">FREE</div>
+                        <div style="font-size:0.68rem; color:#6b7280;">10 ảnh/tháng</div>
+                        <div style="font-size:0.7rem; color:#6b7280; margin-top:4px;">Prompt gallery</div>
+                    </div>
+                    <!-- Pro - highlighted -->
+                    <div style="padding:14px 10px; background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.15)); border-radius:14px; border:1.5px solid rgba(139,92,246,0.5); text-align:center; position:relative;">
+                        <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,#7c3aed,#3b82f6); color:#fff; font-size:0.6rem; font-weight:700; padding:2px 8px; border-radius:100px; white-space:nowrap;">PHỔ BIẾN</div>
+                        <div style="font-size:1.2rem; margin-top:6px;">⚡</div>
+                        <div style="font-size:0.8rem; font-weight:700; color:#a78bfa; margin:4px 0 2px;">PRO</div>
+                        <div style="font-size:0.75rem; font-weight:700; color:#e5e7eb;">99K/tháng</div>
+                        <div style="font-size:0.68rem; color:#a78bfa; margin-top:2px;">200 ảnh/tháng</div>
+                    </div>
+                    <!-- Premium -->
+                    <div style="padding:14px 10px; background:rgba(255,255,255,0.04); border-radius:14px; border:1px solid rgba(255,185,0,0.25); text-align:center;">
+                        <div style="font-size:1.2rem;">👑</div>
+                        <div style="font-size:0.8rem; font-weight:700; color:#fbbf24; margin:4px 0 2px;">PREMIUM</div>
+                        <div style="font-size:0.75rem; font-weight:700; color:#e5e7eb;">299K/tháng</div>
+                        <div style="font-size:0.68rem; color:#fbbf24; margin-top:2px;">Không giới hạn</div>
+                    </div>
+                </div>
+
+                <!-- Ecosystem apps -->
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.72rem; font-weight:600; color:#6b7280; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase;">🌐 Hệ sinh thái độc quyền</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(255,255,255,0.05); border-radius:100px; border:1px solid rgba(255,255,255,0.1);">
+                            <span>🎨</span><span style="font-size:0.75rem; color:#e5e7eb; font-weight:500;">KGen Gallery</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(255,255,255,0.05); border-radius:100px; border:1px solid rgba(255,255,255,0.1);">
+                            <span>📱</span><span style="font-size:0.75rem; color:#e5e7eb; font-weight:500;">Carousel AI</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(255,255,255,0.05); border-radius:100px; border:1px solid rgba(255,255,255,0.1);">
+                            <span>🤖</span><span style="font-size:0.75rem; color:#e5e7eb; font-weight:500;">Hub SEO AI</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(139,92,246,0.15); border-radius:100px; border:1px solid rgba(139,92,246,0.35);">
+                            <span>🔮</span><span style="font-size:0.75rem; color:#a78bfa; font-weight:600;">+10 app sắp ra mắt</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA -->
+                <button onclick="closeWelcomePopup(); document.getElementById('btn-login')?.click();" style="
+                    width:100%; padding:14px; border:none; border-radius:14px; cursor:pointer;
+                    background:linear-gradient(135deg,#7c3aed,#3b82f6);
+                    color:#fff; font-size:1rem; font-weight:700; letter-spacing:0.3px;
+                    box-shadow:0 8px 24px rgba(124,58,237,0.4);
+                    transition:transform 0.2s, box-shadow 0.2s;
+                    display:flex; align-items:center; justify-content:center; gap:8px;
+                " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(124,58,237,0.5)'"
+                   onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 24px rgba(124,58,237,0.4)'">
+                    🚀 Đăng ký miễn phí ngay
+                </button>
+                <div style="text-align:center; margin-top:10px;">
+                    <span style="font-size:0.75rem; color:#6b7280;">Đã có tài khoản? </span>
+                    <button onclick="closeWelcomePopup(); document.getElementById('btn-login')?.click();" style="background:none; border:none; color:#8b5cf6; font-size:0.75rem; cursor:pointer; font-weight:600; padding:0;">Đăng nhập</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes popupIn {
+        from { opacity:0; transform:scale(0.8) translateY(20px); }
+        to   { opacity:1; transform:scale(1) translateY(0); }
+    }
+    @keyframes gradientShift {
+        0%   { background-position:0% 50%;   }
+        100% { background-position:200% 50%; }
+    }
+    </style>
+
+    <script>
+    (function() {
+        // Show popup after 10s — only for non-logged-in users, once per session
+        const POPUP_KEY = 'kgen_wp_shown';
+        if (sessionStorage.getItem(POPUP_KEY)) return;
+
+        setTimeout(function() {
+            // Check if user is already logged in
+            const user = window.APP_STATE?.currentUser;
+            if (user) return;
+
+            const el = document.getElementById('welcome-popup');
+            if (!el) return;
+            el.style.display = 'flex';
+            sessionStorage.setItem(POPUP_KEY, '1');
+        }, 10000);
+    })();
+
+    function closeWelcomePopup() {
+        const el = document.getElementById('welcome-popup');
+        if (!el) return;
+        const card = document.getElementById('welcome-popup-card');
+        if (card) {
+            card.style.animation = 'popupOut 0.3s ease-in both';
+            card.style.transform = 'scale(0.9)';
+            card.style.opacity = '0';
+        }
+        setTimeout(() => { el.style.display = 'none'; }, 280);
+    }
+    window.closeWelcomePopup = closeWelcomePopup;
+
+    // Close on backdrop click
+    document.getElementById('welcome-popup')?.addEventListener('click', function(e) {
+        if (e.target === this) closeWelcomePopup();
+    });
+    </script>
+
     <script src="i18n.js?v=20260311"></script>
     <script src="site-config.js?v=20260311"></script>
     <script src="supabase.js?v=20260311"></script>
-    <script src="app.js?v=20260311_2238"></script>
+    <script src="app.js?v=20260311_2249"></script>
 </body>
 
-</html>
+</html>
