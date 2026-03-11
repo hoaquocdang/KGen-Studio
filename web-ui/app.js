@@ -2001,7 +2001,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
 
     // Model configuration map
     const MODEL_CONFIG = {
-        'nano-banana-pro': { apiModel: 'nano-banana-pro', maxRefs: 8, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
+        'nano-banana-pro': { apiModel: 'nano-banana-pro', maxRefs: 8, defaultRes: '2K', defaultAR: '1:1', pollType: 'recordInfo', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
         'nano-banana-2': { apiModel: 'nano-banana-2', maxRefs: 14, defaultRes: '1K', defaultAR: 'auto', pollType: 'recordInfo', inputField: 'image_input', hasOutputFormat: true, supportsSearch: true },
         '4o-image': { apiModel: '4o-image', maxRefs: 4, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
         'flux-kontext': { apiModel: 'flux-kontext', maxRefs: 4, defaultRes: '2K', defaultAR: '1:1', pollType: 'queryTask', inputField: 'image_input', hasOutputFormat: true, supportsSearch: false },
