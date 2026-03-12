@@ -1214,6 +1214,52 @@ function setupModal() {
         switchTab('generate');
     });
 
+    // Use as reference image — copies prompt AND sets gallery image as reference
+    document.getElementById('btn-use-as-ref')?.addEventListener('click', () => {
+        if (!isLoggedIn()) {
+            showToast('🔒 Vui lòng đăng nhập để sử dụng', 'error');
+            openAuthModal();
+            return;
+        }
+        const item = window.__currentModalItem;
+        if (!item) return;
+
+        // Get the image URL
+        const imageUrl = item.image || (item.images && item.images[0]) || '';
+        if (!imageUrl) {
+            showToast('⚠️ Không tìm thấy ảnh', 'error');
+            return;
+        }
+
+        // Set reference images
+        APP_STATE.referenceImages = [imageUrl];
+
+        // Copy prompt
+        const promptText = document.getElementById('modal-prompt').dataset.fullPrompt || document.getElementById('modal-prompt').textContent;
+        document.getElementById('gen-prompt').value = promptText;
+        updateCharCount();
+
+        // Update reference preview in Generate tab
+        const refContainer = document.getElementById('ref-preview-container');
+        if (refContainer) {
+            refContainer.innerHTML = `
+                <div style="position:relative;display:inline-block;margin-right:8px;">
+                    <img src="${imageUrl}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid rgba(139,92,246,0.5);">
+                    <button onclick="APP_STATE.referenceImages=[];this.parentElement.remove();updateAdaptRefButtonVisibility();" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:white;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+                </div>
+            `;
+        }
+
+        // Update adapt-ref button visibility
+        if (typeof updateAdaptRefButtonVisibility === 'function') {
+            updateAdaptRefButtonVisibility();
+        }
+
+        closeModal();
+        switchTab('generate');
+        showToast('✅ Đã dùng ảnh làm tham chiếu + sao chép prompt!', 'success', 3000);
+    });
+
     document.getElementById('btn-favorite-prompt').addEventListener('click', async () => {
         const item = window.__currentModalItem;
         if (!item) return;
@@ -1503,9 +1549,15 @@ function updateAdaptRefButtonVisibility() {
 }
 
 /**
+ * Get Gemini API key — checks user key first, then site-config
+ */
+function getGeminiApiKey() {
+    return APP_STATE.settings.googleApiKey || window.SITE_CONFIG?.api?.geminiApiKey || '';
+}
+
+/**
  * Adapt Prompt to Reference — Uses Gemini Vision to analyze the reference image
  * and adjust the prompt to match the subject (gender, appearance, ethnicity, etc.)
- * Solves the common issue: prompt says "young woman" but ref image is a man.
  */
 async function adaptPromptToReference() {
     const prompt = document.getElementById('gen-prompt').value.trim();
@@ -1519,16 +1571,9 @@ async function adaptPromptToReference() {
         return;
     }
 
-    // Check if n8n gateway is available OR user has Google API key
-    const n8nGw = window.SITE_CONFIG?.n8nGateway || {
-        baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
-        enabled: true,
-    };
-    const useN8nGateway = n8nGw?.enabled && n8nGw?.baseUrl;
-    const userGoogleKey = APP_STATE.settings.googleApiKey || '';
-
-    if (!useN8nGateway && !userGoogleKey) {
-        showToast('⚠️ Cần Google API Key để phân tích ảnh. Vào Cài đặt API Key để thêm.', 'error', 4000);
+    const geminiKey = getGeminiApiKey();
+    if (!geminiKey) {
+        showToast('⚠️ Cần Google/Gemini API Key để phân tích ảnh. Liên hệ admin.', 'error', 4000);
         return;
     }
 
@@ -1596,47 +1641,11 @@ async function adaptPromptToReference() {
 
         let resultText = '';
 
-        if (useN8nGateway && !userGoogleKey) {
-            // Route through n8n gateway — Gemini key is stored server-side
-            console.log('🔒 Using n8n AI Gateway for Gemini adapt-prompt');
-            console.log('📏 Base64 size:', (base64Data.length / 1024).toFixed(1), 'KB, mime:', mimeType);
-            const response = await fetch(`${n8nGw.baseUrl}/adapt-prompt-ref`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    refImageBase64: base64Data,
-                    refImageMime: mimeType,
-                }),
-            });
+        // Direct Gemini API call
+        const geminiModel = 'gemini-2.5-flash';
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
-            if (!response.ok) {
-                const errText = await response.text();
-                console.error('Adapt to ref error:', response.status, errText);
-                if (response.status === 400) {
-                    throw new Error('Server không xử lý được yêu cầu. Thử ảnh khác hoặc prompt ngắn hơn.');
-                }
-                throw new Error(`Lỗi server (${response.status}). Vui lòng thử lại.`);
-            }
-
-            const data = await response.json();
-            if (data.success && data.adaptedPrompt) {
-                resultText = data.adaptedPrompt;
-            } else if (data.adaptedPrompt) {
-                resultText = data.adaptedPrompt;
-            } else if (typeof data === 'string') {
-                resultText = data;
-            } else if (data.output) {
-                resultText = data.output;
-            } else {
-                throw new Error(data.error || 'Không thể phân tích ảnh tham chiếu');
-            }
-        } else {
-            // Direct Gemini API call with user's own key
-            const geminiModel = 'gemini-2.5-flash';
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
-
-            const systemPrompt = `You are an expert image prompt editor. You will receive:
+        const systemPrompt = `You are an expert image prompt editor. You will receive:
 1. A reference image of a person/subject
 2. An existing image generation prompt
 
@@ -1651,43 +1660,42 @@ RULES:
 - Keep the same language as the original prompt.
 - Output ONLY the modified prompt text, nothing else. No explanation, no labels, no quotes.`;
 
-            const response = await fetch(geminiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            {
-                                inlineData: {
-                                    mimeType: mimeType,
-                                    data: base64Data,
-                                }
-                            },
-                            {
-                                text: `${systemPrompt}\n\n--- EXISTING PROMPT ---\n${prompt}\n--- END PROMPT ---\n\nPlease output the modified prompt:`
+        const response = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Data,
                             }
-                        ]
-                    }],
-                    generationConfig: {
-                        temperature: 0.3,
-                        maxOutputTokens: 4096,
-                    },
-                }),
-            });
+                        },
+                        {
+                            text: `${systemPrompt}\n\n--- EXISTING PROMPT ---\n${prompt}\n--- END PROMPT ---\n\nPlease output the modified prompt:`
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.3,
+                    maxOutputTokens: 4096,
+                },
+            }),
+        });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                console.error('Adapt to ref error:', response.status, errText);
-                throw new Error(`API Error ${response.status}`);
-            }
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('Adapt to ref error:', response.status, errText);
+            throw new Error(`Lỗi phân tích ảnh (${response.status}). Vui lòng thử lại.`);
+        }
 
-            const data = await response.json();
-            const candidates = data.candidates || [];
-            if (candidates.length > 0) {
-                const parts = candidates[0].content?.parts || [];
-                for (const part of parts) {
-                    if (part.text) resultText += part.text;
-                }
+        const data = await response.json();
+        const candidates = data.candidates || [];
+        if (candidates.length > 0) {
+            const parts = candidates[0].content?.parts || [];
+            for (const part of parts) {
+                if (part.text) resultText += part.text;
             }
         }
 
@@ -4287,13 +4295,9 @@ function setupGenControls() {
                 const file = e.target.files[0];
                 if (!file) return;
 
-                // Check for API key
-                const userGoogleKey = APP_STATE.settings.googleApiKey || '';
-                const adminKieKey = getAdminAPIKey('kie');
-                const userKieKey = APP_STATE.settings.kieApiKey || '';
-
-                if (!userGoogleKey) {
-                    showToast('⚠️ Cần Google API Key để phân tích ảnh. Vào Cài đặt API Key để thêm.', 'error', 4000);
+                const geminiKey = getGeminiApiKey();
+                if (!geminiKey) {
+                    showToast('⚠️ Cần Google API Key để phân tích ảnh. Liên hệ admin.', 'error', 4000);
                     return;
                 }
 
@@ -4314,7 +4318,7 @@ function setupGenControls() {
 
                     try {
                         const geminiModel = 'gemini-2.5-flash';
-                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${userGoogleKey}`;
+                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
                         const response = await fetch(geminiUrl, {
                             method: 'POST',
@@ -4343,7 +4347,7 @@ function setupGenControls() {
                         if (!response.ok) {
                             const errText = await response.text();
                             console.error('Describe error:', response.status, errText);
-                            throw new Error(`API Error ${response.status}`);
+                            throw new Error(`Lỗi phân tích ảnh (${response.status})`);
                         }
 
                         const data = await response.json();
