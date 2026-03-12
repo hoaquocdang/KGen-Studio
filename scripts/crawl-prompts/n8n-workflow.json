@@ -42,10 +42,10 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://api.apify.com/v2/acts/curious_coder~threads-scraper/runs?token=YOUR_APIFY_TOKEN",
+                "url": "https://api.apify.com/v2/acts/apify~threads-profile-api-scraper/runs?token=YOUR_APIFY_TOKEN",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={\n  \"usernames\": [\n    \"nanobanana\",\n    \"midjourney\",\n    \"openai\"\n  ],\n  \"maxItems\": 50\n}",
+                "jsonBody": "={\n  \"usernames\": [\n    \"nanobanana\",\n    \"midjourney\",\n    \"openai\"\n  ],\n  \"resultsPerPage\": 20\n}",
                 "options": {}
             },
             "id": "crawl-threads",
@@ -133,7 +133,7 @@
         },
         {
             "parameters": {
-                "url": "https://api.apify.com/v2/acts/curious_coder~threads-scraper/runs/last/dataset/items?token=YOUR_APIFY_TOKEN",
+                "url": "https://api.apify.com/v2/acts/apify~threads-profile-api-scraper/runs/last/dataset/items?token=YOUR_APIFY_TOKEN",
                 "options": {}
             },
             "id": "get-threads-results",
@@ -161,41 +161,67 @@
         },
         {
             "parameters": {
-                "jsCode": "// Merge all platform results - use try-catch since some may not have run yet\nlet twitterItems = [];\ntry { twitterItems = $('📥 Get Twitter Results').all(); } catch(e) {}\nlet threadsItems = [];\ntry { threadsItems = $('📥 Get Threads Results').all(); } catch(e) {}\nlet instagramItems = [];\ntry { instagramItems = $('📥 Get Instagram Results').all(); } catch(e) {}\n\n// Also include any items passed directly via $input\nconst inputItems = $input.all() || [];\n\nconst results = [];\n\n// Process Twitter\nfor (const item of twitterItems) {\n  const d = item.json;\n  const text = d.full_text || d.text || '';\n  const author = d.user?.screen_name || d.author?.userName || '';\n  const likes = d.favorite_count || d.likeCount || 0;\n  const views = d.views_count || d.viewCount || 0;\n  const id = String(d.id || d.id_str || '');\n  \n  const images = [];\n  if (d.entities?.media) d.entities.media.forEach(m => { if (m.media_url_https) images.push(m.media_url_https); });\n  if (d.extended_entities?.media) d.extended_entities.media.forEach(m => { if (m.media_url_https && !images.includes(m.media_url_https)) images.push(m.media_url_https); });\n  if (d.media?.photos) d.media.photos.forEach(p => { if (p.url && !images.includes(p.url)) images.push(p.url); });\n  \n  let prompt = text.replace(/https?:\\/\\/\\S+/g, '').replace(/\\n{3,}/g, '\\n\\n').replace(/(\\n\\s*#\\w+\\s*)+$/g, '').trim();\n  \n  if (prompt.length >= 50 && likes >= 50 && images.length > 0 && !prompt.startsWith('RT @')) {\n    results.push({\n      id: `tw_${id}`, prompt, author,\n      author_name: d.user?.name || d.author?.name || author,\n      likes, views, images,\n      date: d.created_at ? new Date(d.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],\n      source_url: `https://x.com/${author}/status/${id}`,\n      platform: 'twitter'\n    });\n  }\n}\n\n// Process Threads\nfor (const item of threadsItems) {\n  const d = item.json;\n  const text = d.text || d.caption || '';\n  const author = d.username || d.user?.username || '';\n  const likes = d.like_count || d.likeCount || 0;\n  const id = String(d.id || d.pk || '');\n  \n  const images = [];\n  if (d.image_urls) images.push(...d.image_urls);\n  if (d.carousel_media) d.carousel_media.forEach(m => { if (m.image_url) images.push(m.image_url); });\n  if (d.displayUrl) images.push(d.displayUrl);\n  if (d.image_versions2?.candidates?.[0]?.url) images.push(d.image_versions2.candidates[0].url);\n  \n  let prompt = text.replace(/https?:\\/\\/\\S+/g, '').trim();\n  \n  if (prompt.length >= 50 && likes >= 20 && images.length > 0) {\n    results.push({\n      id: `th_${id}`, prompt, author,\n      author_name: d.user?.full_name || author,\n      likes, views: d.view_count || 0, images,\n      date: d.taken_at ? new Date(d.taken_at * 1000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],\n      source_url: d.url || `https://www.threads.net/@${author}/post/${id}`,\n      platform: 'threads'\n    });\n  }\n}\n\n// Process Instagram\nfor (const item of instagramItems) {\n  const d = item.json;\n  const text = d.caption || d.alt || '';\n  const author = d.ownerUsername || d.owner?.username || '';\n  const likes = d.likesCount || d.like_count || 0;\n  const id = String(d.id || d.shortCode || '');\n  \n  const images = [];\n  if (d.displayUrl) images.push(d.displayUrl);\n  if (d.childPosts) d.childPosts.forEach(c => { if (c.displayUrl) images.push(c.displayUrl); });\n  \n  let prompt = text.replace(/https?:\\/\\/\\S+/g, '').trim();\n  \n  if (prompt.length >= 50 && likes >= 30 && images.length > 0) {\n    results.push({\n      id: `ig_${id}`, prompt, author,\n      author_name: d.ownerFullName || author,\n      likes, views: d.videoViewCount || 0, images,\n      date: d.timestamp ? new Date(d.timestamp).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],\n      source_url: d.url || `https://instagram.com/p/${d.shortCode || id}/`,\n      platform: 'instagram'\n    });\n  }\n}\n\n// Deduplicate\nconst seen = new Set();\nconst unique = results.filter(r => {\n  if (seen.has(r.id)) return false;\n  seen.add(r.id);\n  return true;\n});\n\nif (unique.length === 0) {\n  return [{ json: { _empty: true, message: 'No valid prompts found' } }];\n}\n\nreturn unique.map(r => ({ json: r }));\n"
+                "mode": "append"
             },
-            "id": "process-results",
-            "name": "⚙️ Process & Merge Results",
-            "type": "n8n-nodes-base.code",
-            "typeVersion": 2,
+            "id": "merge-tw-th",
+            "name": "🔗 Merge Twitter+Threads",
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3,
             "position": [
-                1050,
-                300
+                1000,
+                200
             ]
         },
         {
             "parameters": {
-                "jsCode": "// Auto-detect model and categories\nconst items = $input.all();\n\nfunction detectModel(prompt, sourceUrl) {\n  const lower = (prompt + ' ' + sourceUrl).toLowerCase();\n  if (/gpt.?image|4o.?image/i.test(lower)) return 'gptimage';\n  if (/midjourney/i.test(lower)) return 'midjourney';\n  if (/flux.*kontext/i.test(lower)) return 'flux';\n  if (/nano.?banana.?2/i.test(lower)) return 'nanobanana2';\n  if (/nano.?banana/i.test(lower)) return 'nanobanana';\n  if (/imagen/i.test(lower)) return 'imagen';\n  if (/grok/i.test(lower)) return 'grok';\n  return 'nanobanana';\n}\n\nfunction categorize(prompt) {\n  const lower = prompt.toLowerCase();\n  const cats = [];\n  if (prompt.includes('{') && prompt.includes('}')) cats.push('JSON');\n  \n  const map = {\n    'Photograph': ['photo', 'portrait', 'camera', 'lens', 'f/', 'cinematic', 'photorealistic'],\n    'Girl': ['woman', 'girl', 'female', 'blonde', 'brunette'],\n    'Boy': ['man', 'boy', 'male', 'beard'],\n    'Product': ['product', 'bottle', 'packaging', 'brand', 'mockup'],\n    'Food': ['food', 'dish', 'recipe', 'cuisine', 'ingredient'],\n    '3D': ['3d', 'render', 'isometric', 'voxel'],\n    'Anime': ['anime', 'manga', 'chibi'],\n    'Logo': ['logo', 'branding', 'emblem'],\n  };\n  for (const [cat, kws] of Object.entries(map)) {\n    if (kws.some(kw => lower.includes(kw))) cats.push(cat);\n  }\n  if (cats.length === 0) cats.push('Other');\n  return cats;\n}\n\nreturn items.map(item => {\n  const d = item.json;\n  return {\n    json: {\n      ...d,\n      model: detectModel(d.prompt, d.source_url),\n      categories: categorize(d.prompt),\n      image: d.images[0] || '',\n    }\n  };\n});\n"
+                "mode": "append"
+            },
+            "id": "merge-all",
+            "name": "🔗 Merge All 3",
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3,
+            "position": [
+                1200,
+                350
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Process all merged items from 3 platforms\nconst allItems = $input.all();\nconst results = [];\nconst debug = { total: allItems.length, skipped_empty: 0, skipped_no_platform: 0, skipped_filter: 0, accepted: 0, sample_keys: [] };\n\nfor (const item of allItems) {\n  const d = item.json;\n  if (!d || d._empty) { debug.skipped_empty++; continue; }\n  \n  // Log first item's keys for debugging\n  if (debug.sample_keys.length === 0) debug.sample_keys = Object.keys(d).slice(0, 15);\n  \n  // Skip if already processed\n  if (d.platform) { results.push(d); continue; }\n  \n  let platform = 'twitter';\n  let id, prompt, author, authorName, likes, views, date, images = [], sourceUrl;\n  \n  // Twitter format\n  if (d.full_text || d.text || d.id_str || d.tweetId) {\n    platform = 'twitter';\n    id = String(d.id || d.id_str || d.tweetId || '');\n    const text = d.full_text || d.text || d.tweet || d.description || '';\n    author = d.user?.screen_name || d.author?.userName || d.authorName || '';\n    authorName = d.user?.name || d.author?.name || d.authorName || author;\n    likes = d.favorite_count || d.likeCount || d.likes || 0;\n    views = d.views_count || d.viewCount || d.views || 0;\n    date = d.created_at ? new Date(d.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];\n    \n    if (d.entities?.media) d.entities.media.forEach(m => { if (m.media_url_https) images.push(m.media_url_https); });\n    if (d.extended_entities?.media) d.extended_entities.media.forEach(m => { if (m.media_url_https && !images.includes(m.media_url_https)) images.push(m.media_url_https); });\n    if (d.media?.photos) d.media.photos.forEach(p => { if (p.url && !images.includes(p.url)) images.push(p.url); });\n    if (d.mediaUrls) d.mediaUrls.forEach(url => { if (!images.includes(url)) images.push(url); });\n    if (d.media_url && !images.includes(d.media_url)) images.push(d.media_url);\n    \n    prompt = text.replace(/https?:\\/\\/\\S+/g, '').replace(/\\n{3,}/g, '\\n\\n').replace(/(\\n\\s*#\\w+\\s*)+$/g, '').trim();\n    sourceUrl = d.url || `https://x.com/${author}/status/${id}`;\n  }\n  // Threads format\n  else if (d.username || (d.user && d.text)) {\n    platform = 'threads';\n    id = String(d.id || d.pk || '');\n    const text = d.text || d.caption || '';\n    author = d.username || d.user?.username || '';\n    authorName = d.user?.full_name || author;\n    likes = d.like_count || d.likeCount || d.likes || 0;\n    views = d.view_count || 0;\n    date = d.taken_at ? new Date(d.taken_at * 1000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];\n    \n    if (d.image_urls) images.push(...d.image_urls);\n    if (d.carousel_media) d.carousel_media.forEach(m => { if (m.image_url) images.push(m.image_url); });\n    if (d.displayUrl) images.push(d.displayUrl);\n    if (d.image_versions2?.candidates?.[0]?.url) images.push(d.image_versions2.candidates[0].url);\n    \n    prompt = text.replace(/https?:\\/\\/\\S+/g, '').trim();\n    sourceUrl = d.url || `https://www.threads.net/@${author}/post/${id}`;\n  }\n  // Instagram format\n  else if (d.ownerUsername || d.shortCode || d.displayUrl) {\n    platform = 'instagram';\n    id = String(d.id || d.shortCode || '');\n    const text = d.caption || d.alt || '';\n    author = d.ownerUsername || d.owner?.username || '';\n    authorName = d.ownerFullName || author;\n    likes = d.likesCount || d.like_count || 0;\n    views = d.videoViewCount || 0;\n    date = d.timestamp ? new Date(d.timestamp).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];\n    \n    if (d.displayUrl) images.push(d.displayUrl);\n    if (d.childPosts) d.childPosts.forEach(c => { if (c.displayUrl) images.push(c.displayUrl); });\n    if (d.sidecarImages) d.sidecarImages.forEach(i => { if (i.url) images.push(i.url); });\n    \n    prompt = text.replace(/https?:\\/\\/\\S+/g, '').trim();\n    sourceUrl = d.url || `https://instagram.com/p/${d.shortCode || id}/`;\n  }\n  else {\n    debug.skipped_no_platform++;\n    continue;\n  }\n  \n  const prefix = { twitter: 'tw', threads: 'th', instagram: 'ig' }[platform];\n  \n  // Relaxed filter: prompt >= 20 chars, must have image, no likes minimum\n  if (prompt && prompt.length >= 20 && images.length > 0) {\n    results.push({\n      id: `${prefix}_${id}`,\n      prompt, author, author_name: authorName,\n      likes, views, images,\n      date, source_url: sourceUrl,\n      platform\n    });\n    debug.accepted++;\n  } else {\n    debug.skipped_filter++;\n  }\n}\n\n// Deduplicate\nconst seen = new Set();\nconst unique = results.filter(r => {\n  if (seen.has(r.id)) return false;\n  seen.add(r.id);\n  return true;\n});\n\nif (unique.length === 0) {\n  return [{ json: { _empty: true, message: 'No valid prompts found', debug } }];\n}\n\nreturn unique.map(r => ({ json: r }));\n"
+            },
+            "id": "process-results",
+            "name": "⚙️ Process All Results",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1450,
+                350
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Auto-detect model and categories\nconst items = $input.all();\n\nfunction detectModel(prompt, sourceUrl) {\n  const lower = (prompt + ' ' + (sourceUrl || '')).toLowerCase();\n  if (/gpt.?image|4o.?image/i.test(lower)) return 'gptimage';\n  if (/midjourney/i.test(lower)) return 'midjourney';\n  if (/flux.*kontext/i.test(lower)) return 'flux';\n  if (/nano.?banana.?2/i.test(lower)) return 'nanobanana2';\n  if (/nano.?banana/i.test(lower)) return 'nanobanana';\n  if (/imagen/i.test(lower)) return 'imagen';\n  if (/grok/i.test(lower)) return 'grok';\n  return 'nanobanana';\n}\n\nfunction categorize(prompt) {\n  const lower = (prompt || '').toLowerCase();\n  const cats = [];\n  if (prompt && prompt.includes('{') && prompt.includes('}')) cats.push('JSON');\n  \n  const map = {\n    'Photograph': ['photo', 'portrait', 'camera', 'lens', 'f/', 'cinematic', 'photorealistic'],\n    'Girl': ['woman', 'girl', 'female', 'blonde', 'brunette'],\n    'Boy': ['man', 'boy', 'male', 'beard'],\n    'Product': ['product', 'bottle', 'packaging', 'brand', 'mockup'],\n    'Food': ['food', 'dish', 'recipe', 'cuisine', 'ingredient'],\n    '3D': ['3d', 'render', 'isometric', 'voxel'],\n    'Anime': ['anime', 'manga', 'chibi'],\n    'Logo': ['logo', 'branding', 'emblem'],\n  };\n  for (const [cat, kws] of Object.entries(map)) {\n    if (kws.some(kw => lower.includes(kw))) cats.push(cat);\n  }\n  if (cats.length === 0) cats.push('Other');\n  return cats;\n}\n\nconst filtered = items.filter(i => !i.json._empty);\nif (filtered.length === 0) {\n  return [{ json: { _empty: true } }];\n}\n\nreturn filtered.map(item => {\n  const d = item.json;\n  return {\n    json: {\n      ...d,\n      model: detectModel(d.prompt, d.source_url),\n      categories: categorize(d.prompt),\n      image: (d.images && d.images[0]) || '',\n    }\n  };\n});\n"
             },
             "id": "classify",
             "name": "🏷️ Classify Model & Categories",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                1300,
-                300
+                1700,
+                350
             ]
         },
         {
             "parameters": {
-                "jsCode": "// Read existing prompts, merge new ones, save\nconst fs = require('fs');\nconst PROMPTS_PATH = '/opt/kgen-gallery/web-ui/data/trending-prompts.json';\n\n// Load existing\nlet existing = [];\ntry {\n  existing = JSON.parse(fs.readFileSync(PROMPTS_PATH, 'utf-8'));\n} catch (e) {\n  // File doesn't exist yet\n}\n\nconst existingIds = new Set(existing.map(p => p.id));\nconst newItems = $input.all().map(i => i.json);\nconst added = [];\n\nfor (const item of newItems) {\n  if (!existingIds.has(item.id)) {\n    added.push({\n      rank: 0,\n      id: item.id,\n      prompt: item.prompt,\n      author: item.author,\n      author_name: item.author_name,\n      likes: item.likes,\n      views: item.views,\n      image: item.image,\n      images: item.images,\n      model: item.model,\n      categories: item.categories,\n      date: item.date,\n      source_url: item.source_url,\n    });\n    existingIds.add(item.id);\n  }\n}\n\nif (added.length > 0) {\n  const merged = [...existing, ...added];\n  merged.sort((a, b) => (b.likes || 0) - (a.likes || 0));\n  merged.forEach((p, i) => p.rank = i + 1);\n  fs.writeFileSync(PROMPTS_PATH, JSON.stringify(merged, null, 2), 'utf-8');\n}\n\nreturn [{\n  json: {\n    totalExisting: existing.length,\n    newAdded: added.length,\n    totalAfter: existing.length + added.length,\n    addedPrompts: added.map(a => ({\n      author: a.author,\n      prompt: a.prompt.substring(0, 80) + '...',\n      likes: a.likes,\n      model: a.model,\n      platform: a.source_url.includes('threads') ? 'threads' : a.source_url.includes('instagram') ? 'instagram' : 'twitter',\n      categories: a.categories,\n    })),\n  }\n}];\n"
+                "jsCode": "// Read existing prompts, merge new ones, save\nconst fs = require('fs');\nconst PROMPTS_PATH = '/opt/kgen-gallery/web-ui/data/trending-prompts.json';\n\nconst inputItems = $input.all().filter(i => !i.json._empty);\nif (inputItems.length === 0) {\n  return [{ json: { totalExisting: 0, newAdded: 0, totalAfter: 0, addedPrompts: [] } }];\n}\n\n// Load existing\nlet existing = [];\ntry {\n  existing = JSON.parse(fs.readFileSync(PROMPTS_PATH, 'utf-8'));\n} catch (e) {\n  // File doesn't exist yet\n}\n\nconst existingIds = new Set(existing.map(p => p.id));\nconst newItems = inputItems.map(i => i.json);\nconst added = [];\n\nfor (const item of newItems) {\n  if (!existingIds.has(item.id)) {\n    added.push({\n      rank: 0,\n      id: item.id,\n      prompt: item.prompt,\n      author: item.author,\n      author_name: item.author_name,\n      likes: item.likes,\n      views: item.views,\n      image: item.image,\n      images: item.images,\n      model: item.model,\n      categories: item.categories,\n      date: item.date,\n      source_url: item.source_url,\n    });\n    existingIds.add(item.id);\n  }\n}\n\nif (added.length > 0) {\n  const merged = [...existing, ...added];\n  merged.sort((a, b) => (b.likes || 0) - (a.likes || 0));\n  merged.forEach((p, i) => p.rank = i + 1);\n  fs.writeFileSync(PROMPTS_PATH, JSON.stringify(merged, null, 2), 'utf-8');\n}\n\nreturn [{\n  json: {\n    totalExisting: existing.length,\n    newAdded: added.length,\n    totalAfter: existing.length + added.length,\n    addedPrompts: added.map(a => ({\n      author: a.author,\n      prompt: (a.prompt || '').substring(0, 80) + '...',\n      likes: a.likes,\n      model: a.model,\n      platform: (a.source_url || '').includes('threads') ? 'threads' : (a.source_url || '').includes('instagram') ? 'instagram' : 'twitter',\n      categories: a.categories,\n    })),\n  }\n}];\n"
             },
             "id": "save-to-json",
             "name": "💾 Save to JSON",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                1550,
-                300
+                1950,
+                350
             ]
         },
         {
@@ -226,21 +252,21 @@
             "type": "n8n-nodes-base.if",
             "typeVersion": 2,
             "position": [
-                1800,
-                300
+                2200,
+                350
             ]
         },
         {
             "parameters": {
-                "jsCode": "// Build Telegram notification message\nconst data = $input.first().json;\n\nconst platformEmoji = {\n  twitter: '🐦',\n  threads: '🧵',\n  instagram: '📸'\n};\n\nlet message = `🎨 *KGen Gallery Update*\\n\\n`;\nmessage += `✅ *${data.newAdded}* prompt mới đã thêm!\\n`;\nmessage += `📊 Tổng gallery: *${data.totalAfter}* prompts\\n\\n`;\n\nif (data.addedPrompts && data.addedPrompts.length > 0) {\n  message += `📝 *Chi tiết:*\\n`;\n  for (const p of data.addedPrompts.slice(0, 10)) {\n    const emoji = platformEmoji[p.platform] || '📄';\n    const cleanPrompt = p.prompt.replace(/[_*\\[\\]()~`>#+=|{}.!-]/g, '');\n    message += `${emoji} @${p.author} (${p.likes}❤️)\\n`;\n    message += `   \\\\[${p.model}\\\\] ${p.categories.join(', ')}\\n`;\n    message += `   _\"${cleanPrompt}\"_\\n\\n`;\n  }\n  \n  if (data.addedPrompts.length > 10) {\n    message += `...và ${data.addedPrompts.length - 10} prompt khác\\n`;\n  }\n}\n\nconst now = new Date();\nconst vnTime = now.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });\nmessage += `\\n⏰ ${vnTime}`;\n\nreturn [{ json: { message, newAdded: data.newAdded } }];"
+                "jsCode": "const data = $input.first().json;\n\nconst platformEmoji = { twitter: '🐦', threads: '🧵', instagram: '📸' };\n\nlet message = `🎨 *KGen Gallery Update*\\n\\n`;\nmessage += `✅ *${data.newAdded}* prompt mới đã thêm!\\n`;\nmessage += `📊 Tổng gallery: *${data.totalAfter}* prompts\\n\\n`;\n\nif (data.addedPrompts && data.addedPrompts.length > 0) {\n  message += `📝 *Chi tiết:*\\n`;\n  for (const p of data.addedPrompts.slice(0, 10)) {\n    const emoji = platformEmoji[p.platform] || '📄';\n    const cleanPrompt = (p.prompt || '').replace(/[_*\\[\\]()~`>#+=|{}.!-]/g, '');\n    message += `${emoji} @${p.author} (${p.likes}❤️)\\n`;\n    message += `   Model: ${p.model} | ${(p.categories || []).join(', ')}\\n`;\n    message += `   _\"${cleanPrompt}\"_\\n\\n`;\n  }\n  if (data.addedPrompts.length > 10) {\n    message += `...và ${data.addedPrompts.length - 10} prompt khác\\n`;\n  }\n}\n\nconst now = new Date();\nconst vnTime = now.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });\nmessage += `\\n⏰ ${vnTime}`;\n\nreturn [{ json: { message, newAdded: data.newAdded } }];"
             },
             "id": "build-telegram-msg",
             "name": "📝 Build Telegram Message",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                2050,
-                200
+                2450,
+                250
             ]
         },
         {
@@ -257,8 +283,8 @@
             "type": "n8n-nodes-base.telegram",
             "typeVersion": 1.2,
             "position": [
-                2300,
-                200
+                2700,
+                250
             ],
             "credentials": {
                 "telegramApi": {
@@ -269,15 +295,15 @@
         },
         {
             "parameters": {
-                "jsCode": "// No new prompts - just log\nconst data = $input.first().json;\nreturn [{ json: { status: 'no_updates', totalGallery: data.totalAfter } }];"
+                "jsCode": "const data = $input.first().json;\nreturn [{ json: { status: 'no_updates', totalGallery: data.totalAfter } }];"
             },
             "id": "no-updates",
             "name": "💤 No Updates",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                2050,
-                400
+                2450,
+                450
             ]
         }
     ],
@@ -373,7 +399,7 @@
             "main": [
                 [
                     {
-                        "node": "⚙️ Process & Merge Results",
+                        "node": "🔗 Merge Twitter+Threads",
                         "type": "main",
                         "index": 0
                     }
@@ -384,7 +410,18 @@
             "main": [
                 [
                     {
-                        "node": "⚙️ Process & Merge Results",
+                        "node": "🔗 Merge Twitter+Threads",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "🔗 Merge Twitter+Threads": {
+            "main": [
+                [
+                    {
+                        "node": "🔗 Merge All 3",
                         "type": "main",
                         "index": 0
                     }
@@ -395,14 +432,25 @@
             "main": [
                 [
                     {
-                        "node": "⚙️ Process & Merge Results",
+                        "node": "🔗 Merge All 3",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "🔗 Merge All 3": {
+            "main": [
+                [
+                    {
+                        "node": "⚙️ Process All Results",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "⚙️ Process & Merge Results": {
+        "⚙️ Process All Results": {
             "main": [
                 [
                     {
