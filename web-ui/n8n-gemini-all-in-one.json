@@ -1,0 +1,232 @@
+{
+  "name": "KGen AI Gateway — Gemini All-in-One",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "enhance-prompt",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-enhance",
+      "name": "WH: Enhance Prompt",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "enhance-prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjXMKdomEKNua0b1_qmxITG57nfhwoLg4",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'You are an expert AI image prompt engineer. Transform the following idea into a highly detailed, professional image generation prompt.\\n\\nStyle: ' + (($json.body.style || 'realistic')) + '\\nMode: ' + (($json.body.mode || 'none')) + '\\nCamera angle: ' + (($json.body.angle || 'none')) + '\\n\\nUser idea: ' + ($json.body.prompt || '') + '\\n\\nRules:\\n- Write in English\\n- Add rich visual details: lighting, composition, colors, textures, atmosphere\\n- Add technical quality terms: resolution, rendering style, artistic quality\\n- Keep the core subject and intent of the original idea\\n- Output ONLY the enhanced prompt, no explanation, no quotes, no markdown\\n- Length: 2-4 sentences maximum' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 512 } }) }}",
+        "options": { "timeout": 20000 }
+      },
+      "id": "gemini-enhance",
+      "name": "Gemini → Enhance Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst candidates = data.candidates || [];\nlet resultText = '';\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.text) resultText += part.text;\n  }\n}\nif (resultText.trim()) {\n  let clean = resultText.trim();\n  if (clean.startsWith('\"') && clean.endsWith('\"')) clean = clean.slice(1, -1);\n  if (clean.startsWith('```') && clean.endsWith('```')) clean = clean.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').trim();\n  return [{ json: { success: true, enhanced: clean } }];\n}\nreturn [{ json: { success: false, error: 'Could not enhance prompt', enhanced: $input.first().json.body?.prompt || '' } }];"
+      },
+      "id": "parse-enhance",
+      "name": "Parse Enhance Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "resp-enhance",
+      "name": "Respond: Enhance",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1020, 300]
+    },
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "adapt-prompt-ref",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-adapt",
+      "name": "WH: Adapt Prompt Ref",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 600],
+      "webhookId": "adapt-prompt-ref"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjXMKdomEKNua0b1_qmxITG57nfhwoLg4",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'You are an expert image prompt editor. You will receive:\\n1. A reference image of a person/subject\\n2. An existing image generation prompt\\n\\nYour task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.\\n\\nRULES:\\n- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.\\n- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.\\n- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.\\n- Keep ALL text overlay instructions unchanged.\\n- Keep the same language as the original prompt.\\n- Output ONLY the modified prompt text, nothing else.\\n\\n--- EXISTING PROMPT ---\\n' + ($json.body.prompt || '') + '\\n--- END PROMPT ---\\n\\nPlease output the modified prompt:' } ] }], generationConfig: { temperature: 0.3, maxOutputTokens: 4096 } }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "gemini-adapt",
+      "name": "Gemini → Adapt Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 600],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst candidates = data.candidates || [];\nlet resultText = '';\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.text) resultText += part.text;\n  }\n}\nif (resultText.trim()) {\n  let clean = resultText.trim();\n  if (clean.startsWith('\"') && clean.endsWith('\"')) clean = clean.slice(1, -1);\n  if (clean.startsWith('```') && clean.endsWith('```')) clean = clean.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').trim();\n  return [{ json: { success: true, adaptedPrompt: clean } }];\n}\nreturn [{ json: { success: false, error: 'Could not analyze reference image' } }];"
+      },
+      "id": "parse-adapt",
+      "name": "Parse Adapt Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "resp-adapt",
+      "name": "Respond: Adapt",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1020, 600]
+    },
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gemini/generateImage",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-gemini-img",
+      "name": "WH: Generate Image",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 900],
+      "webhookId": "gemini-generate-image"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst prompt = body.prompt || 'a beautiful landscape';\nconst aspectRatio = body.aspect_ratio || '1:1';\nconst quality = body.quality || '1k';\nconst refBase64 = body.refImageBase64 || null;\nconst refMime = body.refImageMime || null;\n\nconst arMap = {\n  '1:1': 'square format (1:1 aspect ratio)',\n  '9:16': 'vertical portrait format (9:16 aspect ratio, taller than wide)',\n  '16:9': 'horizontal landscape format (16:9 aspect ratio, wider than tall)',\n  '4:3': '4:3 aspect ratio format',\n  '3:4': 'portrait 3:4 aspect ratio format',\n  '3:2': '3:2 aspect ratio format',\n  '2:3': 'portrait 2:3 aspect ratio format'\n};\nconst arDesc = arMap[aspectRatio] || aspectRatio + ' aspect ratio';\n\nconst parts = [];\nif (refBase64 && refMime) {\n  parts.push({ inlineData: { mimeType: refMime, data: refBase64 } });\n  parts.push({ text: `Generate an image in ${arDesc}. Use the provided reference image as visual guidance.\\n\\n${prompt}` });\n} else {\n  parts.push({ text: `Generate an image in ${arDesc}.\\n\\n${prompt}` });\n}\n\nconst requestBody = {\n  contents: [{ parts }],\n  generationConfig: {\n    responseModalities: ['IMAGE', 'TEXT'],\n    temperature: 1,\n    maxOutputTokens: 8192\n  }\n};\n\nreturn [{ json: { requestBody, prompt, aspectRatio, quality } }];"
+      },
+      "id": "build-img-request",
+      "name": "Build Image Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 900]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=AIzaSyCjXMKdomEKNua0b1_qmxITG57nfhwoLg4",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": { "timeout": 90000 }
+      },
+      "id": "gemini-gen-image",
+      "name": "Gemini → Generate Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 900],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nif (data.error) {\n  return [{ json: { success: false, error: data.error.message || 'Gemini API error', code: data.error.code || 500 } }];\n}\nconst candidates = data.candidates || [];\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.inlineData) {\n      const mimeType = part.inlineData.mimeType || 'image/png';\n      const base64Data = part.inlineData.data;\n      return [{ json: { success: true, imageUrl: `data:${mimeType};base64,${base64Data}`, mimeType, size: Math.round(base64Data.length / 1024) + 'KB' } }];\n    }\n  }\n  for (const part of parts) {\n    if (part.text) {\n      return [{ json: { success: false, error: 'Gemini chỉ trả text, không tạo được ảnh. Thử prompt khác.', text: part.text.substring(0, 500) } }];\n    }\n  }\n}\nif (data.promptFeedback?.blockReason) {\n  return [{ json: { success: false, error: 'Prompt bị chặn: ' + data.promptFeedback.blockReason } }];\n}\nreturn [{ json: { success: false, error: 'Không có ảnh trong response' } }];"
+      },
+      "id": "parse-img-response",
+      "name": "Parse Image Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 900]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+            ]
+          }
+        }
+      },
+      "id": "resp-image",
+      "name": "Respond: Image",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1180, 900]
+    }
+  ],
+  "connections": {
+    "WH: Enhance Prompt": {
+      "main": [[{ "node": "Gemini → Enhance Prompt", "type": "main", "index": 0 }]]
+    },
+    "Gemini → Enhance Prompt": {
+      "main": [[{ "node": "Parse Enhance Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Enhance Response": {
+      "main": [[{ "node": "Respond: Enhance", "type": "main", "index": 0 }]]
+    },
+    "WH: Adapt Prompt Ref": {
+      "main": [[{ "node": "Gemini → Adapt Prompt", "type": "main", "index": 0 }]]
+    },
+    "Gemini → Adapt Prompt": {
+      "main": [[{ "node": "Parse Adapt Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Adapt Response": {
+      "main": [[{ "node": "Respond: Adapt", "type": "main", "index": 0 }]]
+    },
+    "WH: Generate Image": {
+      "main": [[{ "node": "Build Image Request", "type": "main", "index": 0 }]]
+    },
+    "Build Image Request": {
+      "main": [[{ "node": "Gemini → Generate Image", "type": "main", "index": 0 }]]
+    },
+    "Gemini → Generate Image": {
+      "main": [[{ "node": "Parse Image Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Image Response": {
+      "main": [[{ "node": "Respond: Image", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "KGen Gallery" }],
+  "pinData": {}
+}
