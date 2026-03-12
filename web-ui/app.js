@@ -1787,28 +1787,19 @@ async function generateImage() {
         return;
     }
 
-    // Determine which API to use
-    // NOTE: Google API key is ONLY used for adaptPromptToReference (Gemini text/vision)
-    // Image generation ALWAYS uses KIE.ai — either via n8n gateway or direct user key
-    const userKieKey = APP_STATE.settings.kieApiKey || '';
-    const adminKieKey = getAdminAPIKey('kie');
-
-    // Check n8n gateway (always available — KIE.ai API key is server-side in n8n)
+    // Determine n8n gateway
     const n8nGw = window.SITE_CONFIG?.n8nGateway || {
         baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
         enabled: true,
     };
-    const hasN8nGateway = !!(n8nGw?.enabled && n8nGw?.baseUrl);
 
-    const useKieApi = !!(userKieKey || adminKieKey || hasN8nGateway);
-
-    if (!useKieApi) {
-        showToast('❌ Không thể kết nối hệ thống tạo ảnh. Vui lòng thử lại sau.', 'error');
+    if (!n8nGw?.enabled || !n8nGw?.baseUrl) {
+        showToast('❌ Không thể kết nối hệ thống tạo ảnh.', 'error');
         return;
     }
 
-    // Check quota if using n8n gateway (admin-paid) — not needed if user has own key
-    const usingAdminServer = hasN8nGateway && !userKieKey;
+    // Check quota
+    const usingAdminServer = true;
     if (usingAdminServer) {
         if (!canGenerateImage()) {
             const plan = getUserPlan();
@@ -1866,8 +1857,7 @@ async function generateImage() {
 
     try {
         let result;
-        let provider;
-        const selectedModel = document.getElementById('gen-model')?.value || 'nano-banana-pro';
+        let provider = 'gemini';
         const langCode = document.getElementById('gen-text-lang')?.value || 'auto';
 
         let finalPrompt = prompt;
@@ -1875,14 +1865,43 @@ async function generateImage() {
             finalPrompt = `[CRITICAL INSTRUCTION: Any text, typography, fonts, or labels rendered in the image MUST strictly be written in ${langCode} language.]\n\n` + prompt;
         }
 
-        // Use Gemini Imagen directly (faster & more reliable)
-        const geminiKey = getAdminAPIKey('gemini') || window.SITE_CONFIG?.api?.geminiApiKey || '';
-        if (!geminiKey) {
-            throw new Error('Chưa có Gemini API key. Vui lòng cấu hình trong site-config.');
+        // Build request body for n8n Gemini endpoint
+        const requestBody = {
+            prompt: finalPrompt,
+            aspect_ratio: aspectRatio,
+            quality: quality,
+        };
+
+        // Add reference images if any
+        if (APP_STATE.referenceImages && APP_STATE.referenceImages.length > 0) {
+            const refUrl = APP_STATE.referenceImages[0];
+            if (refUrl.startsWith('data:')) {
+                const match = refUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+                if (match) {
+                    requestBody.refImageMime = match[1];
+                    requestBody.refImageBase64 = match[2];
+                }
+            }
         }
-        console.log('🎨 Using Gemini Imagen directly');
-        result = await generateViaGemini(finalPrompt, aspectRatio, quality, geminiKey);
-        provider = 'gemini';
+
+        console.log('🎨 Calling n8n Gemini endpoint:', { prompt: finalPrompt.substring(0, 80), aspectRatio, quality });
+
+        // Call n8n Gemini webhook
+        const genUrl = `${n8nGw.baseUrl}/gemini/generateImage`;
+        const response = await fetch(genUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+            signal: window._genAbortController.signal,
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Tạo ảnh thất bại.');
+        }
+
+        result = { imageUrl: data.imageUrl };
 
         // Show result
         clearInterval(timerInterval);
