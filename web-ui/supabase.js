@@ -1003,6 +1003,117 @@ window.saveToCollection = saveToCollection;
 window.removeFromCollection = removeFromCollection;
 window.getCollection = getCollection;
 window.isInCollection = isInCollection;
-// Make arrays globally available so ui code uses them
 window.PRICING_TIERS = PRICING_TIERS;
 window.TOPUP_PACKAGES = TOPUP_PACKAGES;
+
+// ============================================================
+// CENTRALIZED CREDITS SYSTEM (via Supabase RPC)
+// ============================================================
+
+let _centralConfig = null;
+
+async function loadCentralConfig(forceRefresh = false) {
+    if (_centralConfig && !forceRefresh && (Date.now() - _centralConfig._loadedAt < 5 * 60 * 1000)) {
+        return _centralConfig;
+    }
+    if (!isSupabaseEnabled()) {
+        return {
+            model_costs: {
+                'nano-banana-pro': 18, 'nano-banana-2': 18, '4o-image': 25,
+                'flux-kontext': 20, 'flux-pro-i2i': 20, 'flux-flex-t2i': 15,
+                'flux-flex-i2i': 15, 'midjourney': 30, 'grok-imagine': 22,
+            },
+            plan_prices: window.SITE_CONFIG?.plans || {},
+            topup_packages: window.TOPUP_PACKAGES || [],
+        };
+    }
+    try {
+        const { data, error } = await supabaseClient.rpc('get_public_config');
+        if (error) throw error;
+        _centralConfig = { ...data, _loadedAt: Date.now() };
+        console.log('✅ Central config loaded from Supabase');
+        return _centralConfig;
+    } catch (err) {
+        console.warn('⚠️ Central config fallback:', err.message);
+        return { model_costs: { 'nano-banana-pro': 18 }, plan_prices: {}, topup_packages: [] };
+    }
+}
+
+async function getModelCost(modelName) {
+    const config = await loadCentralConfig();
+    return config.model_costs?.[modelName] || 18;
+}
+
+async function getUserCredits() {
+    if (!isSupabaseEnabled()) {
+        const session = JSON.parse(localStorage.getItem('kgen_session') || 'null');
+        return { credits: session?.credits || 0, credits_used: session?.credits_used || 0, tier: session?.tier || 'free' };
+    }
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return { credits: 0, credits_used: 0, tier: 'free' };
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('credits, credits_used, tier, plan_expires_at')
+            .eq('id', user.id)
+            .single();
+        return {
+            credits: profile?.credits || 0,
+            credits_used: profile?.credits_used || 0,
+            tier: profile?.tier || 'free',
+            plan_expires_at: profile?.plan_expires_at,
+        };
+    } catch (err) {
+        console.warn('getUserCredits error:', err.message);
+        return { credits: 0, credits_used: 0, tier: 'free' };
+    }
+}
+
+async function deductCredits(model, source = 'kgen-gallery') {
+    if (!isSupabaseEnabled()) {
+        return { success: true, credits: 999, spent: 0 };
+    }
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return { success: false, error: 'Not logged in' };
+        const cost = await getModelCost(model);
+        const { data, error } = await supabaseClient.rpc('deduct_tokens', {
+            p_user_id: user.id,
+            p_amount: cost,
+            p_action: 'generate',
+            p_model: model,
+            p_source: source,
+        });
+        if (error) throw error;
+        return data;
+    } catch (err) {
+        console.error('deductCredits error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+async function refundCredits(model, source = 'kgen-gallery') {
+    if (!isSupabaseEnabled()) return { success: true };
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return { success: false };
+        const cost = await getModelCost(model);
+        const { data, error } = await supabaseClient.rpc('add_credits', {
+            p_user_id: user.id,
+            p_amount: cost,
+            p_source: source + '-refund',
+        });
+        if (error) throw error;
+        return data;
+    } catch (err) {
+        console.error('refundCredits error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+window.loadCentralConfig = loadCentralConfig;
+window.getModelCost = getModelCost;
+window.getUserCredits = getUserCredits;
+window.deductCredits = deductCredits;
+window.refundCredits = refundCredits;
+

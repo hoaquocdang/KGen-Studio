@@ -209,6 +209,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Init Supabase if configured
     if (typeof initSupabase === 'function') initSupabase();
 
+    // Load credits display
+    if (typeof initCredits === 'function') setTimeout(initCredits, 500);
+
     await loadPromptLibrary();
 });
 
@@ -1597,6 +1600,62 @@ RULES:
     }
 }
 
+// ============================================================
+// CREDIT DISPLAY
+// ============================================================
+
+function updateCreditDisplay(credits) {
+    // Update the credit badge on Generate button
+    let badge = document.getElementById('credit-badge');
+    if (!badge) {
+        const btn = document.getElementById('btn-generate');
+        if (btn) {
+            badge = document.createElement('span');
+            badge.id = 'credit-badge';
+            badge.style.cssText = 'display:inline-flex;align-items:center;gap:3px;margin-left:6px;background:rgba(255,255,255,0.2);padding:1px 8px;border-radius:20px;font-size:12px;font-weight:600;';
+            btn.appendChild(badge);
+        }
+    }
+    if (badge) {
+        badge.textContent = credits !== null && credits !== undefined ? `${credits}` : '';
+    }
+
+    // Also update model cost display
+    updateModelCostDisplay();
+}
+
+async function updateModelCostDisplay() {
+    const modelSelect = document.getElementById('model-select');
+    if (!modelSelect || typeof window.getModelCost !== 'function') return;
+
+    const model = modelSelect.value || 'nano-banana-pro';
+    const cost = await window.getModelCost(model);
+
+    let costLabel = document.getElementById('model-cost-label');
+    if (!costLabel) {
+        const parent = modelSelect.closest('.gen-group') || modelSelect.parentElement;
+        if (parent) {
+            costLabel = document.createElement('span');
+            costLabel.id = 'model-cost-label';
+            costLabel.style.cssText = 'font-size:12px;color:var(--text-secondary,#888);margin-left:8px;';
+            parent.appendChild(costLabel);
+        }
+    }
+    if (costLabel) {
+        costLabel.textContent = `${cost} cr`;
+    }
+}
+
+async function initCredits() {
+    if (typeof window.getUserCredits !== 'function') return;
+    try {
+        const info = await window.getUserCredits();
+        updateCreditDisplay(info.credits);
+    } catch (e) {
+        console.warn('initCredits:', e.message);
+    }
+}
+
 async function generateImage() {
     const prompt = document.getElementById('gen-prompt').value.trim();
     if (!prompt) {
@@ -1709,6 +1768,21 @@ async function generateImage() {
 
         const errorMsg = error.message || 'Lỗi không xác định';
         showGenerationError(errorMsg);
+
+        // Refund credits if generation failed (and credits were deducted)
+        if (typeof window.refundCredits === 'function' && !errorMsg.includes('credits') && !errorMsg.includes('đăng nhập')) {
+            try {
+                const selectedModel = document.getElementById('model-select')?.value || 'nano-banana-pro';
+                const refund = await window.refundCredits(selectedModel);
+                if (refund.success) {
+                    console.log('💰 Credits refunded due to error');
+                    showToast('💰 Credits đã được hoàn lại do lỗi', 'info', 3000);
+                    if (typeof updateCreditDisplay === 'function') updateCreditDisplay(refund.credits);
+                }
+            } catch (refundErr) {
+                console.warn('Refund failed:', refundErr);
+            }
+        }
 
         console.error('Generation error:', error);
     }
@@ -2054,6 +2128,23 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
     };
 
     console.log('🎨 Kie AI Request:', JSON.stringify(requestBody, null, 2));
+
+    // Step 0: Deduct credits BEFORE creating task
+    let creditResult = null;
+    if (typeof window.deductCredits === 'function') {
+        creditResult = await window.deductCredits(model);
+        if (!creditResult.success) {
+            const errorMsg = creditResult.error === 'Not logged in'
+                ? '⚠️ Vui lòng đăng nhập để tạo ảnh'
+                : creditResult.error === 'Insufficient credits'
+                    ? `⚠️ Không đủ credits! Bạn có ${creditResult.credits || 0} cr, cần ${creditResult.required || '?'} cr. Nạp thêm để tiếp tục.`
+                    : `⚠️ ${creditResult.error}`;
+            throw new Error(errorMsg);
+        }
+        console.log(`💰 Credits deducted: -${creditResult.spent}, remaining: ${creditResult.credits}`);
+        // Update credit display in UI
+        if (typeof updateCreditDisplay === 'function') updateCreditDisplay(creditResult.credits);
+    }
 
     // Step 1: Create task
     // n8n gateway: /kie/createTask | Direct: /api/v1/jobs/createTask
