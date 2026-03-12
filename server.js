@@ -120,7 +120,7 @@ function serveStatic(filePath, res) {
             'Cache-Control': 'no-cache',
         });
         res.end(`window.SITE_CONFIG = {
-    api: { kieApiKey: '', kieApiBase: '', kieModel: '${SITE_CONFIG.api?.kieModel || 'nano-banana-pro'}' },
+    api: { kieApiKey: '', kieApiBase: '', kieModel: '${SITE_CONFIG.api?.kieModel || 'nano-banana-pro'}', geminiApiKey: '${SITE_CONFIG.api?.geminiApiKey || ''}' },
     plans: ${safePlans},
     supabase: ${safeSupabase},
     n8nGateway: ${safeN8n},
