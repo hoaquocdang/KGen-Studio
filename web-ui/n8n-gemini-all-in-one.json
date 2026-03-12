@@ -126,6 +126,67 @@
     {
       "parameters": {
         "httpMethod": "POST",
+        "path": "describe-image",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-describe",
+      "name": "WH: Describe Image",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 1200],
+      "webhookId": "describe-image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjXMKdomEKNua0b1_qmxITG57nfhwoLg4",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.' } ] }], generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "gemini-describe",
+      "name": "Gemini → Describe Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 1200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst candidates = data.candidates || [];\nlet resultText = '';\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.text) resultText += part.text;\n  }\n}\nif (resultText.trim()) {\n  let clean = resultText.trim();\n  if (clean.startsWith('\"') && clean.endsWith('\"')) clean = clean.slice(1, -1);\n  if (clean.startsWith('```') && clean.endsWith('```')) clean = clean.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').trim();\n  return [{ json: { success: true, description: clean } }];\n}\nreturn [{ json: { success: false, error: 'Could not describe image' } }];"
+      },
+      "id": "parse-describe",
+      "name": "Parse Describe Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 1200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "resp-describe",
+      "name": "Respond: Describe",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1020, 1200]
+    },
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
         "path": "gemini/generateImage",
         "responseMode": "responseNode",
         "options": {}
@@ -212,6 +273,15 @@
     },
     "Parse Adapt Response": {
       "main": [[{ "node": "Respond: Adapt", "type": "main", "index": 0 }]]
+    },
+    "WH: Describe Image": {
+      "main": [[{ "node": "Gemini → Describe Image", "type": "main", "index": 0 }]]
+    },
+    "Gemini → Describe Image": {
+      "main": [[{ "node": "Parse Describe Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Describe Response": {
+      "main": [[{ "node": "Respond: Describe", "type": "main", "index": 0 }]]
     },
     "WH: Generate Image": {
       "main": [[{ "node": "Build Image Request", "type": "main", "index": 0 }]]

@@ -4367,13 +4367,12 @@ function setupGenControls() {
                             baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
                             enabled: true,
                         };
-                        const describeUrl = `${n8nGw.baseUrl}/adapt-prompt-ref`;
+                        const describeUrl = `${n8nGw.baseUrl}/describe-image`;
 
                         const response = await fetch(describeUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                prompt: 'Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.',
                                 refImageBase64: base64Data,
                                 refImageMime: mimeType,
                             }),
@@ -4386,7 +4385,7 @@ function setupGenControls() {
                         }
 
                         const data = await response.json();
-                        let resultText = data.adaptedPrompt || '';
+                        let resultText = data.description || '';
 
                         if (resultText.trim()) {
                             document.getElementById('gen-prompt').value = resultText.trim();
