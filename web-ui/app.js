@@ -1215,7 +1215,7 @@ function setupModal() {
     });
 
     // Use as reference image — copies prompt AND sets gallery image as reference
-    document.getElementById('btn-use-as-ref')?.addEventListener('click', () => {
+    document.getElementById('btn-modal-use-as-ref')?.addEventListener('click', () => {
         if (!isLoggedIn()) {
             showToast('🔒 Vui lòng đăng nhập để sử dụng', 'error');
             openAuthModal();
