@@ -1060,6 +1060,53 @@ function setupExtraModals() {
     });
 }
 
+// Premium-only gate for "Tạo Content Viral"
+function handleViralContentClick() {
+    const userTier = (APP_STATE.currentUser?.tier || 'free').toLowerCase();
+
+    if (userTier === 'premium') {
+        // Premium user — redirect to Carousel tool
+        window.open('https://kgen.cloud/carousel/', '_blank');
+        return;
+    }
+
+    // Free/Pro user — show upgrade popup
+    const existing = document.getElementById('premium-gate-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'premium-gate-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(12px);background:rgba(0,0,0,0.7);animation:fadeIn 0.3s ease;';
+    overlay.innerHTML = `
+        <div style="max-width:420px;width:92%;background:linear-gradient(180deg,#1a1a2e 0%,#0d0d1a 100%);border-radius:24px;border:1px solid rgba(139,92,246,0.3);box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 80px rgba(139,92,246,0.15);padding:40px 32px;text-align:center;position:relative;animation:modalScaleIn 0.4s cubic-bezier(0.16,1,0.3,1);">
+            <button onclick="document.getElementById('premium-gate-overlay').remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;color:#aaa;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
+            
+            <div style="font-size:3rem;margin-bottom:16px;">👑</div>
+            <h2 style="font-size:1.5rem;font-weight:800;color:#fff;margin:0 0 12px 0;line-height:1.3;">
+                Tính năng dành riêng cho<br>
+                <span style="background:linear-gradient(90deg,#a855f7,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Premium</span>
+            </h2>
+            <p style="color:#9ca3af;font-size:0.95rem;margin:0 0 24px 0;line-height:1.6;">
+                Công cụ <strong style="color:#e5e7eb;">Tạo Content Viral</strong> chỉ dành cho tài khoản <strong style="color:#a855f7;">Premium</strong>.<br>
+                Nâng cấp ngay để trải nghiệm toàn bộ công cụ sáng tạo nội dung AI!
+            </p>
+            
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button onclick="document.getElementById('premium-gate-overlay').remove(); if(typeof switchTab==='function') switchTab('pricing');" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#a855f7,#6366f1);color:white;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(139,92,246,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(139,92,246,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(139,92,246,0.4)'">
+                    🚀 Nâng cấp Premium ngay
+                </button>
+                <button onclick="document.getElementById('premium-gate-overlay').remove()" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#9ca3af;font-size:0.9rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+                    Để sau
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.remove();
+    });
+}
+
 function showGuideModal() {
     const modalHtml = `
         <div id="guide-modal-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
