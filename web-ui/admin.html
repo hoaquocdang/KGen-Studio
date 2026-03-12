@@ -485,17 +485,20 @@
             const settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
             const url = siteCfg.url || settings.supabaseUrl || '';
             const key = siteCfg.anonKey || settings.supabaseAnonKey || '';
+            console.log('🔍 Supabase config:', { url: url ? url.substring(0, 30) + '...' : '(empty)', hasKey: !!key });
             if (!url || !key) {
-                console.warn('⚠️ Supabase chưa cấu hình. Mở site-config.js > supabase > url/anonKey để kết nối.');
+                console.warn('⚠️ Supabase chưa cấu hình. site-config.js > supabase > url/anonKey');
                 return false;
             }
-            if (typeof window.supabase === 'undefined') {
-                console.warn('Supabase SDK not loaded.');
+            // supabase-js@2 CDN exposes window.supabase with createClient
+            const sbLib = window.supabase;
+            if (!sbLib || typeof sbLib.createClient !== 'function') {
+                console.warn('❌ Supabase SDK not loaded. window.supabase =', typeof sbLib);
                 return false;
             }
             try {
-                sb = window.supabase.createClient(url, key);
-                console.log('✅ Admin Supabase connected:', url);
+                sb = sbLib.createClient(url, key);
+                console.log('✅ Admin Supabase connected');
                 return true;
             } catch (e) { console.error('Supabase admin init error:', e); return false; }
         }
@@ -508,7 +511,17 @@
             else { document.getElementById('login-error').style.display = 'block'; document.getElementById('admin-password').value = ''; document.getElementById('admin-password').focus(); }
         }
         function doLogout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
-        function show() { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-wrap').style.display = 'block'; initAdminSupabase(); loadAll(); }
+        function show() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-wrap').style.display = 'block';
+            const connected = initAdminSupabase();
+            if (connected) {
+                toast('✅ Đã kết nối Supabase', 'success');
+            } else {
+                toast('⚠️ Supabase chưa kết nối — dùng localStorage. Mở Console (F12) để xem chi tiết.', 'error');
+            }
+            loadAll();
+        }
 
         async function loadAll() { await loadUsers(); await loadOrders(); await loadUI(); updateStats(); loadCreditLog(); }
 
