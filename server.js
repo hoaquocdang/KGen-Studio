@@ -106,12 +106,15 @@ function proxyToKieAI(reqPath, method, body, res) {
 function serveStatic(filePath, res) {
     let fullPath = path.join(STATIC_DIR, filePath === '/' ? 'index.html' : filePath);
 
-    // Block site-config.js from being served (security!)
+    // Block site-config.js from being served raw (security: hide admin API key)
     const basename = path.basename(filePath);
     if (basename === 'site-config.js' || filePath.includes('site-config')) {
-        console.log(`🔐 Blocked site-config.js request: ${filePath}`);
-        // Serve a sanitized version without the API key
+        console.log(`🔐 Serving sanitized site-config.js`);
+        // Serve a sanitized version: hide kieApiKey but keep public configs
         const safePlans = JSON.stringify(SITE_CONFIG.plans || {});
+        const safeSupabase = JSON.stringify(SITE_CONFIG.supabase || {});
+        const safeN8n = JSON.stringify(SITE_CONFIG.n8nGateway || {});
+        const safePayment = JSON.stringify(SITE_CONFIG.payment || {});
         res.writeHead(200, {
             'Content-Type': 'application/javascript',
             'Cache-Control': 'no-cache',
@@ -119,6 +122,9 @@ function serveStatic(filePath, res) {
         res.end(`window.SITE_CONFIG = {
     api: { kieApiKey: '', kieApiBase: '', kieModel: '${SITE_CONFIG.api?.kieModel || 'nano-banana-pro'}' },
     plans: ${safePlans},
+    supabase: ${safeSupabase},
+    n8nGateway: ${safeN8n},
+    payment: ${safePayment},
     useProxy: true,
     version: '2.1.0',
 };`);
