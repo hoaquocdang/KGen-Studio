@@ -350,6 +350,8 @@
                                 onclick="batchConfirm()">✅ Xác nhận tất cả</button>
                             <button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none"
                                 onclick="batchCancel()">❌ Huỷ tất cả</button>
+                            <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border:none"
+                                onclick="batchDelete()">🗑️ Xóa tất cả</button>
                             <button class="btn btn-sm" onclick="uncheckAll()">↩ Bỏ chọn</button>
                         </div>
                         <div class="user-table-wrap">
@@ -812,9 +814,8 @@
                 const date = fmtDate(o.created_at || o.date);
                 const statusBadge = o.status === 'paid' ? 'badge-green' : o.status === 'cancelled' ? 'badge-red' : 'badge-orange';
                 const statusText = o.status === 'paid' ? '✅ Đã TT' : o.status === 'cancelled' ? '❌ Huỷ' : '⏳ Chờ';
-                const canCheck = o.status === 'pending';
                 return `<tr>
-                    <td><input type="checkbox" class="order-chk" data-code="${esc(code)}" ${canCheck ? '' : 'disabled'} onchange="updateBatchBar()"></td>
+                    <td><input type="checkbox" class="order-chk" data-code="${esc(code)}" onchange="updateBatchBar()"></td>
                     <td><code style="font-size:0.8rem">${esc(code)}</code></td>
                     <td style="font-size:0.85rem">${esc(email)}</td>
                     <td><span class="badge badge-blue">${esc(tier.toUpperCase())}</span></td>
@@ -822,7 +823,8 @@
                     <td style="font-size:0.8rem">${date}</td>
                     <td><span class="badge ${statusBadge}">${statusText}</span></td>
                     <td><div class="user-actions">
-                        ${o.status === 'pending' ? `<button class="btn btn-sm" onclick="confirmOrder('${code}')" title="Xác nhận">✅</button><button class="btn btn-sm" onclick="cancelOrder('${code}')" title="Huỷ">❌</button>` : '—'}
+                        ${o.status === 'pending' ? `<button class="btn btn-sm" onclick="confirmOrder('${code}')" title="Xác nhận">✅</button><button class="btn btn-sm" onclick="cancelOrder('${code}')" title="Huỷ">❌</button>` : ''}
+                        <button class="btn btn-sm" onclick="deleteOrder('${code}')" title="Xóa" style="color:#ef4444">🗑️</button>
                     </div></td>
                 </tr>`;
             }).join('');
@@ -841,7 +843,7 @@
             }
         }
         function toggleAllOrders(el) {
-            document.querySelectorAll('.order-chk:not(:disabled)').forEach(c => c.checked = el.checked);
+            document.querySelectorAll('.order-chk').forEach(c => c.checked = el.checked);
             updateBatchBar();
         }
         function uncheckAll() {
@@ -863,6 +865,14 @@
             if (!confirm(`Huỷ ${codes.length} đơn đang chờ?`)) return;
             for (const code of codes) { await cancelOrder(code, true); }
             toast(`❌ Đã huỷ ${codes.length} đơn`, 'error');
+            uncheckAll();
+        }
+        async function batchDelete() {
+            const codes = getCheckedCodes();
+            if (!codes.length) return;
+            if (!confirm(`🗑️ XÓA VĨNH VIỄN ${codes.length} đơn hàng? Không thể hoàn tác!`)) return;
+            for (const code of codes) { await deleteOrder(code, true); }
+            toast(`🗑️ Đã xóa ${codes.length} đơn`, 'success');
             uncheckAll();
         }
 
@@ -899,6 +909,23 @@
             localStorage.setItem('kgen_orders', JSON.stringify(orders));
             filterOrders();
             if (!silent) toast(`❌ Đã huỷ đơn ${code}`, 'error');
+        }
+
+        async function deleteOrder(code, silent) {
+            if (!silent && !confirm(`🗑️ XÓA VĨNH VIỄN đơn ${code}? Không thể hoàn tác!`)) return;
+            // Remove from Supabase
+            if (sb) {
+                try {
+                    await sb.from('orders').delete().eq('order_code', code);
+                } catch (e) { console.error('Delete order error:', e); }
+            }
+            // Remove from local arrays
+            orders = orders.filter(x => (x.order_code || x.orderCode) !== code);
+            localStorage.setItem('kgen_orders', JSON.stringify(orders));
+            document.getElementById('nav-order-count').textContent = orders.filter(o => o.status === 'pending').length || orders.length;
+            document.getElementById('o-badge').textContent = orders.length + ' đơn';
+            filterOrders(); updateStats();
+            if (!silent) toast(`🗑️ Đã xóa đơn ${code}`, 'success');
         }
 
         // ============== CREDITS ==============

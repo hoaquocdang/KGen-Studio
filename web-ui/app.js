@@ -3705,14 +3705,41 @@ function showGoogleSetupPrompt() {
 // PRICING TAB
 // ============================================================
 
-function setupPricing() {
+async function setupPricing() {
     const container = document.getElementById('pricing-container');
     if (!container || typeof PRICING_TIERS === 'undefined') return;
 
     const currentTier = APP_STATE.currentUser?.tier || 'free';
     const _cp = typeof convertPrice === 'function' ? convertPrice : (v) => v.toLocaleString() + 'đ';
     const _period = typeof getCurrencyPeriod === 'function' ? getCurrencyPeriod() : '/tháng';
-    const _bpv = typeof BASE_PRICES_VND !== 'undefined' ? BASE_PRICES_VND : { free: 0, pro: 39000, premium: 199000 };
+
+    // Load dynamic prices from Supabase api_config (synced with Admin Panel)
+    let _bpv = typeof BASE_PRICES_VND !== 'undefined' ? { ...BASE_PRICES_VND } : { free: 0, pro: 39000, premium: 199000 };
+    if (typeof window.loadCentralConfig === 'function') {
+        try {
+            const config = await window.loadCentralConfig();
+            if (config.plan_prices) {
+                if (config.plan_prices.pro?.price) _bpv.pro = config.plan_prices.pro.price;
+                if (config.plan_prices.premium?.price) _bpv.premium = config.plan_prices.premium.price;
+                // Update PRICING_TIERS features with dynamic credits
+                PRICING_TIERS.forEach(tier => {
+                    const planData = config.plan_prices[tier.id];
+                    if (planData && planData.tokens_limit) {
+                        if (tier.id === 'pro') {
+                            tier.price = _cp(planData.price);
+                            tier.features[0] = `Tặng ${planData.tokens_limit} Credits / tháng (~${planData.tokens_limit} ảnh thường)`;
+                        } else if (tier.id === 'premium') {
+                            tier.price = _cp(planData.price);
+                            tier.features[0] = `Tặng ${planData.tokens_limit.toLocaleString()} Credits / tháng (Business)`;
+                        } else if (tier.id === 'free') {
+                            tier.features[0] = `Tặng kèm ${planData.tokens_limit} Credits ban đầu`;
+                        }
+                    }
+                });
+                console.log('💰 Pricing synced from Supabase:', _bpv);
+            }
+        } catch (e) { console.warn('Pricing sync fallback:', e.message); }
+    }
 
     container.innerHTML = `
         <div style="margin-bottom: 32px;">
