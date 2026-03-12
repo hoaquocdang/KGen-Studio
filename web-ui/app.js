@@ -207,7 +207,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadGenerationHistory();
 
     // Init Supabase if configured
-    if (typeof initSupabase === 'function') initSupabase();
+    if (typeof initSupabase === 'function') {
+        if (initSupabase()) {
+            if (typeof supabaseGetUser === 'function') {
+                supabaseGetUser().then(sbUser => {
+                    if (sbUser) {
+                        APP_STATE.currentUser = sbUser;
+                        localStorage.setItem('kgen_session', JSON.stringify(sbUser));
+                        updateAuthUI();
+                    }
+                });
+            }
+            if (typeof onAuthStateChange === 'function') {
+                onAuthStateChange(async (event, session) => {
+                    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+                        const sbUser = await supabaseGetUser();
+                        if (sbUser) {
+                            APP_STATE.currentUser = sbUser;
+                            localStorage.setItem('kgen_session', JSON.stringify(sbUser));
+                            updateAuthUI();
+                        }
+                    } else if (event === 'SIGNED_OUT') {
+                        APP_STATE.currentUser = null;
+                        localStorage.removeItem('kgen_session');
+                        updateAuthUI();
+                    }
+                });
+            }
+        }
+    }
 
     // Load credits display
     if (typeof initCredits === 'function') setTimeout(initCredits, 500);
@@ -3385,33 +3413,35 @@ function refreshOrderHistory() {
 
         let html = '';
         orders.forEach(o => {
-            const date = new Date(o.timestamp).toLocaleString('vi-VN');
+            const dateStr = o.timestamp || o.created_at || new Date().toISOString();
+            const date = new Date(dateStr).toLocaleString('vi-VN');
             let statusHTML = '';
             let bgHTML = 'background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);';
             let statusText = 'Đang chờ';
 
-            if (o.status === 'paid') {
+            if (o.status === 'paid' || o.status === 'completed' || o.status === 'active') {
                 bgHTML = 'background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2);';
                 statusHTML = '<span style="color:#22c55e; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(34,197,94,0.1);">Hoàn tất</span>';
                 statusText = 'Hoàn tất';
             } else if (o.status === 'awaiting_review' || o.status === 'pending') {
                 bgHTML = 'background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2);';
-                statusHTML = '<span style="color:#f59e0b; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(245,158,11,0.1);">Đang chờ Check</span>';
+                statusHTML = '<span style="color:#f59e0b; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(245,158,11,0.1);">Đang chờ</span>';
             } else if (o.status === 'cancelled') {
                 statusHTML = '<span style="color:#ef4444; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(239,68,68,0.1);">Đã hủy</span>';
             }
 
-            const tierName = o.tier === 'pro' ? 'PRO' : o.tier === 'premium' ? 'PREMIUM' : o.tier;
+            const tierName = o.tier === 'pro' ? 'PRO' : o.tier === 'premium' ? 'PREMIUM' : o.tier || o.plan_id || 'PRO';
+            let orderCodeDisplay = o.orderCode || o.id ? `#${(o.orderCode || o.id).toString().split('-')[0].toUpperCase()}` : 'Gói Mới';
 
             html += `
             <div style="padding: 16px; border-radius: 12px; margin-bottom: 12px; ${bgHTML}">
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <strong style="color:var(--accent-blue); font-size:1rem; letter-spacing:0.5px;">${o.orderCode}</strong>
+                    <strong style="color:var(--accent-blue); font-size:1rem; letter-spacing:0.5px;">${orderCodeDisplay}</strong>
                     ${statusHTML}
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">
-                    <span>Gói Nâng Cấp: <strong style="color:white;">${tierName}</strong></span>
-                    <span>${o.amountVnd ? o.amountVnd.toLocaleString('vi-VN') + 'đ' : ''}</span>
+                    <span>Gói Nâng Cấp: <strong style="color:white;">${tierName.toUpperCase()}</strong></span>
+                    <span>${o.amountVnd ? o.amountVnd.toLocaleString('vi-VN') + 'đ' : (o.amount ? o.amount.toLocaleString('vi-VN') + 'đ' : '')}</span>
                 </div>
                 <div style="font-size:0.75rem; color:var(--text-tertiary);">
                     📅 ${date}
@@ -3506,6 +3536,19 @@ function initGoogleSignIn() {
 }
 
 function handleGoogleSignIn() {
+    if (typeof supabaseSignInWithGoogle === 'function') {
+        showToast('Đang chuyển hướng sang trang đăng nhập Google...', 'info');
+        supabaseSignInWithGoogle().then(res => {
+            if (res && res.error) {
+                showToast('Lỗi: ' + res.error, 'error');
+            }
+        }).catch(err => {
+            console.error('Lỗi Google Sign-In:', err);
+            handleGoogleOAuthPopup();
+        });
+        return;
+    }
+
     const clientId = getGoogleClientId();
 
     if (!clientId) {
