@@ -1548,19 +1548,50 @@ async function adaptPromptToReference() {
                 mimeType = match[1];
                 base64Data = match[2];
             }
+        } else if (refUrl.startsWith('blob:')) {
+            // Blob URL — need to fetch and convert
+            try {
+                const blobResponse = await fetch(refUrl);
+                const blob = await blobResponse.blob();
+                mimeType = blob.type || 'image/jpeg';
+                base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const result = reader.result;
+                        const b64 = result.split(',')[1];
+                        resolve(b64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (blobErr) {
+                console.error('Blob read error:', blobErr);
+                throw new Error('Không thể đọc ảnh tham chiếu (blob). Thử tải lại ảnh.');
+            }
         } else if (refUrl.startsWith('http')) {
-            const imgResponse = await fetch(refUrl);
-            const blob = await imgResponse.blob();
-            mimeType = blob.type || 'image/jpeg';
-            const arrayBuffer = await blob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            let binary = '';
-            uint8Array.forEach(b => binary += String.fromCharCode(b));
-            base64Data = btoa(binary);
+            try {
+                const imgResponse = await fetch(refUrl);
+                const blob = await imgResponse.blob();
+                mimeType = blob.type || 'image/jpeg';
+                base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (fetchErr) {
+                console.error('Image fetch error:', fetchErr);
+                throw new Error('Không thể tải ảnh tham chiếu. Hãy upload ảnh trực tiếp.');
+            }
         }
 
         if (!base64Data || !mimeType) {
-            throw new Error('Không thể đọc ảnh tham chiếu');
+            throw new Error('Không thể đọc ảnh tham chiếu. Hãy thử upload lại ảnh.');
+        }
+
+        // Limit base64 size (max ~4MB base64 ≈ 3MB image)
+        if (base64Data.length > 5 * 1024 * 1024) {
+            throw new Error('Ảnh tham chiếu quá lớn (>4MB). Hãy dùng ảnh nhỏ hơn.');
         }
 
         let resultText = '';
@@ -1568,6 +1599,7 @@ async function adaptPromptToReference() {
         if (useN8nGateway && !userGoogleKey) {
             // Route through n8n gateway — Gemini key is stored server-side
             console.log('🔒 Using n8n AI Gateway for Gemini adapt-prompt');
+            console.log('📏 Base64 size:', (base64Data.length / 1024).toFixed(1), 'KB, mime:', mimeType);
             const response = await fetch(`${n8nGw.baseUrl}/adapt-prompt-ref`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1581,14 +1613,23 @@ async function adaptPromptToReference() {
             if (!response.ok) {
                 const errText = await response.text();
                 console.error('Adapt to ref error:', response.status, errText);
-                throw new Error(`API Error ${response.status}`);
+                if (response.status === 400) {
+                    throw new Error('Server không xử lý được yêu cầu. Thử ảnh khác hoặc prompt ngắn hơn.');
+                }
+                throw new Error(`Lỗi server (${response.status}). Vui lòng thử lại.`);
             }
 
             const data = await response.json();
             if (data.success && data.adaptedPrompt) {
                 resultText = data.adaptedPrompt;
+            } else if (data.adaptedPrompt) {
+                resultText = data.adaptedPrompt;
+            } else if (typeof data === 'string') {
+                resultText = data;
+            } else if (data.output) {
+                resultText = data.output;
             } else {
-                throw new Error(data.error || 'Could not analyze reference image');
+                throw new Error(data.error || 'Không thể phân tích ảnh tham chiếu');
             }
         } else {
             // Direct Gemini API call with user's own key
