@@ -336,6 +336,7 @@
             margin-bottom: 16px;
             background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
         }
@@ -406,35 +407,45 @@
             font-weight: 700;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Ecosystem Brands */
         .ecosystem-container {
+            width: 100vw;
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+            padding: 20px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 20px;
+            /* Fade out edges for professional look */
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
             opacity: 0;
             animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.7s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .ecosystem-title {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .ecosystem {
+        .ecosystem-track {
             display: flex;
             align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: clamp(16px, 3vw, 32px);
-            padding: 16px 32px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 100px;
-            backdrop-filter: blur(10px);
+            gap: 40px;
+            width: max-content;
+            animation: scrollEcosystem 30s linear infinite;
+        }
+
+        .ecosystem-track:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scrollEcosystem {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
         .eco-brand {
@@ -710,10 +721,16 @@
 
             <div class="ecosystem-container">
                 <div class="ecosystem-title" id="ui-eco-title">Our Ecosystem</div>
-                <div class="ecosystem">
+                <div class="ecosystem-track">
+                    <!-- Set 1 -->
                     <a href="https://kgen.cloud" target="_blank" class="eco-brand kgen">
                         <img src="/logo_white.png" alt="KGEN Logo" class="eco-brand-img">
-                        KGEN
+                        KGEN GALLERY
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://hub.kgen.cloud" target="_blank" class="eco-brand kgen">
+                        <img src="/logo_white.png" alt="KGEN HUB Logo" class="eco-brand-img">
+                        KGEN HUB
                     </a>
                     <div class="eco-separator"></div>
                     <a href="https://kudomax.vn" target="_blank" class="eco-brand kudomax">
@@ -721,10 +738,43 @@
                         KUDOMAX
                     </a>
                     <div class="eco-separator"></div>
+                    <a href="https://kgen.cloud/carousel/" target="_blank" class="eco-brand kgen">
+                        <img src="/logo_white.png" alt="Carousel Logo" class="eco-brand-img">
+                        KGEN CAROUSEL
+                    </a>
+                    <div class="eco-separator"></div>
                     <a href="https://hoareviewaz.com" target="_blank" class="eco-brand hoareviewaz">
                         <img src="/logo_hoareviewaz.png" alt="HOAREVIEWAZ Logo" class="eco-brand-img">
                         HOAREVIEWAZ
                     </a>
+                    <div class="eco-separator"></div>
+
+                    <!-- Set 2 (Duplicated for seamless loop) -->
+                    <a href="https://kgen.cloud" target="_blank" class="eco-brand kgen">
+                        <img src="/logo_white.png" alt="KGEN Logo" class="eco-brand-img">
+                        KGEN GALLERY
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://hub.kgen.cloud" target="_blank" class="eco-brand kgen">
+                        <img src="/logo_white.png" alt="KGEN HUB Logo" class="eco-brand-img">
+                        KGEN HUB
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://kudomax.vn" target="_blank" class="eco-brand kudomax">
+                        <img src="/logo_kudomax.png" alt="KUDOMAX Logo" class="eco-brand-img">
+                        KUDOMAX
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://kgen.cloud/carousel/" target="_blank" class="eco-brand kgen">
+                        <img src="/logo_white.png" alt="Carousel Logo" class="eco-brand-img">
+                        KGEN CAROUSEL
+                    </a>
+                    <div class="eco-separator"></div>
+                    <a href="https://hoareviewaz.com" target="_blank" class="eco-brand hoareviewaz">
+                        <img src="/logo_hoareviewaz.png" alt="HOAREVIEWAZ Logo" class="eco-brand-img">
+                        HOAREVIEWAZ
+                    </a>
+                    <div class="eco-separator"></div>
                 </div>
             </div>
 
