@@ -1065,7 +1065,7 @@ function showAIToolsModal() {
         <div id="aitools-modal-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
             <div style="background:var(--bg-primary);width:90%;max-width:600px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.2);overflow:hidden;animation:cardFadeIn 0.3s var(--ease-out);">
                 <div style="padding:20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;">
-                    <h2 style="font-size:1.2rem;font-weight:700;margin:0;">Công cụ AI dành cho Giáo dục</h2>
+                    <h2 style="font-size:1.2rem;font-weight:700;margin:0;">Bộ Công Cụ Video</h2>
                     <button onclick="document.getElementById('aitools-modal-overlay').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
                     </button>
@@ -1073,17 +1073,17 @@ function showAIToolsModal() {
                 <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                     <div style="border:1px dashed var(--border-color);padding:16px;border-radius:12px;background:var(--bg-secondary);opacity:0.8;cursor:not-allowed;" title="Tính năng này đang được phát triển và sẽ ra mắt sớm nhất">
                         <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-secondary);display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
-                            <span>🔒 Tạo Infographic</span>
+                            <span>🔒 Tạo Kịch bản Video</span>
                             <span style="font-size:0.65rem;background:var(--bg-active);color:var(--accent-orange);padding:2px 6px;border-radius:6px;font-weight:600;border:1px solid var(--border-light);letter-spacing:0.02em;">Đang phát triển, sẽ update sớm nhất</span>
                         </h3>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Tự động tạo layout, biểu đồ và nội dung thông tin bài giảng chuẩn trực quan.</p>
+                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Tự động lên ý tưởng, phân cảnh và viết kịch bản chi tiết cho Video ngắn chuyên nghiệp.</p>
                     </div>
                     <div style="border:1px dashed var(--border-color);padding:16px;border-radius:12px;background:var(--bg-secondary);opacity:0.8;cursor:not-allowed;" title="Tính năng này đang được phát triển và sẽ ra mắt sớm nhất">
                         <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-secondary);display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
-                            <span>🔒 Check văn AI</span>
+                            <span>🔒 Workflow tự động tạo Video</span>
                             <span style="font-size:0.65rem;background:var(--bg-active);color:var(--accent-orange);padding:2px 6px;border-radius:6px;font-weight:600;border:1px solid var(--border-light);letter-spacing:0.02em;">Đang phát triển, sẽ update sớm nhất</span>
                         </h3>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Phân tích, đánh giá, phát hiện đạo văn hoặc văn bản được tạo ra bởi AI.</p>
+                        <p style="margin:0;font-size:0.85rem;color:var(--text-tertiary);">Quy trình khép kín tự động sản xuất Video bằng AI từ văn bản hoặc hình ảnh.</p>
                     </div>
                     <div style="grid-column:1/-1;border:1px dashed var(--border-color);padding:16px;border-radius:12px;background:var(--bg-secondary);opacity:0.8;cursor:not-allowed;" title="Tính năng này đang được phát triển và sẽ ra mắt sớm nhất">
                         <h3 style="margin:0 0 8px;font-size:1rem;color:var(--text-secondary);display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
