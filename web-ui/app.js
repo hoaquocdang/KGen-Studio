@@ -3296,10 +3296,10 @@ function updateAuthUI() {
         // Update token info
         const tokenEl = document.getElementById('sidebar-token-info');
         const tokenBar = document.getElementById('sidebar-token-bar');
-        const limits = { free: 10, pro: 1000, premium: 5000 };
+        const cfg = getSiteConfig();
+        const limit = cfg.plans && cfg.plans[tier] ? cfg.plans[tier].imageLimit : 10;
         const used = user.imagesUsed || 0;
-        const limit = limits[tier] || 10;
-        if (tokenEl) tokenEl.textContent = `${used} / ${limit} ảnh`;
+        if (tokenEl) tokenEl.textContent = `${used} / ${limit} Token`;
         if (tokenBar) tokenBar.style.width = `${Math.min((used / limit) * 100, 100)}%`;
 
         // Update upgrade button dynamically instead of hiding it
