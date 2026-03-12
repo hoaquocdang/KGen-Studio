@@ -2393,7 +2393,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel, 
             : `${baseUrl}/api/v1/jobs/queryTask/${taskId}`;
     }
 
-    const maxWait = 90000; // 90 seconds
+    const maxWait = 30000; // 30 seconds — fallback to Gemini if KIE hangs
     const pollInterval = 3000;
     const startTime = Date.now();
 
@@ -2467,7 +2467,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel, 
         // else: waiting/processing, continue poll
     }
 
-    throw new Error('Quá thời gian chờ (90 giây). Server đang bận — vui lòng thử lại sau.');
+    throw new Error('KIE.ai không phản hồi sau 30 giây.');
 }
 
 
