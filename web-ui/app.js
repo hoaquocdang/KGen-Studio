@@ -1865,11 +1865,14 @@ async function generateImage() {
             finalPrompt = `[CRITICAL INSTRUCTION: Any text, typography, fonts, or labels rendered in the image MUST strictly be written in ${langCode} language.]\n\n` + prompt;
         }
 
+        const selectedModel = document.getElementById('gen-model')?.value || 'nano-banana-pro';
+
         // Build request body for n8n Gemini endpoint
         const requestBody = {
             prompt: finalPrompt,
             aspect_ratio: aspectRatio,
             quality: quality,
+            model: selectedModel,
         };
 
         // Add reference images if any
