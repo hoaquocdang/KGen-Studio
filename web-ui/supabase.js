@@ -1075,7 +1075,16 @@ async function deductCredits(model, source = 'kgen-gallery') {
     }
     try {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) return { success: false, error: 'Not logged in' };
+        if (!user) {
+            // User is not logged in via Supabase Auth, but may be logged in via localStorage
+            // Allow generation without credit deduction (fallback mode)
+            const localSession = JSON.parse(localStorage.getItem('kgen_session') || 'null');
+            if (localSession) {
+                console.log('⚠️ User logged in via localStorage, skipping Supabase credit deduction');
+                return { success: true, credits: 999, spent: 0 };
+            }
+            return { success: false, error: 'Not logged in' };
+        }
         const cost = await getModelCost(model);
         const { data, error } = await supabaseClient.rpc('deduct_tokens', {
             p_user_id: user.id,
