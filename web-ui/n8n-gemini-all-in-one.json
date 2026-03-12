@@ -78,18 +78,28 @@
     },
     {
       "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst prompt = body.prompt || '';\nconst refBase64 = body.refImageBase64 || null;\nconst refMime = body.refImageMime || null;\n\nconst parts = [];\nif (refBase64 && refMime) {\n  parts.push({ inlineData: { mimeType: refMime, data: refBase64 } });\n}\nparts.push({ text: 'You are an expert image prompt editor. You will receive:\\n1. A reference image of a person/subject\\n2. An existing image generation prompt\\n\\nYour task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.\\n\\nRULES:\\n- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.\\n- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.\\n- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.\\n- Keep ALL text overlay instructions unchanged.\\n- Keep the same language as the original prompt.\\n- Output ONLY the modified prompt text, nothing else.\\n\\n--- EXISTING PROMPT ---\\n' + prompt + '\\n--- END PROMPT ---\\n\\nPlease output the modified prompt:' });\n\nconst requestBody = {\n  contents: [{ parts }],\n  generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }\n};\n\nreturn [{ json: { requestBody } }];"
+      },
+      "id": "build-adapt-request",
+      "name": "Build Adapt Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 600]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjXMKdomEKNua0b1_qmxITG57nfhwoLg4",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'You are an expert image prompt editor. You will receive:\\n1. A reference image of a person/subject\\n2. An existing image generation prompt\\n\\nYour task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.\\n\\nRULES:\\n- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.\\n- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.\\n- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.\\n- Keep ALL text overlay instructions unchanged.\\n- Keep the same language as the original prompt.\\n- Output ONLY the modified prompt text, nothing else.\\n\\n--- EXISTING PROMPT ---\\n' + ($json.body.prompt || '') + '\\n--- END PROMPT ---\\n\\nPlease output the modified prompt:' } ] }], generationConfig: { temperature: 0.3, maxOutputTokens: 4096 } }) }}",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
         "options": { "timeout": 30000 }
       },
       "id": "gemini-adapt",
       "name": "Gemini → Adapt Prompt",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [500, 600],
+      "position": [660, 600],
       "onError": "continueRegularOutput"
     },
     {
@@ -139,18 +149,28 @@
     },
     {
       "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst refBase64 = body.refImageBase64 || null;\nconst refMime = body.refImageMime || null;\n\nconst parts = [];\nif (refBase64 && refMime) {\n  parts.push({ inlineData: { mimeType: refMime, data: refBase64 } });\n}\nparts.push({ text: 'Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.' });\n\nconst requestBody = {\n  contents: [{ parts }],\n  generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }\n};\n\nreturn [{ json: { requestBody } }];"
+      },
+      "id": "build-describe-request",
+      "name": "Build Describe Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 1200]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCjXMKdomEKNua0b1_qmxITG57nfhwoLg4",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.' } ] }], generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }) }}",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
         "options": { "timeout": 30000 }
       },
       "id": "gemini-describe",
       "name": "Gemini → Describe Image",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [500, 1200],
+      "position": [660, 1200],
       "onError": "continueRegularOutput"
     },
     {
@@ -266,6 +286,9 @@
       "main": [[{ "node": "Respond: Enhance", "type": "main", "index": 0 }]]
     },
     "WH: Adapt Prompt Ref": {
+      "main": [[{ "node": "Build Adapt Request", "type": "main", "index": 0 }]]
+    },
+    "Build Adapt Request": {
       "main": [[{ "node": "Gemini → Adapt Prompt", "type": "main", "index": 0 }]]
     },
     "Gemini → Adapt Prompt": {
@@ -275,6 +298,9 @@
       "main": [[{ "node": "Respond: Adapt", "type": "main", "index": 0 }]]
     },
     "WH: Describe Image": {
+      "main": [[{ "node": "Build Describe Request", "type": "main", "index": 0 }]]
+    },
+    "Build Describe Request": {
       "main": [[{ "node": "Gemini → Describe Image", "type": "main", "index": 0 }]]
     },
     "Gemini → Describe Image": {
