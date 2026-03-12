@@ -1833,11 +1833,35 @@ async function generateImage() {
     document.getElementById('result-image-wrap').classList.add('hidden');
     document.getElementById('result-loading').classList.remove('hidden');
 
+    // Add cancel button
+    const loadingEl = document.getElementById('result-loading');
+    let cancelBtn = document.getElementById('gen-cancel-btn');
+    if (!cancelBtn) {
+        cancelBtn = document.createElement('button');
+        cancelBtn.id = 'gen-cancel-btn';
+        cancelBtn.textContent = '✕ Huỷ';
+        cancelBtn.style.cssText = 'margin-top:12px;padding:6px 18px;background:rgba(255,60,60,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff6060;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;';
+        loadingEl.appendChild(cancelBtn);
+    }
+    cancelBtn.style.display = 'inline-block';
+
+    // AbortController for the entire generation
+    window._genAbortController = new AbortController();
+    cancelBtn.onclick = () => {
+        window._genAbortController.abort('user_cancel');
+        cancelBtn.style.display = 'none';
+    };
+
     const startTime = Date.now();
     const timerEl = document.getElementById('gen-timer');
+    let warned60s = false;
     const timerInterval = setInterval(() => {
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         timerEl.textContent = `${elapsed}s`;
+        if (elapsed >= 60 && !warned60s) {
+            warned60s = true;
+            showToast('⏳ Đang chờ lâu hơn bình thường. Nhấn Huỷ nếu muốn thử lại.', 'info', 5000);
+        }
     }, 1000);
 
     try {
@@ -1852,11 +1876,12 @@ async function generateImage() {
         }
 
         // Always use KIE.ai for image generation (via n8n gateway or direct key)
-        result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel);
+        result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel, window._genAbortController.signal);
         provider = 'kie-ai';
 
         // Show result
         clearInterval(timerInterval);
+        if (cancelBtn) cancelBtn.style.display = 'none';
         document.getElementById('result-loading').classList.add('hidden');
 
         if (result && result.imageUrl) {
@@ -1889,8 +1914,13 @@ async function generateImage() {
         clearInterval(timerInterval);
         document.getElementById('result-loading').classList.add('hidden');
         document.getElementById('result-placeholder').classList.remove('hidden');
+        if (cancelBtn) cancelBtn.style.display = 'none';
 
         const errorMsg = error.message || 'Lỗi không xác định';
+        if (error.name === 'AbortError' || errorMsg === 'user_cancel') {
+            showToast('🚫 Đã huỷ tạo ảnh.', 'info', 3000);
+            return;
+        }
         showGenerationError(errorMsg);
 
         // Refund credits if generation failed (and credits were deducted)
@@ -2163,7 +2193,7 @@ function showGenerationError(message) {
  * Supports: nano-banana-pro and nano-banana-2
  * If useProxy=true, calls server proxy (admin key hidden server-side)
  */
-async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) {
+async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel, abortSignal) {
     const cfg = getSiteConfig();
     const userKieKey = APP_STATE.settings.kieApiKey || '';
     const adminKieKey = getAdminAPIKey('kie');
@@ -2278,6 +2308,11 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
 
     let createResponse;
     try {
+        // 30s timeout for task creation
+        const createAbort = new AbortController();
+        const createTimeout = setTimeout(() => createAbort.abort('timeout'), 30000);
+        if (abortSignal) abortSignal.addEventListener('abort', () => createAbort.abort('user_cancel'));
+
         createResponse = await fetch(createUrl, {
             method: 'POST',
             headers: {
@@ -2285,9 +2320,14 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
                 ...authHeaders,
             },
             body: JSON.stringify(requestBody),
+            signal: createAbort.signal,
         });
+        clearTimeout(createTimeout);
     } catch (fetchErr) {
         console.error('Fetch error:', fetchErr);
+        if (fetchErr.name === 'AbortError') {
+            throw new Error('Kết nối tới server quá chậm (timeout 30s). Server n8n có thể đang bận, vui lòng thử lại.');
+        }
         throw new Error('Không kết nối được tới server. Kiểm tra kết nối mạng.');
     }
 
@@ -2336,20 +2376,34 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
             : `${baseUrl}/api/v1/jobs/queryTask/${taskId}`;
     }
 
-    const maxWait = 120000; // 2 minutes
-    const pollInterval = 2000;
+    const maxWait = 90000; // 90 seconds
+    const pollInterval = 3000;
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWait) {
+        // Check if user cancelled
+        if (abortSignal?.aborted) {
+            throw new Error('user_cancel');
+        }
+
         await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+        if (abortSignal?.aborted) throw new Error('user_cancel');
 
         let queryResponse;
         try {
+            const pollAbort = new AbortController();
+            const pollTimeout = setTimeout(() => pollAbort.abort(), 15000);
+            if (abortSignal) abortSignal.addEventListener('abort', () => pollAbort.abort());
+
             queryResponse = await fetch(pollUrl, {
                 method: 'GET',
                 headers: { ...authHeaders },
+                signal: pollAbort.signal,
             });
+            clearTimeout(pollTimeout);
         } catch (e) {
+            if (e.name === 'AbortError') throw new Error('user_cancel');
             console.warn('Poll fetch error:', e);
             continue;
         }
@@ -2396,7 +2450,7 @@ async function generateViaKieAI(prompt, aspectRatio, resolution, selectedModel) 
         // else: waiting/processing, continue poll
     }
 
-    throw new Error('Quá thời gian chờ (2 phút). Vui lòng thử lại.');
+    throw new Error('Quá thời gian chờ (90 giây). Server đang bận — vui lòng thử lại sau.');
 }
 
 
