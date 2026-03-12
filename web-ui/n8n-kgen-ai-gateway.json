@@ -297,6 +297,67 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [1020, 1200]
+    },
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gemini/generateImage",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-gemini-image",
+      "name": "WH: Gemini Generate Image",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 1500],
+      "webhookId": "gemini-generate-image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [ ...(($json.body.refImageBase64 && $json.body.refImageMime) ? [{ inlineData: { mimeType: $json.body.refImageMime, data: $json.body.refImageBase64 } }] : []), { text: 'Generate an image: ' + ($json.body.prompt || 'a beautiful landscape') } ] }], generationConfig: { responseModalities: ['IMAGE', 'TEXT'], temperature: 1, maxOutputTokens: 8192 } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "gemini-gen-image",
+      "name": "Gemini → Generate Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 1500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst candidates = data.candidates || [];\nif (candidates.length > 0) {\n  const parts = candidates[0].content?.parts || [];\n  for (const part of parts) {\n    if (part.inlineData) {\n      return [{ json: { success: true, imageData: part.inlineData.data, mimeType: part.inlineData.mimeType || 'image/png' } }];\n    }\n  }\n}\nif (data.promptFeedback?.blockReason) {\n  return [{ json: { success: false, error: 'Prompt blocked: ' + data.promptFeedback.blockReason } }];\n}\nreturn [{ json: { success: false, error: 'No image generated' } }];"
+      },
+      "id": "parse-gemini-image",
+      "name": "Parse Gemini Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 1500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 500 }}",
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "resp-gemini-image",
+      "name": "Respond: Gemini Image",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1020, 1500]
     }
   ],
   "connections": {
@@ -335,6 +396,15 @@
     },
     "Parse Gemini Response": {
       "main": [[{ "node": "Respond: Adapt", "type": "main", "index": 0 }]]
+    },
+    "WH: Gemini Generate Image": {
+      "main": [[{ "node": "Gemini → Generate Image", "type": "main", "index": 0 }]]
+    },
+    "Gemini → Generate Image": {
+      "main": [[{ "node": "Parse Gemini Image", "type": "main", "index": 0 }]]
+    },
+    "Parse Gemini Image": {
+      "main": [[{ "node": "Respond: Gemini Image", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
