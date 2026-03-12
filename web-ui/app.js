@@ -1875,9 +1875,26 @@ async function generateImage() {
             finalPrompt = `[CRITICAL INSTRUCTION: Any text, typography, fonts, or labels rendered in the image MUST strictly be written in ${langCode} language.]\n\n` + prompt;
         }
 
-        // Always use KIE.ai for image generation (via n8n gateway or direct key)
-        result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel, window._genAbortController.signal);
-        provider = 'kie-ai';
+        // Try KIE.ai first, fallback to Gemini Imagen if KIE fails
+        const geminiKey = getAdminAPIKey('gemini') || window.SITE_CONFIG?.api?.geminiApiKey || '';
+        try {
+            result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel, window._genAbortController.signal);
+            provider = 'kie-ai';
+        } catch (kieError) {
+            // Don't fallback if user cancelled
+            if (kieError.name === 'AbortError' || kieError.message === 'user_cancel') throw kieError;
+            // Don't fallback for credit/auth errors
+            if (kieError.message?.includes('credit') || kieError.message?.includes('đăng nhập')) throw kieError;
+
+            console.warn('⚠️ KIE.ai failed, trying Gemini fallback:', kieError.message);
+            if (geminiKey) {
+                showToast('⚠️ KIE.ai đang bận — chuyển sang Gemini Imagen...', 'info', 3000);
+                result = await generateViaGemini(finalPrompt, aspectRatio, quality, geminiKey);
+                provider = 'gemini';
+            } else {
+                throw kieError; // No fallback available
+            }
+        }
 
         // Show result
         clearInterval(timerInterval);
