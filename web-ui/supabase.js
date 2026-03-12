@@ -1050,7 +1050,8 @@ async function getUserCredits() {
         return { credits: session?.credits || 0, credits_used: session?.credits_used || 0, tier: session?.tier || 'free' };
     }
     try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const { data } = await supabaseClient.auth.getSession();
+        const user = data?.session?.user;
         if (!user) return { credits: 0, credits_used: 0, tier: 'free' };
         const { data: profile } = await supabaseClient
             .from('profiles')
@@ -1074,7 +1075,14 @@ async function deductCredits(model, source = 'kgen-gallery') {
         return { success: true, credits: 999, spent: 0 };
     }
     try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        let user = null;
+        try {
+            const { data } = await supabaseClient.auth.getSession();
+            user = data?.session?.user;
+        } catch (e) {
+            console.warn('Supabase auth session error (bypassing):', e.message);
+        }
+
         if (!user) {
             // User is not logged in via Supabase Auth, but may be logged in via localStorage
             // Allow generation without credit deduction (fallback mode)
@@ -1104,16 +1112,17 @@ async function deductCredits(model, source = 'kgen-gallery') {
 async function refundCredits(model, source = 'kgen-gallery') {
     if (!isSupabaseEnabled()) return { success: true };
     try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const { data } = await supabaseClient.auth.getSession();
+        const user = data?.session?.user;
         if (!user) return { success: false };
         const cost = await getModelCost(model);
-        const { data, error } = await supabaseClient.rpc('add_credits', {
+        const { data: rpcData, error } = await supabaseClient.rpc('add_credits', {
             p_user_id: user.id,
             p_amount: cost,
             p_source: source + '-refund',
         });
         if (error) throw error;
-        return data;
+        return rpcData;
     } catch (err) {
         console.error('refundCredits error:', err);
         return { success: false, error: err.message };

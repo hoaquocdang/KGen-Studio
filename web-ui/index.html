@@ -166,13 +166,13 @@
                 </button>
                 <style>
                 .premium-sidebar-btn {
-                    border: 1px solid transparent !important;
+                    border: none !important;
                     border-radius: 12px !important;
                     padding: 12px 14px !important;
                     margin-bottom: 8px !important;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                    background: rgba(255, 255, 255, 0.02) !important;
-                    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+                    position: relative;
+                    overflow: hidden;
                     display: flex;
                     align-items: center;
                     gap: 12px;
@@ -180,41 +180,74 @@
                     text-align: left;
                     cursor: pointer;
                     text-decoration: none;
+                    background: var(--bg-primary) !important;
+                    box-shadow: 
+                        inset 0 1px 1px rgba(255, 255, 255, 0.08),
+                        inset 0 -1px 2px rgba(0, 0, 0, 0.02),
+                        0 2px 6px rgba(0, 0, 0, 0.04) !important;
+                }
+                .premium-sidebar-btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: -100%;
+                    width: 50%; height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+                    transform: skewX(-20deg);
+                    transition: left 0.5s ease;
+                }
+                .premium-sidebar-btn:hover::before {
+                    left: 150%;
                 }
                 .premium-sidebar-btn:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
-                    background: var(--bg-secondary) !important;
+                    box-shadow: 
+                        inset 0 1px 1px rgba(255, 255, 255, 0.15),
+                        inset 0 -1px 2px rgba(0, 0, 0, 0.05),
+                        0 8px 16px -4px rgba(0, 0, 0, 0.1) !important;
                 }
+                
+                /* Viral Config */
                 .premium-sidebar-btn.btn-viral {
-                    border: 1px solid rgba(16, 185, 129, 0.15) !important;
+                    background: linear-gradient(160deg, rgba(16, 185, 129, 0.05) 0%, var(--bg-primary) 70%) !important;
+                    border-top: 1px solid rgba(16, 185, 129, 0.15) !important;
                 }
                 .premium-sidebar-btn.btn-viral:hover {
-                    border: 1px solid rgba(16, 185, 129, 0.4) !important;
-                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(52, 211, 153, 0.06)) !important;
+                    background: linear-gradient(160deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-secondary) 100%) !important;
+                    border-top: 1px solid rgba(16, 185, 129, 0.3) !important;
                 }
+
+                /* Video Config */
                 .premium-sidebar-btn.btn-video {
-                    border: 1px solid rgba(236, 72, 153, 0.15) !important;
+                    background: linear-gradient(160deg, rgba(236, 72, 153, 0.05) 0%, var(--bg-primary) 70%) !important;
+                    border-top: 1px solid rgba(236, 72, 153, 0.15) !important;
                 }
                 .premium-sidebar-btn.btn-video:hover {
-                    border: 1px solid rgba(236, 72, 153, 0.4) !important;
-                    background: linear-gradient(135deg, rgba(236, 72, 153, 0.06), rgba(244, 63, 94, 0.06)) !important;
+                    background: linear-gradient(160deg, rgba(236, 72, 153, 0.08) 0%, var(--bg-secondary) 100%) !important;
+                    border-top: 1px solid rgba(236, 72, 153, 0.3) !important;
                 }
+
+                /* Hub Config */
                 .premium-sidebar-btn.btn-hub {
-                    border: 1px solid rgba(59, 130, 246, 0.15) !important;
+                    background: linear-gradient(160deg, rgba(59, 130, 246, 0.05) 0%, var(--bg-primary) 70%) !important;
+                    border-top: 1px solid rgba(59, 130, 246, 0.15) !important;
                 }
                 .premium-sidebar-btn.btn-hub:hover {
-                    border: 1px solid rgba(59, 130, 246, 0.4) !important;
-                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(139, 92, 246, 0.06)) !important;
+                    background: linear-gradient(160deg, rgba(59, 130, 246, 0.08) 0%, var(--bg-secondary) 100%) !important;
+                    border-top: 1px solid rgba(59, 130, 246, 0.3) !important;
                 }
+
                 .premium-sidebar-btn svg {
                     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .premium-sidebar-btn:hover svg {
+                    transform: scale(1.1) translateY(-1px);
                 }
                 .premium-sidebar-btn .item-text {
                     font-weight: 600 !important;
-                    font-size: 0.9rem !important;
+                    font-size: 0.88rem !important;
                     color: var(--text-primary) !important;
-                    letter-spacing: 0.01em;
+                    letter-spacing: 0.015em;
                 }
                 </style>
                 <button onclick="handleViralContentClick()" class="nav-item nav-item-sm premium-sidebar-btn btn-viral" id="nav-btn-viral-content">
