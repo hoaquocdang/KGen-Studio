@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -237,7 +237,14 @@
                                 <option value="nano-banana-2">Nano Banana 2 (Google Search)</option>
                             </select>
                         </div>
-                        <button class="btn btn-primary" onclick="saveAllSettings()">💾 Lưu API</button>
+                        <div class="form-group" style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border)">
+                            <label class="form-label">🤖 Chi phí Credits theo Model</label>
+                            <p class="form-hint" style="margin-bottom:10px">Số credits trừ mỗi lần tạo ảnh. Thay đổi sẽ áp dụng cho toàn bộ hệ sinh thái.</p>
+                            <div id="model-costs-inputs">
+                                <p style="color:var(--text-muted);font-size:0.85rem">Đang tải từ Supabase...</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveAllSettings()">💾 Lưu API & Model Costs</button>
                     </div>
                 </div>
 
@@ -501,30 +508,65 @@
         function doLogout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
         function show() { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-wrap').style.display = 'block'; initAdminSupabase(); loadAll(); }
 
-        async function loadAll() { await loadUsers(); await loadOrders(); loadUI(); updateStats(); loadCreditLog(); }
+        async function loadAll() { await loadUsers(); await loadOrders(); await loadUI(); updateStats(); loadCreditLog(); }
 
-        // ============== SETTINGS ==============
-        function loadUI() {
+        // Cached api_config from Supabase
+        let apiConfig = null;
+
+        // ============== SETTINGS (Supabase api_config) ==============
+        async function loadUI() {
+            // Try loading from Supabase api_config
+            if (sb) {
+                try {
+                    const { data, error } = await sb.from('api_config').select('*').eq('id', '00000000-0000-0000-0000-000000000001').single();
+                    if (!error && data) {
+                        apiConfig = data;
+                        console.log('✅ Loaded api_config from Supabase');
+                    }
+                } catch (e) { console.warn('api_config load error:', e); }
+            }
+
+            // Fill UI from Supabase api_config (or fallback to localStorage)
             const c = gc();
-            document.getElementById('f-kie-key').value = c.kieApiKey || '';
+            document.getElementById('f-kie-key').value = apiConfig?.kie_api_key || c.kieApiKey || '';
             document.getElementById('f-kie-base').value = c.kieApiBase || 'https://api.kie.ai';
             document.getElementById('f-kie-model').value = c.kieModel || 'nano-banana-pro';
-            const pl = c.plans || {};
+
+            // Plans from Supabase
+            const planPrices = apiConfig?.plan_prices || {};
             [['free', 10], ['pro', 500], ['prem', 2500]].forEach(([k, d]) => {
-                const v = pl[k + 'Limit'] || d;
+                const planKey = k === 'prem' ? 'premium' : k;
+                const v = planPrices[planKey]?.tokens_limit || d;
                 const el = document.getElementById('pl-' + k); if (el) el.value = v;
                 const dl = document.getElementById('pd-' + k); if (dl) dl.textContent = v;
                 if (el) { el.oninput = () => { if (dl) dl.textContent = el.value || 0; }; }
             });
-            updAPI(c.kieApiKey);
+
+            updAPI(apiConfig?.kie_api_key || c.kieApiKey);
             document.getElementById('sys-supa').textContent = sb ? '✅ Đã kết nối' : '❌ Chưa kết nối';
             document.getElementById('sys-store').textContent = sb ? 'Supabase (PostgreSQL)' : 'localStorage';
-            const pricing = c.pricing || { pro: 49000, premium: 199000 };
+
+            // Pricing
+            const proPx = planPrices.pro?.price || 49000;
+            const premPx = planPrices.premium?.price || 199000;
             const elPro = document.getElementById('pl-price-pro');
             const elPrem = document.getElementById('pl-price-prem');
-            if (elPro) elPro.value = pricing.pro || 49000;
-            if (elPrem) elPrem.value = pricing.premium || 199000;
+            if (elPro) elPro.value = proPx;
+            if (elPrem) elPrem.value = premPx;
             updatePriceDisplay();
+
+            // Model costs
+            const modelCosts = apiConfig?.model_costs || {};
+            const mcContainer = document.getElementById('model-costs-inputs');
+            if (mcContainer) {
+                mcContainer.innerHTML = Object.entries(modelCosts).map(([name, cost]) =>
+                    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                        <label style="min-width:140px;font-size:0.85rem;color:var(--text-secondary)">${name}</label>
+                        <input type="number" class="form-input mc-input" data-model="${name}" value="${cost}" min="0" style="width:80px;padding:6px 10px">
+                        <span style="font-size:0.8rem;color:var(--text-muted)">cr</span>
+                    </div>`
+                ).join('');
+            }
         }
 
         function updAPI(k) {
@@ -533,14 +575,40 @@
             else { b.textContent = '❌ Chưa có'; b.className = 'badge badge-red'; if (s) s.textContent = '❌ OFF'; if (n) { n.textContent = 'Cần cấu hình'; n.className = 'stat-change down'; } }
         }
 
-        function saveAllSettings() {
+        async function saveAllSettings() {
+            const kieKey = document.getElementById('f-kie-key').value.trim();
+            const kieBase = document.getElementById('f-kie-base').value.trim() || 'https://api.kie.ai';
+            const kieModel = document.getElementById('f-kie-model').value;
+
+            // Save to localStorage as backup
             const c = gc();
-            c.kieApiKey = document.getElementById('f-kie-key').value.trim();
-            c.kieApiBase = document.getElementById('f-kie-base').value.trim() || 'https://api.kie.ai';
-            c.kieModel = document.getElementById('f-kie-model').value;
-            c.plans = { freeLimit: +(document.getElementById('pl-free').value) || 10, proLimit: +(document.getElementById('pl-pro').value) || 500, premLimit: +(document.getElementById('pl-prem').value) || 2500 };
-            sc(c); updAPI(c.kieApiKey);
-            toast('Đã lưu cài đặt!', 'success');
+            c.kieApiKey = kieKey; c.kieApiBase = kieBase; c.kieModel = kieModel;
+            sc(c);
+
+            // Save to Supabase api_config
+            if (sb) {
+                try {
+                    // Build model_costs from inputs
+                    const modelCosts = {};
+                    document.querySelectorAll('.mc-input').forEach(inp => {
+                        modelCosts[inp.dataset.model] = parseInt(inp.value) || 0;
+                    });
+
+                    await sb.from('api_config').update({
+                        kie_api_key: kieKey,
+                        model_costs: Object.keys(modelCosts).length > 0 ? modelCosts : undefined,
+                        updated_at: new Date().toISOString(),
+                        updated_by: 'admin',
+                    }).eq('id', '00000000-0000-0000-0000-000000000001');
+                    toast('✅ Đã lưu vào Supabase!', 'success');
+                } catch (e) {
+                    console.error('Save to Supabase error:', e);
+                    toast('⚠️ Lưu localStorage OK, Supabase lỗi', 'error');
+                }
+            } else {
+                toast('💾 Đã lưu (localStorage)', 'success');
+            }
+            updAPI(kieKey);
         }
 
         function updatePriceDisplay() {
@@ -558,12 +626,41 @@
             if (ppcPrem) ppcPrem.textContent = premLimit > 0 ? Math.round(premPx / premLimit).toLocaleString('vi') : '0';
         }
 
-        function savePlansAndPricing() {
+        async function savePlansAndPricing() {
+            const freeLimit = +(document.getElementById('pl-free').value) || 10;
+            const proLimit = +(document.getElementById('pl-pro').value) || 500;
+            const premLimit = +(document.getElementById('pl-prem').value) || 2500;
+            const proPrice = +(document.getElementById('pl-price-pro').value) || 49000;
+            const premPrice = +(document.getElementById('pl-price-prem').value) || 199000;
+
+            // Save to localStorage backup
             const c = gc();
-            c.plans = { freeLimit: +(document.getElementById('pl-free').value) || 10, proLimit: +(document.getElementById('pl-pro').value) || 500, premLimit: +(document.getElementById('pl-prem').value) || 2500 };
-            c.pricing = { pro: +(document.getElementById('pl-price-pro').value) || 49000, premium: +(document.getElementById('pl-price-prem').value) || 199000 };
-            sc(c); updatePriceDisplay();
-            toast('💾 Đã lưu Quota & Giá!', 'success');
+            c.plans = { freeLimit, proLimit, premLimit };
+            c.pricing = { pro: proPrice, premium: premPrice };
+            sc(c);
+
+            // Save to Supabase
+            if (sb) {
+                try {
+                    const planPrices = {
+                        free: { tokens_limit: freeLimit, price: 0, name: 'Free' },
+                        pro: { tokens_limit: proLimit, price: proPrice, name: 'Pro' },
+                        premium: { tokens_limit: premLimit, price: premPrice, name: 'Premium' },
+                    };
+                    await sb.from('api_config').update({
+                        plan_prices: planPrices,
+                        updated_at: new Date().toISOString(),
+                        updated_by: 'admin',
+                    }).eq('id', '00000000-0000-0000-0000-000000000001');
+                    toast('✅ Đã lưu Quota & Giá vào Supabase!', 'success');
+                } catch (e) {
+                    console.error(e);
+                    toast('⚠️ Lưu localStorage OK, Supabase lỗi', 'error');
+                }
+            } else {
+                toast('💾 Đã lưu (localStorage)', 'success');
+            }
+            updatePriceDisplay();
         }
 
         function changePwd() {
@@ -835,16 +932,35 @@
             let logs = [];
             if (sb) {
                 try {
-                    const { data } = await sb.from('credit_logs').select('*').order('created_at', { ascending: false }).limit(50);
-                    if (data) logs = data;
+                    // Read from token_logs (centralized) first, fallback credit_logs
+                    const { data: tLogs } = await sb.from('token_logs').select('*').order('created_at', { ascending: false }).limit(50);
+                    if (tLogs && tLogs.length) {
+                        logs = tLogs.map(l => ({
+                            created_at: l.created_at,
+                            user_email: l.user_id, // will show ID, we join below
+                            amount: l.action === 'topup' ? l.tokens_spent : -l.tokens_spent,
+                            reason: `${l.action} (${l.model || l.source || ''})`,
+                            balance: l.balance_after,
+                        }));
+                        // Try to resolve user emails
+                        const userIds = [...new Set(tLogs.map(l => l.user_id))];
+                        const { data: profiles } = await sb.from('profiles').select('id, email').in('id', userIds);
+                        const emailMap = {};
+                        (profiles || []).forEach(p => emailMap[p.id] = p.email);
+                        logs.forEach(l => l.user_email = emailMap[l.user_email] || l.user_email);
+                    } else {
+                        // Fallback to old credit_logs
+                        const { data } = await sb.from('credit_logs').select('*').order('created_at', { ascending: false }).limit(50);
+                        if (data) logs = data.map(l => ({ ...l, balance: null }));
+                    }
                 } catch (e) { console.error(e); }
             }
             if (!logs.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Chưa có lịch sử</td></tr>'; return; }
             tb.innerHTML = logs.map(l => `<tr>
                 <td style="font-size:0.8rem">${fmtDate(l.created_at)}</td>
-                <td>${esc(l.user_email)}</td>
-                <td><strong style="color:${l.amount >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${l.amount >= 0 ? '+' : ''}${l.amount}</strong></td>
-                <td style="font-size:0.85rem">${esc(l.reason)}</td>
+                <td>${esc(l.user_email || '')}</td>
+                <td><strong style="color:${(l.amount || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${(l.amount || 0) >= 0 ? '+' : ''}${l.amount || 0}</strong>${l.balance != null ? ` <span style="font-size:0.75rem;color:var(--text-muted)">(→${l.balance})</span>` : ''}</td>
+                <td style="font-size:0.85rem">${esc(l.reason || '')}</td>
             </tr>`).join('');
         }
 
