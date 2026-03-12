@@ -1571,11 +1571,7 @@ async function adaptPromptToReference() {
         return;
     }
 
-    const geminiKey = getGeminiApiKey();
-    if (!geminiKey) {
-        showToast('⚠️ Cần Google/Gemini API Key để phân tích ảnh. Liên hệ admin.', 'error', 4000);
-        return;
-    }
+        // API key is now server-side in n8n — no frontend key needed
 
     const btn = document.getElementById('btn-adapt-to-ref');
     const originalHtml = btn.innerHTML;
@@ -1641,46 +1637,20 @@ async function adaptPromptToReference() {
 
         let resultText = '';
 
-        // Direct Gemini API call
-        const geminiModel = 'gemini-2.0-flash';
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+        // Call via n8n gateway
+        const n8nGw = window.SITE_CONFIG?.n8nGateway || {
+            baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
+            enabled: true,
+        };
+        const adaptUrl = `${n8nGw.baseUrl}/adapt-prompt-ref`;
 
-        const systemPrompt = `You are an expert image prompt editor. You will receive:
-1. A reference image of a person/subject
-2. An existing image generation prompt
-
-Your task is to MODIFY the existing prompt so that the generated image will MATCH the person/subject in the reference image.
-
-RULES:
-- Carefully analyze the reference image: gender, ethnicity, approximate age, hair style/color, facial features, body type, skin tone.
-- Replace ANY conflicting subject descriptions in the prompt with ones that match the reference image.
-- For example: if prompt says "young woman" but the reference is clearly a man, change it to "young man" and adjust all related pronouns and descriptions (her→his, she→he, woman→man, dress→suit, etc.).
-- Keep the overall scene, composition, lighting, artistic style, background, and mood EXACTLY the same.
-- Keep ALL text overlay instructions unchanged.
-- Keep the same language as the original prompt.
-- Output ONLY the modified prompt text, nothing else. No explanation, no labels, no quotes.`;
-
-        const response = await fetch(geminiUrl, {
+        const response = await fetch(adaptUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        {
-                            inlineData: {
-                                mimeType: mimeType,
-                                data: base64Data,
-                            }
-                        },
-                        {
-                            text: `${systemPrompt}\n\n--- EXISTING PROMPT ---\n${prompt}\n--- END PROMPT ---\n\nPlease output the modified prompt:`
-                        }
-                    ]
-                }],
-                generationConfig: {
-                    temperature: 0.3,
-                    maxOutputTokens: 4096,
-                },
+                prompt: prompt,
+                refImageBase64: base64Data,
+                refImageMime: mimeType,
             }),
         });
 
@@ -1691,12 +1661,10 @@ RULES:
         }
 
         const data = await response.json();
-        const candidates = data.candidates || [];
-        if (candidates.length > 0) {
-            const parts = candidates[0].content?.parts || [];
-            for (const part of parts) {
-                if (part.text) resultText += part.text;
-            }
+        if (data.success && data.adaptedPrompt) {
+            resultText = data.adaptedPrompt;
+        } else if (data.error) {
+            throw new Error(data.error);
         }
 
         if (resultText.trim()) {
