@@ -4379,12 +4379,13 @@ function setupGenControls() {
                         });
 
                         if (!response.ok) {
-                            const errText = await response.text();
-                            console.error('Describe error:', response.status, errText);
-                            throw new Error(`Lỗi phân tích ảnh (${response.status})`);
+                            const errData = await response.json().catch(() => ({}));
+                            console.error('Describe error:', response.status, errData);
+                            throw new Error(errData.error || `Lỗi phân tích ảnh (${response.status})`);
                         }
 
                         const data = await response.json();
+                        console.log('Describe response:', data);
                         let resultText = data.description || '';
 
                         if (resultText.trim()) {
@@ -4392,6 +4393,7 @@ function setupGenControls() {
                             updateCharCount();
                             showToast('✅ Phân tích ảnh xong! Prompt đã được tạo.', 'success');
                         } else {
+                            console.error('Describe debug:', data.debug || data);
                             showToast('⚠️ Không phân tích được ảnh. Thử ảnh khác.', 'error');
                         }
                     } catch (err) {
