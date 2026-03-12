@@ -1875,26 +1875,14 @@ async function generateImage() {
             finalPrompt = `[CRITICAL INSTRUCTION: Any text, typography, fonts, or labels rendered in the image MUST strictly be written in ${langCode} language.]\n\n` + prompt;
         }
 
-        // Try KIE.ai first, fallback to Gemini Imagen if KIE fails
+        // Use Gemini Imagen directly (faster & more reliable)
         const geminiKey = getAdminAPIKey('gemini') || window.SITE_CONFIG?.api?.geminiApiKey || '';
-        try {
-            result = await generateViaKieAI(finalPrompt, aspectRatio, quality, selectedModel, window._genAbortController.signal);
-            provider = 'kie-ai';
-        } catch (kieError) {
-            // Don't fallback if user cancelled
-            if (kieError.name === 'AbortError' || kieError.message === 'user_cancel') throw kieError;
-            // Don't fallback for credit/auth errors
-            if (kieError.message?.includes('credit') || kieError.message?.includes('đăng nhập')) throw kieError;
-
-            console.warn('⚠️ KIE.ai failed, trying Gemini fallback:', kieError.message);
-            if (geminiKey) {
-                showToast('⚠️ KIE.ai đang bận — chuyển sang Gemini Imagen...', 'info', 3000);
-                result = await generateViaGemini(finalPrompt, aspectRatio, quality, geminiKey);
-                provider = 'gemini';
-            } else {
-                throw kieError; // No fallback available
-            }
+        if (!geminiKey) {
+            throw new Error('Chưa có Gemini API key. Vui lòng cấu hình trong site-config.');
         }
+        console.log('🎨 Using Gemini Imagen directly');
+        result = await generateViaGemini(finalPrompt, aspectRatio, quality, geminiKey);
+        provider = 'gemini';
 
         // Show result
         clearInterval(timerInterval);
