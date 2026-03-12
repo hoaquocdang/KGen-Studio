@@ -1642,7 +1642,7 @@ async function adaptPromptToReference() {
         let resultText = '';
 
         // Direct Gemini API call
-        const geminiModel = 'gemini-2.5-flash';
+        const geminiModel = 'gemini-2.0-flash';
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
         const systemPrompt = `You are an expert image prompt editor. You will receive:
@@ -4317,7 +4317,7 @@ function setupGenControls() {
                     const base64Data = match[2];
 
                     try {
-                        const geminiModel = 'gemini-2.5-flash';
+                        const geminiModel = 'gemini-2.0-flash';
                         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
 
                         const response = await fetch(geminiUrl, {
