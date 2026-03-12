@@ -568,6 +568,47 @@
             }
         }
 
+        /* --- FLOATING BACK BUTTON --- */
+        .btn-back-kgen {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: rgba(255, 71, 71, 0.15);
+            border: 1px solid rgba(255, 71, 71, 0.35);
+            border-radius: 50px;
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 24px rgba(255, 71, 71, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-back-kgen:hover {
+            background: rgba(255, 71, 71, 0.3);
+            border-color: rgba(255, 71, 71, 0.6);
+            box-shadow: 0 6px 32px rgba(255, 71, 71, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-back-kgen svg {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-back-kgen:hover svg {
+            transform: translateX(-3px);
+        }
+
         @media (max-width: 600px) {
             nav {
                 padding: 20px;
@@ -576,7 +617,6 @@
 
             .brand-name {
                 display: none;
-                /* Hide brand name on very small screens to save space */
             }
 
             main {
@@ -585,7 +625,6 @@
 
             .portfolio-center {
                 padding-bottom: 120px;
-                /* Space for absolute social menu */
             }
 
             .port-header {
@@ -640,8 +679,14 @@
 
             body {
                 overflow-y: auto;
-                /* allow scrolling on tiny mobile screens if contents overflow */
                 justify-content: flex-start;
+            }
+
+            .btn-back-kgen {
+                bottom: 16px;
+                right: 16px;
+                padding: 10px 18px;
+                font-size: 0.78rem;
             }
         }
     </style>
@@ -651,6 +696,15 @@
 
     <!-- Background Layer -->
     <img src="/info/bg.webp" class="full-bg-image" alt="Tech Background">
+
+    <!-- Floating Back Button -->
+    <a href="https://kgen.cloud" class="btn-back-kgen" id="btn-back-kgen" title="Quay lại KGen Gallery">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>KGen Gallery</span>
+    </a>
 
     <nav>
         <div class="logo">
