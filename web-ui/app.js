@@ -4344,11 +4344,7 @@ function setupGenControls() {
                 const file = e.target.files[0];
                 if (!file) return;
 
-                const geminiKey = getGeminiApiKey();
-                if (!geminiKey) {
-                    showToast('⚠️ Cần Google API Key để phân tích ảnh. Liên hệ admin.', 'error', 4000);
-                    return;
-                }
+                const geminiKey = true; // API key now in n8n server-side
 
                 showToast('🔍 Đang phân tích ảnh...', 'info', 5000);
 
@@ -4366,30 +4362,20 @@ function setupGenControls() {
                     const base64Data = match[2];
 
                     try {
-                        const geminiModel = 'gemini-2.0-flash';
-                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+                        // Call n8n adapt-prompt-ref with a describe instruction
+                        const n8nGw = window.SITE_CONFIG?.n8nGateway || {
+                            baseUrl: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
+                            enabled: true,
+                        };
+                        const describeUrl = `${n8nGw.baseUrl}/adapt-prompt-ref`;
 
-                        const response = await fetch(geminiUrl, {
+                        const response = await fetch(describeUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                contents: [{
-                                    parts: [
-                                        {
-                                            inlineData: {
-                                                mimeType: mimeType,
-                                                data: base64Data,
-                                            }
-                                        },
-                                        {
-                                            text: `Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.`
-                                        }
-                                    ]
-                                }],
-                                generationConfig: {
-                                    temperature: 0.7,
-                                    maxOutputTokens: 2048,
-                                },
+                                prompt: 'Analyze this image in detail and write a comprehensive image generation prompt in English that would recreate this image. Include details about: subject, pose, expression, clothing, setting, lighting, colors, camera angle, mood, and artistic style. Output ONLY the prompt text, no explanation or labels.',
+                                refImageBase64: base64Data,
+                                refImageMime: mimeType,
                             }),
                         });
 
@@ -4400,14 +4386,7 @@ function setupGenControls() {
                         }
 
                         const data = await response.json();
-                        const candidates = data.candidates || [];
-                        let resultText = '';
-                        if (candidates.length > 0) {
-                            const parts = candidates[0].content?.parts || [];
-                            for (const part of parts) {
-                                if (part.text) resultText += part.text;
-                            }
-                        }
+                        let resultText = data.adaptedPrompt || '';
 
                         if (resultText.trim()) {
                             document.getElementById('gen-prompt').value = resultText.trim();
