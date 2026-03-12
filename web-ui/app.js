@@ -1221,43 +1221,43 @@ function setupModal() {
             openAuthModal();
             return;
         }
-        const item = window.__currentModalItem;
-        if (!item) return;
 
-        // Get the image URL
-        const imageUrl = item.image || (item.images && item.images[0]) || '';
-        if (!imageUrl) {
-            showToast('⚠️ Không tìm thấy ảnh', 'error');
+        const item = window.__currentModalItem;
+        console.log('btn-use-as-ref: item =', item);
+        if (!item) {
+            showToast('⚠️ Không tìm thấy dữ liệu ảnh', 'error');
             return;
         }
 
-        // Set reference images
+        // Get image URL from item — check multiple possible fields
+        const imageUrl = item.image || item.imageUrl || item.url ||
+                         (item.images && item.images[0]) || '';
+        console.log('btn-use-as-ref: imageUrl =', imageUrl);
+
+        if (!imageUrl) {
+            showToast('⚠️ Không tìm thấy URL ảnh', 'error');
+            return;
+        }
+
+        // Set reference images state
         APP_STATE.referenceImages = [imageUrl];
 
         // Copy prompt
-        const promptText = document.getElementById('modal-prompt').dataset.fullPrompt || document.getElementById('modal-prompt').textContent;
-        document.getElementById('gen-prompt').value = promptText;
-        updateCharCount();
-
-        // Update reference preview in Generate tab
-        const refContainer = document.getElementById('ref-preview-container');
-        if (refContainer) {
-            refContainer.innerHTML = `
-                <div style="position:relative;display:inline-block;margin-right:8px;">
-                    <img src="${imageUrl}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid rgba(139,92,246,0.5);">
-                    <button onclick="APP_STATE.referenceImages=[];this.parentElement.remove();updateAdaptRefButtonVisibility();" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:white;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
-                </div>
-            `;
+        const promptEl = document.getElementById('modal-prompt');
+        const promptText = promptEl?.dataset.fullPrompt || promptEl?.textContent || '';
+        if (promptText) {
+            document.getElementById('gen-prompt').value = promptText;
+            updateCharCount();
         }
 
-        // Update adapt-ref button visibility
-        if (typeof updateAdaptRefButtonVisibility === 'function') {
-            updateAdaptRefButtonVisibility();
+        // Render reference previews using the existing function
+        if (typeof renderRefPreviews === 'function') {
+            renderRefPreviews();
         }
 
         closeModal();
         switchTab('generate');
-        showToast('✅ Đã dùng ảnh làm tham chiếu + sao chép prompt!', 'success', 3000);
+        showToast('✅ Đã thêm ảnh tham chiếu + sao chép prompt!', 'success', 3000);
     });
 
     document.getElementById('btn-favorite-prompt').addEventListener('click', async () => {
