@@ -3544,30 +3544,39 @@ function refreshOrderHistory() {
 
     list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-tertiary);">Đang tải...</div>';
 
-    try {
-        const ordersStr = localStorage.getItem('kgen_orders');
-        let orders = ordersStr ? JSON.parse(ordersStr) : [];
-
+    // Helper to render orders
+    function renderOrders(orders) {
         if (!orders || orders.length === 0) {
             list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-tertiary);">Chưa có đơn hàng nào.</div>';
             return;
         }
 
         // Sort newest first
-        orders.sort((a, b) => b.timestamp - a.timestamp);
+        orders.sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.created_at || a.date || 0).getTime();
+            const dateB = new Date(b.timestamp || b.created_at || b.date || 0).getTime();
+            return dateB - dateA;
+        });
+
+        // Deduplicate by orderCode
+        const seen = new Set();
+        orders = orders.filter(o => {
+            const key = o.orderCode || o.order_code || o.id;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
 
         let html = '';
         orders.forEach(o => {
-            const dateStr = o.timestamp || o.created_at || new Date().toISOString();
+            const dateStr = o.timestamp || o.created_at || o.date || new Date().toISOString();
             const date = new Date(dateStr).toLocaleString('vi-VN');
             let statusHTML = '';
             let bgHTML = 'background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);';
-            let statusText = 'Đang chờ';
 
             if (o.status === 'paid' || o.status === 'completed' || o.status === 'active') {
                 bgHTML = 'background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2);';
                 statusHTML = '<span style="color:#22c55e; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(34,197,94,0.1);">Hoàn tất</span>';
-                statusText = 'Hoàn tất';
             } else if (o.status === 'awaiting_review' || o.status === 'pending') {
                 bgHTML = 'background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2);';
                 statusHTML = '<span style="color:#f59e0b; font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:100px; background:rgba(245,158,11,0.1);">Đang chờ</span>';
@@ -3576,7 +3585,7 @@ function refreshOrderHistory() {
             }
 
             const tierName = o.tier === 'pro' ? 'PRO' : o.tier === 'premium' ? 'PREMIUM' : o.tier || o.plan_id || 'PRO';
-            let orderCodeDisplay = o.orderCode || o.id ? `#${(o.orderCode || o.id).toString().split('-')[0].toUpperCase()}` : 'Gói Mới';
+            let orderCodeDisplay = o.orderCode || o.order_code || o.id ? `#${(o.orderCode || o.order_code || o.id).toString().split('-')[0].toUpperCase()}` : 'Gói Mới';
 
             html += `
             <div style="padding: 16px; border-radius: 12px; margin-bottom: 12px; ${bgHTML}">
@@ -3595,7 +3604,44 @@ function refreshOrderHistory() {
         });
 
         list.innerHTML = html;
+    }
 
+    try {
+        // Get local orders
+        const ordersStr = localStorage.getItem('kgen_orders');
+        let localOrders = ordersStr ? JSON.parse(ordersStr) : [];
+
+        // Try to fetch from Supabase for cross-device sync
+        if (typeof isSupabaseEnabled === 'function' && isSupabaseEnabled() && APP_STATE.currentUser?.email) {
+            supabaseClient.from('orders')
+                .select('*')
+                .eq('user_email', APP_STATE.currentUser.email)
+                .order('created_at', { ascending: false })
+                .limit(20)
+                .then(({ data, error }) => {
+                    if (!error && data && data.length > 0) {
+                        // Merge Supabase orders with local orders  
+                        const supabaseOrders = data.map(o => ({
+                            orderCode: o.order_code,
+                            tier: o.tier,
+                            amount: o.amount,
+                            status: o.status,
+                            timestamp: o.confirmed_at || o.created_at,
+                            created_at: o.created_at,
+                            user: o.user_email,
+                        }));
+                        const merged = [...supabaseOrders, ...localOrders];
+                        renderOrders(merged);
+                    } else {
+                        renderOrders(localOrders);
+                    }
+                })
+                .catch(() => {
+                    renderOrders(localOrders);
+                });
+        } else {
+            renderOrders(localOrders);
+        }
     } catch (e) {
         list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-tertiary);">Lỗi hiển thị dữ liệu lịch sử.</div>';
         console.error('Error rendering history', e);

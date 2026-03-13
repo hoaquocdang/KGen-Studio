@@ -16,7 +16,12 @@ let supabaseClient = null;
 
 function getSupabaseConfig() {
     const siteCfg = (window.SITE_CONFIG && window.SITE_CONFIG.supabase) || {};
-    const settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
+    let settings = {};
+    try {
+        settings = JSON.parse(localStorage.getItem('kgen_settings') || '{}');
+    } catch (e) {
+        console.warn('localStorage unavailable for Supabase config, using defaults');
+    }
     return {
         url: siteCfg.url || settings.supabaseUrl || '',
         anonKey: siteCfg.anonKey || settings.supabaseAnonKey || '',
@@ -495,6 +500,20 @@ function createCheckoutSession(tier) {
     });
     localStorage.setItem('kgen_orders', JSON.stringify(orders));
 
+    // Also save to Supabase for cross-device sync
+    if (isSupabaseEnabled()) {
+        supabaseClient.from('orders').insert({
+            user_email: user.email,
+            order_code: orderCode,
+            tier: tier,
+            amount: priceVnd,
+            status: 'pending',
+        }).then(({ error }) => {
+            if (error) console.warn('Order creation on Supabase failed:', error.message);
+            else console.log('✅ Pending order saved to Supabase');
+        });
+    }
+
     // Generate Modal HTML
     const existing = document.getElementById('qr-modal-overlay');
     if (existing) existing.remove();
@@ -649,6 +668,28 @@ function createCheckoutSession(tier) {
         if (APP_STATE.currentUser) {
             APP_STATE.currentUser.tier = tier;
             localStorage.setItem('kgen_session', JSON.stringify(APP_STATE.currentUser));
+
+            // ✅ CRITICAL: Sync tier to Supabase so it persists across devices
+            if (isSupabaseEnabled() && APP_STATE.currentUser.id) {
+                updateUserTier(APP_STATE.currentUser.id, tier).then(() => {
+                    console.log('✅ Tier updated on Supabase:', tier);
+                }).catch(err => {
+                    console.error('⚠️ Failed to sync tier to Supabase:', err);
+                });
+
+                // Also save order to Supabase for cross-device order history
+                supabaseClient.from('orders').upsert({
+                    user_email: APP_STATE.currentUser.email,
+                    order_code: orderCode,
+                    tier: tier,
+                    amount: priceVnd,
+                    status: 'paid',
+                    confirmed_at: new Date().toISOString(),
+                }, { onConflict: 'order_code' }).then(({ error }) => {
+                    if (error) console.warn('Order sync to Supabase failed:', error.message);
+                    else console.log('✅ Order synced to Supabase');
+                });
+            }
         }
 
         // Show success animation
