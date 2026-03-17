@@ -124,14 +124,13 @@ function getUserImageLimit() {
         return cfg.plans[plan].imageLimit || 10;
     }
     // Defaults
-    if (plan === 'pro') return 1000;
-    if (plan === 'premium') return 5000;
+    if (plan === 'member') return 5000;
     return 10;
 }
 
 function getUserImagesUsed() {
     const quota = getUserQuota();
-    // Monthly reset for Pro/Premium
+    // Monthly reset for Member
     const plan = getUserPlan();
     if (plan !== 'free' && quota.monthStart) {
         const monthStart = new Date(quota.monthStart);
@@ -1203,11 +1202,6 @@ function setupModal() {
 
     // Modal action buttons
     document.getElementById('btn-use-prompt').addEventListener('click', () => {
-        if (!isLoggedIn()) {
-            showToast('🔒 Vui lòng đăng nhập để sử dụng prompt', 'error');
-            openAuthModal();
-            return;
-        }
         const promptText = document.getElementById('modal-prompt').dataset.fullPrompt || document.getElementById('modal-prompt').textContent;
         document.getElementById('gen-prompt').value = promptText;
         updateCharCount();
@@ -1361,7 +1355,11 @@ function openModal(item) {
     } else {
         promptEl.textContent = '⏳ Đang tải nội dung prompt...';
     }
-    lockOverlay.classList.add('unlocked');
+
+    if (lockOverlay) {
+        lockOverlay.classList.add('unlocked');
+        lockOverlay.style.display = 'none'; // Ensure it's hidden for free viewing
+    }
 
     // Categories
     const catsContainer = document.getElementById('modal-cats');
@@ -1449,6 +1447,12 @@ function setupGenerateEvents() {
 
     // Save to collection
     document.getElementById('btn-save-collection')?.addEventListener('click', async () => {
+        if (!APP_STATE.currentUser) {
+            showToast('⚠️ Vui lòng đăng nhập để lưu prompt', 'error');
+            openAuthModal();
+            return;
+        }
+
         const img = document.getElementById('result-image');
         const promptText = document.getElementById('gen-prompt')?.value?.trim() || '';
         const quality = document.getElementById('gen-quality')?.value || '2K';
@@ -1735,7 +1739,7 @@ async function updateModelCostDisplay() {
         }
     }
     if (costLabel) {
-        costLabel.textContent = `${cost} cr`;
+        costLabel.textContent = `${cost} Token`;
     }
 }
 
@@ -1750,6 +1754,12 @@ async function initCredits() {
 }
 
 async function generateImage() {
+    if (!APP_STATE.currentUser) {
+        showToast('⚠️ Vui lòng đăng nhập để tạo ảnh', 'error');
+        openAuthModal();
+        return;
+    }
+
     const prompt = document.getElementById('gen-prompt').value.trim();
     if (!prompt) {
         showToast('Vui lòng nhập prompt', 'error');

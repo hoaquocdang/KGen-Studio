@@ -471,7 +471,7 @@ function createCheckoutSession(tier) {
     const pack = packTiers.find(t => t.id === tier);
 
     // Default fallback if not found
-    let priceVnd = tier === 'pro' ? 39000 : 199000;
+    let priceVnd = tier === 'member' ? 199000 : 199000;
 
     // Process price
     if (pack) {
@@ -524,8 +524,8 @@ function createCheckoutSession(tier) {
     overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(16px); background-color:rgba(0,0,0,0.85); opacity:1;';
 
     // Brand accent color tracking tier
-    const accentColor = tier === 'pro' ? '#4a90e2' : '#f59e0b';
-    const accentGlow = tier === 'pro' ? 'rgba(74, 144, 226, 0.3)' : 'rgba(245, 158, 11, 0.3)';
+    const accentColor = tier === 'member' ? '#4a90e2' : '#f59e0b';
+    const accentGlow = tier === 'member' ? 'rgba(74, 144, 226, 0.3)' : 'rgba(245, 158, 11, 0.3)';
 
     // Modern animated timer script logic wrapper
     const countdownId = 'qr-countdown-' + Date.now();
@@ -802,56 +802,34 @@ const PRICING_TIERS = [
         price: '0đ',
         period: '/mãi mãi',
         features: [
-            'Tặng kèm 10 Credits ban đầu',
+            'Tặng kèm 10 Token ban đầu',
             'Tự nạp API Key cá nhân để dùng',
-            'Sử dụng giới hạn mô hình',
-            'Truy cập 10% thư viện prompt'
+            'Truy cập 100% thư viện prompt'
         ],
         limitations: [
-            'Chỉ sử dụng hình ảnh tạo ra cá nhân'
+            'Chưa mở khoá bộ công cụ Video'
         ],
         buttonText: 'Đang sử dụng',
         buttonClass: 'btn-ghost',
         popular: false,
     },
     {
-        id: 'pro',
-        name: 'Gói PRO',
-        emoji: '⚡',
-        price: '49.000đ',
-        period: '/tháng',
-        features: [
-            'Tặng 500 Credits / tháng (~500 ảnh thường)',
-            'Mở khoá toàn bộ 1300+ mẫu Prompt',
-            'Truy cập mô hình Cao cấp (Imagen/Midjourney)',
-            'Sử dụng chung tài khoản Hệ sinh thái',
-            'Tốc độ server ưu tiên cao',
-            'Chi phí mua Credit rẻ hơn 15%'
-        ],
-        limitations: [],
-        buttonText: 'Nâng cấp ngay',
-        buttonClass: 'btn-primary',
-        popular: true,
-    },
-    {
-        id: 'premium',
-        name: 'Gói PREMIUM',
-        emoji: '🔥',
+        id: 'member',
+        name: 'Gói THÀNH VIÊN',
+        emoji: '💎',
         price: '199.000đ',
         period: '/tháng',
         features: [
-            'Tặng 2,500 Credits / tháng (Business)',
-            'Sử dụng công cụ Tạo Viral Carousel',
-            'Mở khoá tính năng cho Đội nhóm',
-            'Được nạp Credit với giá sỉ rẻ nhất',
-            'Dùng chung tài khoản Hệ sinh thái',
-            'Trợ lý hỗ trợ kỹ thuật cá nhân'
+            'Mở khoá Chatbot tạo Video AI',
+            'Truy cập Bộ công cụ Video chuyên sâu',
+            'Sử dụng chung nền tảng Hệ sinh thái',
+            'Trợ lý Kỹ thuật Hỗ trợ riêng'
         ],
         limitations: [],
-        buttonText: 'Nâng cấp Premium',
-        buttonClass: 'btn-premium',
-        popular: false,
-    },
+        buttonText: 'Nâng cấp Thành Viên',
+        buttonClass: 'btn-primary',
+        popular: true,
+    }
 ];
 
 const TOPUP_PACKAGES = [
@@ -948,7 +926,7 @@ function renderPricingModal() {
                             <div style="font-size:2.5rem; margin-bottom:12px;">${pack.emoji}</div>
                             <h3 style="font-size:1.1rem; margin-bottom:4px;">${pack.name}</h3>
                             <div style="color:var(--accent-blue); font-size:1.6rem; font-weight:800; margin-bottom:12px;">
-                                ${pack.credits} <span style="font-size:0.9rem; font-weight:600; color:var(--text-secondary);">Credits</span>
+                                ${pack.credits} <span style="font-size:0.9rem; font-weight:600; color:var(--text-secondary);">Token</span>
                             </div>
                             <div style="font-size:1.2rem; font-weight:700; margin-bottom:20px;">${pack.price}</div>
                             <button class="btn ${pack.best ? 'btn-primary' : 'btn-outline'} topup-pricing-btn" style="width:100%; border-radius:12px;" data-pack="${pack.id}">

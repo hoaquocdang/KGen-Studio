@@ -2,6 +2,28 @@
 <html lang="vi">
 
 <head>
+    <!-- ===== ANALYTICS: Google Analytics 4 + Microsoft Clarity ===== -->
+    <!-- 🔧 HƯỚNG DẪN: Thay 'G-E4N8RDELXJ' bằng Measurement ID (giống index.html) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E4N8RDELXJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-E4N8RDELXJ', {
+            page_title: 'KGen Admin Console',
+            send_page_view: true
+        });
+    </script>
+    <!-- 🔧 HƯỚNG DẪN: Thay 'vw5ggytpjx' bằng Project ID (giống index.html) -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "vw5ggytpjx");
+    </script>
+    <!-- ===== END ANALYTICS ===== -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KGen AI Studio — Admin Console</title>
@@ -48,6 +70,10 @@
                     </a>
                     <a class="nav-item" data-tab="credits" onclick="switchTab('credits')">
                         <span class="nav-icon">🪙</span> Quản lý Credits
+                    </a>
+                    <a class="nav-item" data-tab="analytics" onclick="switchTab('analytics')">
+                        <span class="nav-icon">📈</span> Analytics
+                        <span class="nav-badge" style="background:#10b981;color:#fff">LIVE</span>
                     </a>
                 </div>
                 <div class="nav-section">
@@ -458,6 +484,129 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ANALYTICS -->
+                <div class="tab-page" id="page-analytics">
+                    <!-- Analytics Tool Switcher -->
+                    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+                        <button class="btn" id="btn-analytics-ga" onclick="switchAnalyticsTool('ga')" style="background:linear-gradient(135deg,#4285f4,#34a853);color:#fff;border:none;padding:12px 24px;border-radius:12px;font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 4px 15px rgba(66,133,244,0.3);transition:all 0.3s">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                            Google Analytics
+                        </button>
+                        <button class="btn" id="btn-analytics-clarity" onclick="switchAnalyticsTool('clarity')" style="background:linear-gradient(135deg,#7b2ff7,#c850c0);color:#fff;border:none;padding:12px 24px;border-radius:12px;font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 4px 15px rgba(123,47,247,0.3);transition:all 0.3s;opacity:0.6">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                            Microsoft Clarity
+                        </button>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                            <span style="width:8px;height:8px;background:#10b981;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
+                            <span style="font-size:0.8rem;color:var(--text-muted)">Đang thu thập dữ liệu</span>
+                        </div>
+                    </div>
+
+                    <!-- GA4 Panel -->
+                    <div id="analytics-ga-panel">
+                        <div class="card" style="padding:0;overflow:hidden;border-radius:16px">
+                            <div style="padding:20px 24px;background:linear-gradient(135deg,rgba(66,133,244,0.08),rgba(52,168,83,0.08));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                                <div>
+                                    <h2 style="margin:0;font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:10px">
+                                        <span style="font-size:1.4rem">📊</span> Google Analytics 4
+                                    </h2>
+                                    <p style="margin:4px 0 0;font-size:0.82rem;color:var(--text-muted)">Phân tích traffic, nguồn truy cập, hành vi người dùng</p>
+                                </div>
+                                <a href="https://analytics.google.com/analytics/web/#/p/report/realtime" target="_blank" class="btn" style="background:var(--bg-hover);border:1px solid var(--border);padding:8px 16px;border-radius:10px;color:var(--text-primary);font-size:0.85rem;text-decoration:none;display:flex;align-items:center;gap:6px;font-weight:600">
+                                    🔗 Mở GA4 Dashboard
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                                </a>
+                            </div>
+                            <div style="padding:24px">
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">
+                                    <div style="background:var(--bg-input);border-radius:14px;padding:20px;text-align:center;border:1px solid var(--border)">
+                                        <div style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#4285f4,#34a853);-webkit-background-clip:text;-webkit-text-fill-color:transparent">—</div>
+                                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">Người dùng realtime</div>
+                                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Xem trên GA4 Dashboard</div>
+                                    </div>
+                                    <div style="background:var(--bg-input);border-radius:14px;padding:20px;text-align:center;border:1px solid var(--border)">
+                                        <div style="font-size:2rem;font-weight:800;color:#fbbc04">—</div>
+                                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">Lượt xem trang</div>
+                                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Cập nhật mỗi 24h</div>
+                                    </div>
+                                    <div style="background:var(--bg-input);border-radius:14px;padding:20px;text-align:center;border:1px solid var(--border)">
+                                        <div style="font-size:2rem;font-weight:800;color:#ea4335">—</div>
+                                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">Bounce Rate</div>
+                                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Cập nhật mỗi 24h</div>
+                                    </div>
+                                </div>
+                                <div style="background:var(--bg-input);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
+                                    <div style="font-size:3rem;margin-bottom:12px">📊</div>
+                                    <h3 style="margin:0 0 8px;font-size:1.1rem;font-weight:700;color:var(--text-primary)">GA4 Dashboard</h3>
+                                    <p style="color:var(--text-muted);font-size:0.9rem;margin:0 0 16px">Xem báo cáo chi tiết: traffic theo ngày, nguồn truy cập, thiết bị, vị trí địa lý, và custom events.</p>
+                                    <a href="https://analytics.google.com/" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#4285f4,#34a853);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:0.95rem;box-shadow:0 4px 15px rgba(66,133,244,0.3);transition:all 0.3s">
+                                        Mở Google Analytics
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                                    </a>
+                                    <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+                                        <span style="font-size:0.75rem;background:var(--bg-hover);padding:4px 10px;border-radius:6px;color:var(--text-muted)">✅ Realtime visitors</span>
+                                        <span style="font-size:0.75rem;background:var(--bg-hover);padding:4px 10px;border-radius:6px;color:var(--text-muted)">✅ Traffic sources</span>
+                                        <span style="font-size:0.75rem;background:var(--bg-hover);padding:4px 10px;border-radius:6px;color:var(--text-muted)">✅ Countries</span>
+                                        <span style="font-size:0.75rem;background:var(--bg-hover);padding:4px 10px;border-radius:6px;color:var(--text-muted)">✅ Devices</span>
+                                        <span style="font-size:0.75rem;background:var(--bg-hover);padding:4px 10px;border-radius:6px;color:var(--text-muted)">✅ Custom events</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clarity Panel -->
+                    <div id="analytics-clarity-panel" style="display:none">
+                        <div class="card" style="padding:0;overflow:hidden;border-radius:16px">
+                            <div style="padding:20px 24px;background:linear-gradient(135deg,rgba(123,47,247,0.08),rgba(200,80,192,0.08));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                                <div>
+                                    <h2 style="margin:0;font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:10px">
+                                        <span style="font-size:1.4rem">🔥</span> Microsoft Clarity
+                                    </h2>
+                                    <p style="margin:4px 0 0;font-size:0.82rem;color:var(--text-muted)">Heatmap, Session Recording — xem user tương tác thế nào</p>
+                                </div>
+                                <a href="https://clarity.microsoft.com/projects/view/vw5ggytpjx/dashboard" target="_blank" class="btn" style="background:var(--bg-hover);border:1px solid var(--border);padding:8px 16px;border-radius:10px;color:var(--text-primary);font-size:0.85rem;text-decoration:none;display:flex;align-items:center;gap:6px;font-weight:600">
+                                    🔗 Mở Clarity Dashboard
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                                </a>
+                            </div>
+                            <div style="padding:24px">
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px">
+                                    <!-- Heatmap Card -->
+                                    <div style="background:var(--bg-input);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
+                                        <div style="font-size:2.5rem;margin-bottom:8px">🗺️</div>
+                                        <h3 style="margin:0 0 6px;font-size:1rem;font-weight:700;color:var(--text-primary)">Heatmap</h3>
+                                        <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 14px">Xem chỗ nào user click nhiều nhất, cuộn đến đâu</p>
+                                        <a href="https://clarity.microsoft.com/projects/view/vw5ggytpjx/heatmaps" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:linear-gradient(135deg,#7b2ff7,#c850c0);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:0.85rem">Xem Heatmap →</a>
+                                    </div>
+                                    <!-- Session Recording Card -->
+                                    <div style="background:var(--bg-input);border-radius:14px;padding:24px;border:1px solid var(--border);text-align:center">
+                                        <div style="font-size:2.5rem;margin-bottom:8px">🎬</div>
+                                        <h3 style="margin:0 0 6px;font-size:1rem;font-weight:700;color:var(--text-primary)">Session Recording</h3>
+                                        <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 14px">Xem video replay cách user tương tác với web</p>
+                                        <a href="https://clarity.microsoft.com/projects/view/vw5ggytpjx/recordings" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:linear-gradient(135deg,#7b2ff7,#c850c0);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:0.85rem">Xem Recordings →</a>
+                                    </div>
+                                </div>
+                                <!-- Feature Tags -->
+                                <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:16px;background:var(--bg-input);border-radius:12px;border:1px solid var(--border)">
+                                    <span style="font-size:0.75rem;background:rgba(123,47,247,0.1);padding:5px 12px;border-radius:8px;color:#a855f7;font-weight:600">🗺️ Heatmap</span>
+                                    <span style="font-size:0.75rem;background:rgba(123,47,247,0.1);padding:5px 12px;border-radius:8px;color:#a855f7;font-weight:600">📜 Scroll Map</span>
+                                    <span style="font-size:0.75rem;background:rgba(123,47,247,0.1);padding:5px 12px;border-radius:8px;color:#a855f7;font-weight:600">🎬 Session Recording</span>
+                                    <span style="font-size:0.75rem;background:rgba(239,68,68,0.1);padding:5px 12px;border-radius:8px;color:#ef4444;font-weight:600">😤 Rage Clicks</span>
+                                    <span style="font-size:0.75rem;background:rgba(239,68,68,0.1);padding:5px 12px;border-radius:8px;color:#ef4444;font-weight:600">💀 Dead Clicks</span>
+                                    <span style="font-size:0.75rem;background:rgba(16,185,129,0.1);padding:5px 12px;border-radius:8px;color:#10b981;font-weight:600">✅ 100% Miễn phí</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <style>
+                        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+                        #page-analytics .btn:hover { transform: translateY(-2px); }
+                    </style>
+                </div>
+
             </div>
         </main>
     </div>
@@ -1047,7 +1196,7 @@
         function pgNext() { if (pg * PP < filtered.length) { pg++; renderTable(); } }
 
         // ============== NAV ==============
-        const TITLES = { dashboard: '📊 Dashboard', users: '👥 Quản lý User', orders: '🧾 Đơn hàng', credits: '🪙 Quản lý Credits', api: '🔑 API & Model AI', plans: '💎 Gói dịch vụ', security: '🛡️ Bảo mật' };
+        const TITLES = { dashboard: '📊 Dashboard', users: '👥 Quản lý User', orders: '🧾 Đơn hàng', credits: '🪙 Quản lý Credits', api: '🔑 API & Model AI', plans: '💎 Gói dịch vụ', security: '🛡️ Bảo mật', analytics: '📈 Analytics' };
         function switchTab(t) {
             document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item[data-tab]').forEach(n => n.classList.remove('active'));
@@ -1055,6 +1204,25 @@
             document.querySelector(`.nav-item[data-tab="${t}"]`)?.classList.add('active');
             document.getElementById('topbar-title').textContent = TITLES[t] || t;
             closeSidebar();
+        }
+
+        // ============== ANALYTICS TOOL SWITCHER ==============
+        function switchAnalyticsTool(tool) {
+            const gaPanel = document.getElementById('analytics-ga-panel');
+            const clarityPanel = document.getElementById('analytics-clarity-panel');
+            const gaBtn = document.getElementById('btn-analytics-ga');
+            const clarityBtn = document.getElementById('btn-analytics-clarity');
+            if (tool === 'ga') {
+                gaPanel.style.display = 'block';
+                clarityPanel.style.display = 'none';
+                gaBtn.style.opacity = '1';
+                clarityBtn.style.opacity = '0.6';
+            } else {
+                gaPanel.style.display = 'none';
+                clarityPanel.style.display = 'block';
+                gaBtn.style.opacity = '0.6';
+                clarityBtn.style.opacity = '1';
+            }
         }
         function toggleSidebar() { document.getElementById('admin-sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('open'); }
         function closeSidebar() { document.getElementById('admin-sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
