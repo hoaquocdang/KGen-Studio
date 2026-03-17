@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Prompt - Mẫu Làm Video</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-robot"></i> AI Templates
+            </div>
+            
+            <div class="menu-section">
+                <h3>KHÁM PHÁ</h3>
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+                    <li><a href="#"><i class="fa-solid fa-microchip"></i> Công cụ AI</a></li>
+                    <li class="active"><a href="#"><i class="fa-solid fa-message"></i> Chatbot Prompt</a></li>
+                    <li><a href="#"><i class="fa-solid fa-file-lines"></i> Prompt miễn phí</a></li>
+                </ul>
+            </div>
+            
+            <div class="menu-section">
+                <h3>QUẢN LÝ</h3>
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-user"></i> Tài khoản</a></li>
+                    <li><a href="#"><i class="fa-solid fa-bookmark"></i> Đã lưu</a></li>
+                    <li><a href="#"><i class="fa-solid fa-cart-shopping"></i> Đã mua</a></li>
+                    <li><a href="#"><i class="fa-solid fa-user-group"></i> Giới thiệu bạn bè</a></li>
+                </ul>
+            </div>
+            
+            <div class="menu-section">
+                <h3>KHÁC</h3>
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-pen-nib"></i> Custom Chatbot</a></li>
+                    <li><a href="#"><i class="fa-solid fa-tag"></i> Bảng giá</a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Giới thiệu</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn-collapse"><i class="fa-solid fa-chevron-left"></i> Thu nhỏ</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-logo">
+                    <img src="https://via.placeholder.com/30" alt="Logo"> Mẫu Làm<span>Video</span>
+                </div>
+                <nav class="header-nav">
+                    <a href="#">Trang chủ</a>
+                    <a href="#">Công cụ AI</a>
+                    <a href="#" class="active">Chatbot Prompt</a>
+                    <a href="#">Bảng giá</a>
+                    <a href="#">Cộng tác viên</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-primary"><i class="fa-regular fa-user"></i> Đăng ký / Đăng nhập</button>
+                </div>
+            </header>
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <i class="fa-brands fa-rocketchat"></i>
+                    <h2>Chatbot Prompt</h2>
+                </div>
+                <p class="page-subtitle">Công cụ AI giúp bạn viết prompt chuyên nghiệp</p>
+                
+                <!-- Filters -->
+                <div class="filters-container">
+                    <div class="tag-filters">
+                        <span class="tag active">Tất cả</span>
+                        <span class="tag"><i class="fa-solid fa-palette"></i> Abstract</span>
+                        <span class="tag"><i class="fa-solid fa-film"></i> Animation</span>
+                        <span class="tag"><i class="fa-solid fa-brush"></i> Palette Anime</span>
+                        <span class="tag"><i class="fa-solid fa-store"></i> Bán hàng</span>
+                        <span class="tag"><i class="fa-solid fa-video"></i> Cinematic</span>
+                        <span class="tag"><i class="fa-brands fa-facebook"></i> Facebook</span>
+                        <span class="tag"><i class="fa-solid fa-bullhorn"></i> Marketing</span>
+                        <span class="tag"><i class="fa-solid fa-leaf"></i> Nature</span>
+                    </div>
+
+                    <div class="search-sort-bar">
+                        <div class="search-input">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Tìm kiếm...">
+                        </div>
+                        <div class="sort-dropdowns">
+                            <select>
+                                <option>Tất cả</option>
+                            </select>
+                            <select>
+                                <option>Mới nhất</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-count">36 Chatbot</div>
+
+            <!-- Product Grid -->
+            <div class="product-grid" id="productGrid">
+                <!-- Products will be generated by JS -->
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
