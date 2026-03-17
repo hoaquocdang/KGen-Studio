@@ -144,7 +144,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 40px;
-            margin-bottom: 32px;
+            margin: 0 auto 32px;
+            max-width: 1300px;
             flex-wrap: wrap;
             gap: 12px;
         }
@@ -178,12 +179,12 @@
         }
 
         /* ====== PRODUCT GRID ====== */
-        .products-section { padding: 0 40px 80px; }
+        .products-section { padding: 0 40px 80px; max-width: 1300px; margin: 0 auto; }
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
         }
 
         /* ====== PRODUCT CARD ====== */
@@ -208,7 +209,7 @@
         .card-thumb {
             position: relative;
             width: 100%;
-            height: 220px;
+            height: 260px;
             overflow: hidden;
             background: #111113;
         }
@@ -594,21 +595,25 @@
         }
 
         /* ====== RESPONSIVE ====== */
+        @media (max-width: 1100px) {
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        }
         @media (max-width: 768px) {
             header { padding: 0 20px; }
             .page-hero { padding: 40px 20px 24px; }
-            .filter-bar { padding: 0 20px; }
+            .filter-bar { padding: 0 20px; max-width: 100%; }
             .products-section { padding: 0 20px 60px; }
             .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+            .card-thumb { height: 200px; }
             .modal-box { flex-direction: column; }
             .modal-img-col { flex: 0 0 200px; }
             .modal-info-col { padding: 20px; }
             .modal-features { grid-template-columns: 1fr; }
             .modal-title { font-size: 1.3rem; }
         }
-
-        @media (max-width: 460px) {
+        @media (max-width: 480px) {
             .product-grid { grid-template-columns: 1fr; }
+            .card-thumb { height: 220px; }
         }
     </style>
 </head>
