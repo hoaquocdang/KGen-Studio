@@ -24,6 +24,9 @@ $files = [
     'app.js' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/app.js',
     'index.html' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/index.html',
     'styles.css' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/styles.css',
+    'viral_content_avatar.png' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/viral_content_avatar.png',
+    'ai_tools_avatar.png' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/ai_tools_avatar.png',
+    'hub_avatar.png' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/hub_avatar.png',
 ];
 
 $success = 0;
