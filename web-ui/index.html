@@ -2,6 +2,89 @@
 <html lang="vi">
 
 <head>
+    <!-- ===== ANALYTICS: Google Analytics 4 + Microsoft Clarity ===== -->
+    <!-- Google Analytics 4 (GA4) — Dashboard phân tích chuyên sâu -->
+    <!-- 🔧 HƯỚNG DẪN: Thay 'G-E4N8RDELXJ' bằng Measurement ID từ https://analytics.google.com -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E4N8RDELXJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-E4N8RDELXJ', {
+            page_title: 'KGen Gallery',
+            send_page_view: true,
+            cookie_flags: 'SameSite=None;Secure'
+        });
+
+        // === Custom Event Tracking cho KGen Gallery ===
+        window.kgenAnalytics = {
+            // Track khi user tạo ảnh
+            trackImageGeneration: function(model, quality, aspectRatio) {
+                gtag('event', 'generate_image', {
+                    event_category: 'AI Generation',
+                    model_name: model || 'unknown',
+                    image_quality: quality || '2K',
+                    aspect_ratio: aspectRatio || '3:4'
+                });
+            },
+            // Track khi user nâng cấp prompt
+            trackPromptEnhance: function() {
+                gtag('event', 'enhance_prompt', {
+                    event_category: 'AI Tools'
+                });
+            },
+            // Track khi user chuyển tab
+            trackTabSwitch: function(tabName) {
+                gtag('event', 'tab_switch', {
+                    event_category: 'Navigation',
+                    tab_name: tabName
+                });
+            },
+            // Track khi user đăng nhập
+            trackLogin: function(method) {
+                gtag('event', 'login', {
+                    method: method || 'google'
+                });
+            },
+            // Track khi user xem pricing
+            trackViewPricing: function() {
+                gtag('event', 'view_pricing', {
+                    event_category: 'Conversion'
+                });
+            },
+            // Track khi user copy prompt
+            trackCopyPrompt: function(category) {
+                gtag('event', 'copy_prompt', {
+                    event_category: 'Engagement',
+                    prompt_category: category || 'unknown'
+                });
+            },
+            // Track khi user lưu ảnh vào collection
+            trackSaveToCollection: function() {
+                gtag('event', 'save_to_collection', {
+                    event_category: 'Engagement'
+                });
+            },
+            // Track Carousel / Viral Content click
+            trackViralContent: function() {
+                gtag('event', 'click_viral_content', {
+                    event_category: 'Navigation'
+                });
+            }
+        };
+    </script>
+
+    <!-- Microsoft Clarity — Heatmap & Session Recording (miễn phí) -->
+    <!-- 🔧 HƯỚNG DẪN: Thay 'vw5ggytpjx' bằng Project ID từ https://clarity.microsoft.com -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "vw5ggytpjx");
+    </script>
+    <!-- ===== END ANALYTICS ===== -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
@@ -182,125 +265,12 @@
                 <div class="sidebar-tags-list" id="sidebar-tags-list" style="display: none;">
                     <!-- Categories moved to top bar -->
                 </div>
-                <button class="nav-item nav-item-sm" data-tab="gallery" id="nav-recent">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" />
-                        <path d="M8 5v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-                    </svg>
-                    <span data-i18n="nav.recent">Recent Updates</span>
-                </button>
+<<<<
                 <style>
-                .premium-sidebar-btn {
-                    border: none !important;
-                    border-radius: 12px !important;
-                    padding: 12px 14px !important;
-                    margin-bottom: 8px !important;
-                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-                    position: relative;
-                    overflow: hidden;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    width: 100%;
-                    text-align: left;
-                    cursor: pointer;
-                    text-decoration: none;
-                    background: var(--bg-primary) !important;
-                    box-shadow: 
-                        inset 0 1px 1px rgba(255, 255, 255, 0.08),
-                        inset 0 -1px 2px rgba(0, 0, 0, 0.02),
-                        0 2px 6px rgba(0, 0, 0, 0.04) !important;
-                }
-                .premium-sidebar-btn::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: -100%;
-                    width: 50%; height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
-                    transform: skewX(-20deg);
-                    transition: left 0.5s ease;
-                }
-                .premium-sidebar-btn:hover::before {
-                    left: 150%;
-                }
-                .premium-sidebar-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 
-                        inset 0 1px 1px rgba(255, 255, 255, 0.15),
-                        inset 0 -1px 2px rgba(0, 0, 0, 0.05),
-                        0 8px 16px -4px rgba(0, 0, 0, 0.1) !important;
-                }
-                
-                /* Viral Config */
-                .premium-sidebar-btn.btn-viral {
-                    background: linear-gradient(160deg, rgba(16, 185, 129, 0.05) 0%, var(--bg-primary) 70%) !important;
-                    border-top: 1px solid rgba(16, 185, 129, 0.15) !important;
-                }
-                .premium-sidebar-btn.btn-viral:hover {
-                    background: linear-gradient(160deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-secondary) 100%) !important;
-                    border-top: 1px solid rgba(16, 185, 129, 0.3) !important;
-                }
-
-                /* Video Config */
-                .premium-sidebar-btn.btn-video {
-                    background: linear-gradient(160deg, rgba(236, 72, 153, 0.05) 0%, var(--bg-primary) 70%) !important;
-                    border-top: 1px solid rgba(236, 72, 153, 0.15) !important;
-                }
-                .premium-sidebar-btn.btn-video:hover {
-                    background: linear-gradient(160deg, rgba(236, 72, 153, 0.08) 0%, var(--bg-secondary) 100%) !important;
-                    border-top: 1px solid rgba(236, 72, 153, 0.3) !important;
-                }
-
-                /* Hub Config */
-                .premium-sidebar-btn.btn-hub {
-                    background: linear-gradient(160deg, rgba(59, 130, 246, 0.05) 0%, var(--bg-primary) 70%) !important;
-                    border-top: 1px solid rgba(59, 130, 246, 0.15) !important;
-                }
-                .premium-sidebar-btn.btn-hub:hover {
-                    background: linear-gradient(160deg, rgba(59, 130, 246, 0.08) 0%, var(--bg-secondary) 100%) !important;
-                    border-top: 1px solid rgba(59, 130, 246, 0.3) !important;
-                }
-
-                .premium-sidebar-btn svg {
-                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                .premium-sidebar-btn:hover svg {
-                    transform: scale(1.1) translateY(-1px);
-                }
-                .premium-sidebar-btn .item-text {
-                    font-weight: 600 !important;
-                    font-size: 0.88rem !important;
-                    color: var(--text-primary) !important;
-                    letter-spacing: 0.015em;
-                }
+                /* We move premium sidebar btn styles elsewhere or remove them since they are replaced */
                 </style>
-                <button onclick="handleViralContentClick()" class="nav-item nav-item-sm premium-sidebar-btn btn-viral" id="nav-btn-viral-content">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                    <span data-i18n="nav.carousel" class="item-text">Tạo Content Viral</span>
-                </button>
-                <button class="nav-item nav-item-sm premium-sidebar-btn btn-video" id="nav-btn-ai-tools">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round" style="color: #ec4899;">
-                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                    </svg>
-                    <span data-i18n="nav.aitools" class="item-text">Bộ Công Cụ Video</span>
-                </button>
-                <a href="https://hub.kgen.cloud" target="_blank" class="nav-item nav-item-sm premium-sidebar-btn btn-hub">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round" style="color: #3b82f6;">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
-                    </svg>
-                    <span data-i18n="nav.seo" class="item-text">Bộ Công Cụ HUB KGEN</span>
-                </a>
+                <!-- Categories moved to top bar -->
+            </div>
             </div>
 
             <!-- Hướng dẫn -->
@@ -415,6 +385,43 @@
 
         <!-- ===== GALLERY TAB ===== -->
         <section id="tab-gallery" class="tab-content active">
+            
+            <!-- Hero Tools Grid -->
+            <div class="hero-tools-grid">
+                <a href="#" onclick="handleViralContentClick(); return false;" class="hero-tool-card tool-viral">
+                    <div class="tool-card-bg"></div>
+                    <div class="tool-icon-wrap">
+                        <img src="viral_content_avatar.png" alt="Ảnh Tạo Content Viral">
+                    </div>
+                    <div class="tool-info">
+                        <h3 data-i18n="nav.carousel">Tạo Content Viral</h3>
+                        <p>Hệ thống thiết kế Carousel thông minh với AI</p>
+                    </div>
+                </a>
+                
+                <a href="#" id="hero-btn-ai-tools" class="hero-tool-card tool-video">
+                    <div class="tool-card-bg"></div>
+                    <div class="tool-icon-wrap">
+                        <img src="ai_tools_avatar.png" alt="Ảnh Bộ Công Cụ Video">
+                    </div>
+                    <div class="tool-info">
+                        <h3 data-i18n="nav.aitools">Bộ Công Cụ Video</h3>
+                        <p>Khám phá quyền năng xử lý video AI vô hạn</p>
+                    </div>
+                </a>
+                
+                <a href="https://hub.kgen.cloud" target="_blank" class="hero-tool-card tool-hub">
+                    <div class="tool-card-bg"></div>
+                    <div class="tool-icon-wrap">
+                        <img src="hub_avatar.png" alt="Ảnh KGEN HUB">
+                    </div>
+                    <div class="tool-info">
+                        <h3 data-i18n="nav.seo">Hệ sinh thái KGEN HUB</h3>
+                        <p>Nền tảng quản trị All-in-one cho Creators</p>
+                    </div>
+                </a>
+            </div>
+
             <!-- Top Model Filter Bar -->
             <div class="gallery-topbar">
                 <div class="model-filters" id="top-category-filters">

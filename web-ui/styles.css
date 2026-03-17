@@ -545,6 +545,112 @@ a {
     font-weight: 600;
 }
 
+/* ===== HERO TOOLS GRID ===== */
+.hero-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 16px 20px 4px;
+    background: var(--bg-primary);
+}
+
+.hero-tool-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: var(--radius-xl);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    text-decoration: none;
+    overflow: hidden;
+    transition: all 0.4s var(--ease-spring);
+    box-shadow: var(--shadow-sm);
+}
+
+.hero-tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+    border-color: transparent;
+}
+
+.tool-card-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+}
+
+.hero-tool-card:hover .tool-card-bg {
+    opacity: 1;
+}
+
+.tool-viral .tool-card-bg {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+}
+
+.tool-video .tool-card-bg {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(236, 72, 153, 0.02));
+}
+
+.tool-hub .tool-card-bg {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.02));
+}
+
+.tool-icon-wrap {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    box-shadow: var(--shadow-md);
+    background: var(--bg-tertiary);
+}
+
+.tool-icon-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s var(--ease-spring);
+}
+
+.hero-tool-card:hover .tool-icon-wrap img {
+    transform: scale(1.08);
+}
+
+.tool-info {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tool-info h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.tool-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+@media (max-width: 991px) {
+    .hero-tools-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== GALLERY GRID - Masonry ===== */
 .gallery-grid {
     columns: 5;

@@ -1055,7 +1055,8 @@ function setupExtraModals() {
         showGuideModal();
     });
 
-    document.getElementById('nav-btn-ai-tools')?.addEventListener('click', () => {
+    document.getElementById('hero-btn-ai-tools')?.addEventListener('click', (e) => {
+        e.preventDefault();
         showAIToolsModal();
     });
 }
