@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Chatbot Viral Video Writer (Gemini Pro) - KGen</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Core styles -->
+    <link rel="stylesheet" href="/styles.css">
+    
+    <style>
+        body {
+            background-color: var(--bg-main, #09090b);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Nav Header */
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 50;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        /* Product Container */
+        .product-container {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .product-container {
+                grid-template-columns: 1fr;
+                margin: 30px auto;
+            }
+        }
+
+        .product-image {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 80px rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            display: block;
+        }
+
+        .product-image::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 100%);
+            pointer-events: none;
+        }
+
+        .product-info h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .product-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-price span {
+            font-size: 0.9rem;
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+
+        .product-desc {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .btn-buy {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex: 1;
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+            transition: all 0.2s;
+        }
+        
+        .btn-buy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-details {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-details:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Link Box */
+        .chatbot-link-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        /* Locked state */
+        .chatbot-link-box.locked .link-content {
+            filter: blur(8px);
+            opacity: 0.5;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .chatbot-link-box.locked::after {
+            content: '🔒 Vui lòng thanh toán để mở khóa Bot';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #fff;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 100px;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+        }
+
+        .chatbot-link-box.unlocked {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .link-url {
+            display: inline-block;
+            background: #18181b;
+            color: #10b981;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            margin: 16px 0;
+            word-break: break-all;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-copy {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #features {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            padding-bottom: 80px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 24px;
+        }
+        
+        .feature-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 16px;
+        }
+        
+        .feature-item h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="/" class="logo">
+            <img src="/logo_white.png" alt="KGen">
+            KGen <span style="font-weight:400; font-style:italic">Gallery</span>
+        </a>
+        <div id="auth-status" style="font-size: 0.9rem; color: #a1a1aa;"></div>
+    </header>
+
+    <main class="product-container">
+        <!-- Thumbnail -->
+        <div class="product-image">
+            <img src="/viral_content_avatar.png" alt="Gemini Chatbot Viral">
+        </div>
+
+        <!-- Info -->
+        <div class="product-info">
+            <h1>Chatbot Tạo Video Viral (Gemini Pro X KGen)</h1>
+            <div class="product-price">
+                250.000đ <span>500.000đ</span>
+            </div>
+            <p class="product-desc">
+                Chatbot chuyên gia hệ thống hóa toàn bộ quy trình sáng tạo Video/Carousel Viral trên nền tảng Gemini Advanced.
+                Tự động triển khai ý tưởng, viết kịch bản chi tiết, phân rã Hook và tối ưu độ giữ chân người xem.
+            </p>
+
+            <div class="product-actions">
+                <button class="btn-buy" onclick="buyChatbot()">Mua ngay - Giao tự động</button>
+                <button class="btn-details" onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})">Xem chi tiết</button>
+            </div>
+
+            <div class="chatbot-link-box locked" id="link-box">
+                <div class="link-content">
+                    <h3 style="margin-bottom: 10px; color: #fff;">✅ Đã mở khóa: Link truy cập Chatbot</h3>
+                    <p style="color: var(--text-tertiary); font-size: 0.9rem;">Bấm copy và dán vào trình duyệt để sử dụng với Google Gemini của bạn.</p>
+                    <div class="link-url" id="bot-url">https://gemini.google.com/gem/1n1D5rcnxr6HtDyItLXQgyW-4RgMThjEQ?usp=sharing</div>
+                    <button class="btn-copy" onclick="copyBotLink()">Copy Link</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="features">
+        <h2 style="font-size: 1.5rem; text-align:center;">Chi Tiết Sản Phẩm</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h3>🚀 Phân tích Hook chuẩn tâm lý</h3>
+                <p style="color:var(--text-tertiary); font-size: 0.9rem;">Áp dụng các công thức Hook 3 giây đầu mạnh mẽ nhất để níu chân người xem.</p>
+            </div>
+            <div class="feature-item">
+                <h3>✍️ Kịch bản phân cảnh chi tiết</h3>
+                <p style="color:var(--text-tertiary); font-size: 0.9rem;">Viết chi tiết từng khung hình (mô tả hình ảnh, text trên màn hình, giọng đọc).</p>
+            </div>
+            <div class="feature-item">
+                <h3>⚡ Tối ưu cho AI Video & Carousel</h3>
+                <p style="color:var(--text-tertiary); font-size: 0.9rem;">Prompt được thiết kế tối ưu hóa tạo ảnh Midjourney/KGen để dựng video.</p>
+            </div>
+            <div class="feature-item">
+                <h3>🔒 Sở hữu vĩnh viễn</h3>
+                <p style="color:var(--text-tertiary); font-size: 0.9rem;">Kích hoạt một lần, sử dụng vĩnh viễn trên tài khoản Google Gemini cá nhân.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- KGen Auth & Supabase scripts to reuse payment engine -->
+    <!-- Define SITE_CONFIG proxy for payment setup -->
+    <script>
+        window.SITE_CONFIG = {
+            payment: { bankId: 'TPB', accountNo: '00002035456', accountName: 'TRAN DANG QUOC HOA', webhookBase: 'https://n8n-1adi.srv1465145.hstgr.cloud' }
+        };
+        // Use APP_STATE
+        window.APP_STATE = { currentUser: null };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/supabase.js"></script>
+
+    <script>
+        // Check local auth if existed
+        document.addEventListener('DOMContentLoaded', async () => {
+            const stored = localStorage.getItem('kgen_session');
+            if (stored) {
+                try {
+                    APP_STATE.currentUser = JSON.parse(stored);
+                    document.getElementById('auth-status').textContent = APP_STATE.currentUser.email;
+                } catch(e){}
+            }
+            
+            checkPurchaseStatus();
+        });
+
+        // 1. Core check logic
+        function checkPurchaseStatus() {
+            // Check local variable specific to this product
+            if (localStorage.getItem('unlocked_gem_chatbot') === 'true') {
+                unlockProduct();
+                return;
+            }
+
+            // Also check order history locally (synced by Supabase/webhook)
+            const orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+            const hasPaid = orders.find(o => o.tier === 'gem_chatbot' && o.status === 'paid');
+            if (hasPaid) {
+                unlockProduct();
+            }
+        }
+
+        function unlockProduct() {
+            const box = document.getElementById('link-box');
+            box.classList.remove('locked');
+            box.classList.add('unlocked');
+            localStorage.setItem('unlocked_gem_chatbot', 'true');
+        }
+
+        // 2. Buy logic - Custom QR Modal (Not modifying Supabase.js to avoid breaking core configs)
+        function buyChatbot() {
+            if (!APP_STATE.currentUser) {
+                alert('Vui lòng Đăng nhập trên trang chủ KGen Gallery trước khi mua hàng!');
+                window.location.href = '/';
+                return;
+            }
+
+            const box = document.getElementById('link-box');
+            if (box.classList.contains('unlocked')) {
+                alert('Bạn đã sở hữu sản phẩm này rồi!');
+                return;
+            }
+
+            const tier = 'gem_chatbot';
+            const priceVnd = 250000;
+            const pCfg = window.SITE_CONFIG.payment;
+            const webhookBase = pCfg.webhookBase;
+            const user = APP_STATE.currentUser;
+
+            const rndCode = Math.floor(Math.random() * 90000) + 10000;
+            const orderCode = `KGEN BOT ${rndCode}`;
+            const qrUrl = `https://img.vietqr.io/image/${pCfg.bankId}-${pCfg.accountNo}-compact2.png?amount=${priceVnd}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(pCfg.accountName)}`;
+
+            // Save order locally
+            const orders = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+            orders.push({ user: user.email, orderCode, tier, amount: priceVnd, date: new Date().toISOString(), status: 'pending' });
+            localStorage.setItem('kgen_orders', JSON.stringify(orders));
+
+            // Sync to Supabase
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                supabaseClient.from('orders').insert({
+                    user_email: user.email,
+                    order_code: orderCode,
+                    tier: tier,
+                    amount: priceVnd,
+                    status: 'pending'
+                }).then(() => console.log('Saved order to Supabase'));
+            }
+
+            // Create Modal
+            const overlay = document.createElement('div');
+            overlay.id = 'qr-modal-overlay';
+            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(16px); background-color:rgba(0,0,0,0.85);';
+            
+            overlay.innerHTML = `
+                <div style="position:relative; max-width:440px; width:100%; border-radius:24px; background:linear-gradient(180deg, #18181b 0%, #09090b 100%); border:1px solid rgba(255,255,255,0.08); box-shadow:0 32px 64px rgba(0,0,0,0.5); padding:32px;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.1); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer;">&times;</button>
+                    
+                    <div style="text-align:center;">
+                        <h2 style="font-size:1.6rem; margin-bottom:8px; color:#fff;">Mua Chatbot KGen</h2>
+                        <p style="color:#a1a1aa; font-size:0.95rem;">Quét mã thanh toán để mở khóa tự động</p>
+                    </div>
+
+                    <div style="background:white; padding:20px; border-radius:20px; margin:24px 0;">
+                        <img src="${qrUrl}" style="width:100%; border-radius:8px;">
+                        <div style="text-align:center; color:black; font-weight:800; font-size:1.4rem; margin-top:16px;">
+                            ${priceVnd.toLocaleString('vi')}đ
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:0.8rem; color:#a1a1aa; margin-bottom:4px;">Nội dung chuyển khoản (bắt buộc)</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#3b82f6; font-size:1.1rem;">${orderCode}</strong>
+                            <button onclick="navigator.clipboard.writeText('${orderCode}'); alert('Đã sao chép')" style="background:#3b82f6; color:white; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Copy</button>
+                        </div>
+                    </div>
+
+                    <div id="polling-status" style="text-align:center; color:#3b82f6; font-weight:600; font-size:0.9rem;">
+                        🔄 Hệ thống đang chờ thanh toán...
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // Start Polling locally
+            const poller = setInterval(async () => {
+                if (!document.getElementById('qr-modal-overlay')) {
+                    clearInterval(poller);
+                    return;
+                }
+
+                // Check local orders (updated by webhook or elsewhere)
+                const currentStored = JSON.parse(localStorage.getItem('kgen_orders') || '[]');
+                const currentOrder = currentStored.find(o => o.orderCode === orderCode);
+
+                if (webhookBase) {
+                    try {
+                        const resp = await fetch(`${webhookBase}/webhook/check-payment?code=${encodeURIComponent(orderCode)}`);
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (data.status === 'paid') {
+                                if (currentOrder) currentOrder.status = 'paid';
+                                localStorage.setItem('kgen_orders', JSON.stringify(currentStored));
+                            }
+                        }
+                    } catch (e) {}
+                }
+
+                if (currentOrder && currentOrder.status === 'paid') {
+                    clearInterval(poller);
+                    document.getElementById('polling-status').textContent = '✅ Thanh toán thành công!';
+                    document.getElementById('polling-status').style.color = '#10b981';
+                    
+                    // Mark as unlocked locally immediately
+                    unlockProduct();
+                    
+                    setTimeout(() => {
+                        document.getElementById('qr-modal-overlay').remove();
+                        alert('Mua hàng thành công! Đã mở khóa đường dẫn Chatbot.');
+                    }, 1500);
+                }
+            }, 5000);
+        }
+
+        // Copy Bot Link
+        function copyBotLink() {
+            const url = document.getElementById('bot-url').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                const orig = btn.textContent;
+                btn.textContent = 'Đã Copy!';
+                btn.style.background = '#059669';
+                setTimeout(() => {
+                    btn.textContent = orig;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
