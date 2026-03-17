@@ -138,9 +138,9 @@ function serveStatic(filePath, res) {
             return;
         }
 
-        // If directory, serve index.html inside it
+        // If directory, append index.html and recursively serve it
         if (stats.isDirectory()) {
-            fullPath = path.join(fullPath, 'index.html');
+            return serveStatic(path.join(filePath, 'index.html'), res);
         }
 
         const ext = path.extname(fullPath);
@@ -214,6 +214,12 @@ const server = http.createServer((req, res) => {
             hasKey: !!KIE_API_KEY,
             timestamp: new Date().toISOString(),
         }));
+        return;
+    }
+
+    // Admin URL rewrites: /admin, /adminkgen → serve admin.html
+    if (url.pathname === '/admin' || url.pathname === '/adminkgen') {
+        serveStatic('/admin.html', res);
         return;
     }
 

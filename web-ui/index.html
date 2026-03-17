@@ -422,6 +422,53 @@
                 </a>
             </div>
 
+            <!-- Promo Banners Section -->
+            <div class="promo-banners-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 24px 8px 24px;">
+                <!-- Banner 1 -->
+                <a href="/chatbot_viral" target="_blank" class="promo-banner" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(255, 71, 71, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(255, 71, 71, 0.2); border-radius: 12px; padding: 16px; text-decoration: none; transition: transform 0.2s, border-color 0.2s; overflow: hidden; position: relative;">
+                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 80px;"><i class="fa-solid fa-robot"></i></div>
+                    <div class="promo-content" style="position: relative; z-index: 1;">
+                        <span style="display: inline-block; padding: 4px 8px; background: #ff4747; color: white; font-size: 10px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">HOT</span>
+                        <h4 style="color: white; margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Chatbot Viral Content</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 12px; line-height: 1.4;">Hệ thống 9 chuyên gia AI hỗ trợ kịch bản Tiktok/Reel</p>
+                    </div>
+                </a>
+                
+                <!-- Banner 2 -->
+                <a href="#" onclick="switchTab('generate'); return false;" class="promo-banner" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px; text-decoration: none; transition: transform 0.2s, border-color 0.2s; overflow: hidden; position: relative;">
+                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 80px;"><i class="fa-solid fa-image"></i></div>
+                    <div class="promo-content" style="position: relative; z-index: 1;">
+                        <span style="display: inline-block; padding: 4px 8px; background: #10b981; color: white; font-size: 10px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">CÔNG CỤ</span>
+                        <h4 style="color: white; margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Gemini & Imagen 3</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 12px; line-height: 1.4;">Tạo ảnh cực nét dựa trên reference image dễ dàng</p>
+                    </div>
+                </a>
+                
+                <!-- Banner 3 -->
+                <a href="#" onclick="openPricingModal(); return false;" class="promo-banner" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 16px; text-decoration: none; transition: transform 0.2s, border-color 0.2s; overflow: hidden; position: relative;">
+                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 80px;"><i class="fa-solid fa-crown"></i></div>
+                    <div class="promo-content" style="position: relative; z-index: 1;">
+                        <span style="display: inline-block; padding: 4px 8px; background: #f59e0b; color: white; font-size: 10px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">PREMIUM</span>
+                        <h4 style="color: white; margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Nâng cấp Thành Viên</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 12px; line-height: 1.4;">Mở khóa tính năng sao lưu, mua chatbot & tạo video</p>
+                    </div>
+                </a>
+            </div>
+            
+            <style>
+                .promo-banner:hover {
+                    transform: translateY(-2px);
+                }
+                .promo-banner:nth-child(1):hover { border-color: rgba(255, 71, 71, 0.6) !important; }
+                .promo-banner:nth-child(2):hover { border-color: rgba(16, 185, 129, 0.6) !important; }
+                .promo-banner:nth-child(3):hover { border-color: rgba(245, 158, 11, 0.6) !important; }
+                @media (max-width: 992px) {
+                    .promo-banners-grid {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            </style>
+
             <!-- Top Model Filter Bar -->
             <div class="gallery-topbar">
                 <div class="model-filters" id="top-category-filters">
@@ -2184,6 +2231,7 @@
     <script src="site-config.js?v=20260313_1810"></script>
     <script src="supabase.js?v=20260313_1810"></script>
     <script src="app.js?v=20260313_1810"></script>
+
 </body>
 
-</html>
+</html>
