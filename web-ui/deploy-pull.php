@@ -19,14 +19,35 @@ header('Content-Type: text/plain; charset=utf-8');
 echo "=== KGen Deploy Script ===\n\n";
 
 // GitHub raw URLs for the files we need to update
+$BASE = 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/';
+
 $files = [
-    '.htaccess' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/.htaccess',
-    'app.js' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/app.js',
-    'index.html' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/index.html',
-    'styles.css' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/styles.css',
-    'viral_content_avatar.png' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/viral_content_avatar.png',
-    'ai_tools_avatar.png' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/ai_tools_avatar.png',
-    'hub_avatar.png' => 'https://raw.githubusercontent.com/hoaquocdang/KGen-Studio/master/web-ui/hub_avatar.png',
+    // Core files
+    '.htaccess'              => $BASE . '.htaccess',
+    'app.js'                 => $BASE . 'app.js',
+    'index.html'             => $BASE . 'index.html',
+    'styles.css'             => $BASE . 'styles.css',
+    // Avatars / Banners
+    'viral_content_avatar.png' => $BASE . 'viral_content_avatar.png',
+    'ai_tools_avatar.png'    => $BASE . 'ai_tools_avatar.png',
+    'hub_avatar.png'         => $BASE . 'hub_avatar.png',
+    'banner_chatbot.png'     => $BASE . 'banner_chatbot.png',
+    'banner_gemini.png'      => $BASE . 'banner_gemini.png',
+    'banner_premium.png'     => $BASE . 'banner_premium.png',
+    // Chatbot Viral — Landing Page
+    'chatbot_viral/index.html'  => $BASE . 'chatbot_viral/index.html',
+    'chatbot_viral/styles.css'  => $BASE . 'chatbot_viral/styles.css',
+    'chatbot_viral/script.js'   => $BASE . 'chatbot_viral/script.js',
+    'chatbot_viral/hero_illustration.png' => $BASE . 'chatbot_viral/hero_illustration.png',
+    'chatbot_viral/step1.png'   => $BASE . 'chatbot_viral/step1.png',
+    'chatbot_viral/step2.png'   => $BASE . 'chatbot_viral/step2.png',
+    'chatbot_viral/step3.png'   => $BASE . 'chatbot_viral/step3.png',
+    // Chatbot Viral — Gem Store
+    'chatbot_viral/gem/index.html'      => $BASE . 'chatbot_viral/gem/index.html',
+    'chatbot_viral/gem/thumb_nguoi_que.png' => $BASE . 'chatbot_viral/gem/thumb_nguoi_que.png',
+    'chatbot_viral/gem/thumb_triet_hoc.png' => $BASE . 'chatbot_viral/gem/thumb_triet_hoc.png',
+    'chatbot_viral/gem/thumb_me_chong.png'  => $BASE . 'chatbot_viral/gem/thumb_me_chong.png',
+    'chatbot_viral/gem/thumb_don_dep.png'   => $BASE . 'chatbot_viral/gem/thumb_don_dep.png',
 ];
 
 $success = 0;
@@ -40,6 +61,13 @@ foreach ($files as $localFile => $remoteUrl) {
         echo "FAILED (could not download)\n";
         $failed++;
         continue;
+    }
+
+    // Create subdirectory if needed
+    $dir = dirname($localFile);
+    if ($dir !== '.' && !is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+        echo "[created dir: $dir] ";
     }
 
     // Backup existing file
