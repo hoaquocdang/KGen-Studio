@@ -422,52 +422,141 @@
                 </a>
             </div>
 
-            <!-- Promo Banners Section -->
-            <div class="promo-banners-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 24px 8px 24px;">
-                <!-- Banner 1 -->
-                <a href="/chatbot_viral" target="_blank" class="promo-banner" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(255, 71, 71, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(255, 71, 71, 0.2); border-radius: 12px; padding: 16px; text-decoration: none; transition: transform 0.2s, border-color 0.2s; overflow: hidden; position: relative;">
-                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 80px;"><i class="fa-solid fa-robot"></i></div>
-                    <div class="promo-content" style="position: relative; z-index: 1;">
-                        <span style="display: inline-block; padding: 4px 8px; background: #ff4747; color: white; font-size: 10px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">HOT</span>
-                        <h4 style="color: white; margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Chatbot Viral Content</h4>
-                        <p style="color: var(--text-secondary); margin: 0; font-size: 12px; line-height: 1.4;">Hệ thống 9 chuyên gia AI hỗ trợ kịch bản Tiktok/Reel</p>
-                    </div>
-                </a>
+            <!-- Hero Promo Carousel -->
+            <div class="hero-carousel-container" style="position: relative; width: 100%; max-width: 100%; overflow: hidden; margin: 0 0 24px 0;">
+                <div class="hero-carousel-track" id="hero-carousel-track" style="display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); height: 100%;">
+                    
+                    <!-- Slide 1 -->
+                    <a href="/chatbot_viral" target="_blank" class="carousel-slide" style="min-width: 100%; position: relative; display: block; overflow: hidden; height: 260px;">
+                        <img src="/banner_chatbot.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0;">
+                        <div class="slide-content" style="position: absolute; bottom: 0; left: 0; padding: 40px; background: linear-gradient(to top, rgba(9, 9, 11, 0.95), rgba(9, 9, 11, 0.4) 50%, transparent); width: 100%; pointer-events: none;">
+                            <span style="display: inline-block; padding: 4px 10px; background: #ff4747; color: white; font-size: 11px; font-weight: bold; border-radius: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(255,71,71,0.5);">Cập Nhật Mới</span>
+                            <h2 style="color: white; margin: 0 0 8px 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">Chatbot Kịch Bản Viral Video</h2>
+                            <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 16px; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,0.8); max-width: 600px;">Tự động hóa kịch bản Tiktok/Reels với 9 chuyên gia AI hàng đầu. Đột phá lượng view ngay lập tức.</p>
+                        </div>
+                    </a>
+
+                    <!-- Slide 2 -->
+                    <a href="#" onclick="switchTab('generate'); return false;" class="carousel-slide" style="min-width: 100%; position: relative; display: block; overflow: hidden; height: 260px;">
+                        <img src="/banner_gemini.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0;">
+                        <div class="slide-content" style="position: absolute; bottom: 0; left: 0; padding: 40px; background: linear-gradient(to top, rgba(9, 9, 11, 0.95), rgba(9, 9, 11, 0.4) 50%, transparent); width: 100%; pointer-events: none;">
+                            <span style="display: inline-block; padding: 4px 10px; background: #10b981; color: white; font-size: 11px; font-weight: bold; border-radius: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(16,185,129,0.5);">Công Cụ Sáng Tạo</span>
+                            <h2 style="color: white; margin: 0 0 8px 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">Gemini Vision & Imagen 3</h2>
+                            <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 16px; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,0.8); max-width: 600px;">Sao chép phong cách (Adapt to Reference) và nâng cấp độ phân giải cực nét với công nghệ mới nhất.</p>
+                        </div>
+                    </a>
+
+                    <!-- Slide 3 -->
+                    <a href="#" onclick="openPricingModal(); return false;" class="carousel-slide" style="min-width: 100%; position: relative; display: block; overflow: hidden; height: 260px;">
+                        <img src="/banner_premium.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0;">
+                        <div class="slide-content" style="position: absolute; bottom: 0; left: 0; padding: 40px; background: linear-gradient(to top, rgba(9, 9, 11, 0.95), rgba(9, 9, 11, 0.4) 50%, transparent); width: 100%; pointer-events: none;">
+                            <span style="display: inline-block; padding: 4px 10px; background: #f59e0b; color: white; font-size: 11px; font-weight: bold; border-radius: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(245,158,11,0.5);">Đặc Quyền VIP</span>
+                            <h2 style="color: white; margin: 0 0 8px 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">Trở Thành KGen Member</h2>
+                            <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 16px; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,0.8); max-width: 600px;">Lưu trữ bộ sưu tập cá nhân, mở khóa bộ kỹ năng chatbot và hàng loạt video tutorial riêng tư.</p>
+                        </div>
+                    </a>
+
+                </div>
                 
-                <!-- Banner 2 -->
-                <a href="#" onclick="switchTab('generate'); return false;" class="promo-banner" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px; text-decoration: none; transition: transform 0.2s, border-color 0.2s; overflow: hidden; position: relative;">
-                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 80px;"><i class="fa-solid fa-image"></i></div>
-                    <div class="promo-content" style="position: relative; z-index: 1;">
-                        <span style="display: inline-block; padding: 4px 8px; background: #10b981; color: white; font-size: 10px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">CÔNG CỤ</span>
-                        <h4 style="color: white; margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Gemini & Imagen 3</h4>
-                        <p style="color: var(--text-secondary); margin: 0; font-size: 12px; line-height: 1.4;">Tạo ảnh cực nét dựa trên reference image dễ dàng</p>
-                    </div>
-                </a>
+                <!-- Dots -->
+                <div class="carousel-dots" id="carousel-dots" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px;">
+                    <button class="dot active" data-index="0" style="width: 24px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.3); border: none; cursor: pointer; transition: 0.3s; padding: 0;"></button>
+                    <button class="dot" data-index="1" style="width: 24px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.3); border: none; cursor: pointer; transition: 0.3s; padding: 0;"></button>
+                    <button class="dot" data-index="2" style="width: 24px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.3); border: none; cursor: pointer; transition: 0.3s; padding: 0;"></button>
+                </div>
                 
-                <!-- Banner 3 -->
-                <a href="#" onclick="openPricingModal(); return false;" class="promo-banner" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 16px; text-decoration: none; transition: transform 0.2s, border-color 0.2s; overflow: hidden; position: relative;">
-                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 80px;"><i class="fa-solid fa-crown"></i></div>
-                    <div class="promo-content" style="position: relative; z-index: 1;">
-                        <span style="display: inline-block; padding: 4px 8px; background: #f59e0b; color: white; font-size: 10px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">PREMIUM</span>
-                        <h4 style="color: white; margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Nâng cấp Thành Viên</h4>
-                        <p style="color: var(--text-secondary); margin: 0; font-size: 12px; line-height: 1.4;">Mở khóa tính năng sao lưu, mua chatbot & tạo video</p>
-                    </div>
-                </a>
+                <!-- Controls -->
+                <button class="carousel-btn prev" onclick="moveCarousel(-1)" style="position: absolute; top: 50%; left: 24px; transform: translateY(-50%); background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); color: white; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); opacity: 0; transition: all 0.3s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button class="carousel-btn next" onclick="moveCarousel(1)" style="position: absolute; top: 50%; right: 24px; transform: translateY(-50%); background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); color: white; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); opacity: 0; transition: all 0.3s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
             </div>
             
             <style>
-                .promo-banner:hover {
-                    transform: translateY(-2px);
+                .hero-carousel-container:hover .carousel-btn {
+                    opacity: 1 !important;
                 }
-                .promo-banner:nth-child(1):hover { border-color: rgba(255, 71, 71, 0.6) !important; }
-                .promo-banner:nth-child(2):hover { border-color: rgba(16, 185, 129, 0.6) !important; }
-                .promo-banner:nth-child(3):hover { border-color: rgba(245, 158, 11, 0.6) !important; }
-                @media (max-width: 992px) {
-                    .promo-banners-grid {
-                        grid-template-columns: 1fr !important;
-                    }
+                .hero-carousel-container .carousel-btn:hover {
+                    background: rgba(255,255,255,0.2) !important;
+                    transform: translateY(-50%) scale(1.05);
+                }
+                .hero-carousel-container .dot.active {
+                    background: white !important;
+                    width: 32px !important;
+                    box-shadow: 0 0 8px rgba(255,255,255,0.8);
+                }
+                .hero-carousel-container .dot:hover {
+                    background: rgba(255,255,255,0.6) !important;
+                }
+                .carousel-slide::before {
+                    content: '';
+                    position: absolute;
+                    top:0; left:0; width:100%; height:100%;
+                    box-shadow: inset 0 -4px 12px rgba(0,0,0,0.2);
+                    pointer-events: none;
+                }
+                @media (min-width: 1200px) {
+                    .carousel-slide { height: 360px !important; }
+                    .slide-content h2 { font-size: 40px !important; }
+                    .slide-content p { font-size: 18px !important; }
+                }
+                @media (max-width: 768px) {
+                    .carousel-slide { height: 220px !important; }
+                    .slide-content { padding: 20px !important; }
+                    .slide-content h2 { font-size: 22px !important; }
+                    .slide-content p { font-size: 13px !important; max-width: 100% !important; }
+                    .carousel-btn { display: none !important; }
+                    .hero-carousel-container { margin-bottom: 12px !important; }
                 }
             </style>
+
+            <script>
+                let currentSlide = 0;
+                let slideInterval;
+                const totalSlides = 3;
+                
+                function updateCarousel() {
+                    const track = document.getElementById('hero-carousel-track');
+                    const dots = document.querySelectorAll('#carousel-dots .dot');
+                    if(track) {
+                        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+                        dots.forEach((dot, index) => {
+                            dot.classList.toggle('active', index === currentSlide);
+                        });
+                    }
+                }
+
+                function moveCarousel(direction) {
+                    currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+                    updateCarousel();
+                    resetInterval();
+                }
+
+                function jumpToSlide(index) {
+                    currentSlide = index;
+                    updateCarousel();
+                    resetInterval();
+                }
+
+                function resetInterval() {
+                    clearInterval(slideInterval);
+                    slideInterval = setInterval(() => {
+                        moveCarousel(1);
+                    }, 5000);
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const dots = document.querySelectorAll('#carousel-dots .dot');
+                    dots.forEach(dot => {
+                        dot.addEventListener('click', () => {
+                            jumpToSlide(parseInt(dot.getAttribute('data-index')));
+                        });
+                    });
+                    resetInterval();
+                });
+            </script>
 
             <!-- Top Model Filter Bar -->
             <div class="gallery-topbar">
