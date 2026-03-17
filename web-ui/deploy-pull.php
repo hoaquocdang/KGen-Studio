@@ -48,6 +48,10 @@ $files = [
     'chatbot_viral/gem/thumb_triet_hoc.png' => $BASE . 'chatbot_viral/gem/thumb_triet_hoc.png',
     'chatbot_viral/gem/thumb_me_chong.png'  => $BASE . 'chatbot_viral/gem/thumb_me_chong.png',
     'chatbot_viral/gem/thumb_don_dep.png'   => $BASE . 'chatbot_viral/gem/thumb_don_dep.png',
+    'chatbot_viral/gem/thumb_thoi_trang_nam.png'  => $BASE . 'chatbot_viral/gem/thumb_thoi_trang_nam.png',
+    'chatbot_viral/gem/thumb_stickman_dao_li.png' => $BASE . 'chatbot_viral/gem/thumb_stickman_dao_li.png',
+    'chatbot_viral/gem/thumb_con_trung_pov.png'   => $BASE . 'chatbot_viral/gem/thumb_con_trung_pov.png',
+    'chatbot_viral/gem/thumb_review_san_pham.png' => $BASE . 'chatbot_viral/gem/thumb_review_san_pham.png',
 ];
 
 $success = 0;
