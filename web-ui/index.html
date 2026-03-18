@@ -2192,8 +2192,8 @@
           </div>
         </div>
         <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;">
-          <button onclick="closePromoAndLogin()" style="width:100%;padding:11px;border:none;border-radius:11px;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:0.85rem;font-weight:700;box-shadow:0 4px 16px rgba(124,58,237,0.4);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🚀 Đăng ký miễn phí</button>
-          <button onclick="closePromoAndLogin()" style="width:100%;padding:9px;border:1px solid rgba(251,191,36,0.4);border-radius:11px;cursor:pointer;background:rgba(251,191,36,0.08);color:#fbbf24;font-size:0.8rem;font-weight:600;transition:all 0.2s;" onmouseover="this.style.background='rgba(251,191,36,0.15)'" onmouseout="this.style.background='rgba(251,191,36,0.08)'">🪙 Nạp Token ngay</button>
+          <button onclick="closePromoAndBuyPremium()" style="width:100%;padding:11px;border:none;border-radius:11px;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:0.85rem;font-weight:700;box-shadow:0 4px 16px rgba(124,58,237,0.4);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🚀 Đăng ký Premium</button>
+          <button onclick="closePromoAndTopup()" style="width:100%;padding:9px;border:1px solid rgba(251,191,36,0.4);border-radius:11px;cursor:pointer;background:rgba(251,191,36,0.08);color:#fbbf24;font-size:0.8rem;font-weight:600;transition:all 0.2s;" onmouseover="this.style.background='rgba(251,191,36,0.15)'" onmouseout="this.style.background='rgba(251,191,36,0.08)'">🪙 Nạp Token ngay</button>
         </div>
       </div>
 
@@ -2299,9 +2299,64 @@
         setTimeout(function(){ document.getElementById('btn-login')?.click(); }, 200);
     }
 
+    function closePromoAndBuyPremium() {
+        dismissPromoWidget();
+        setTimeout(function() {
+            var user = window.APP_STATE && window.APP_STATE.currentUser;
+            if (user) {
+                // User is logged in — open QR payment for Premium (499K/năm)
+                if (typeof createCheckoutSession === 'function') {
+                    createCheckoutSession('premium');
+                } else {
+                    // Fallback: open pricing flow via Supabase
+                    if (typeof renderPricingModal === 'function') renderPricingModal();
+                }
+            } else {
+                // Not logged in — store intent and open auth modal
+                window._pendingPromoAction = 'buy_premium';
+                document.getElementById('btn-login') && document.getElementById('btn-login').click();
+            }
+        }, 250);
+    }
+
+    function closePromoAndTopup() {
+        dismissPromoWidget();
+        setTimeout(function() {
+            var user = window.APP_STATE && window.APP_STATE.currentUser;
+            if (user) {
+                // User is logged in — open QR payment for Token topup (99K = 200 token)
+                if (typeof createCheckoutSession === 'function') {
+                    createCheckoutSession('topup_100');
+                } else {
+                    if (typeof renderPricingModal === 'function') renderPricingModal();
+                }
+            } else {
+                // Not logged in — store intent and open auth modal
+                window._pendingPromoAction = 'topup';
+                document.getElementById('btn-login') && document.getElementById('btn-login').click();
+            }
+        }, 250);
+    }
+
+    // After login, execute any pending promo action
+    document.addEventListener('kgen:loggedIn', function() {
+        var action = window._pendingPromoAction;
+        if (!action) return;
+        window._pendingPromoAction = null;
+        setTimeout(function() {
+            if (action === 'buy_premium' && typeof createCheckoutSession === 'function') {
+                createCheckoutSession('premium');
+            } else if (action === 'topup' && typeof createCheckoutSession === 'function') {
+                createCheckoutSession('topup_100');
+            }
+        }, 400);
+    });
+
     window.dismissPromoWidget = dismissPromoWidget;
     window.expandPromoWidget = expandPromoWidget;
     window.closePromoAndLogin = closePromoAndLogin;
+    window.closePromoAndBuyPremium = closePromoAndBuyPremium;
+    window.closePromoAndTopup = closePromoAndTopup;
     </script>
 
 

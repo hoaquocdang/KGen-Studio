@@ -471,7 +471,7 @@ function createCheckoutSession(tier) {
     const pack = packTiers.find(t => t.id === tier);
 
     // Default fallback if not found
-    let priceVnd = tier === 'member' ? 199000 : 199000;
+    let priceVnd = tier === 'premium' ? 499000 : (tier === 'member' ? 199000 : 199000);
 
     // Process price
     if (pack) {
@@ -829,6 +829,23 @@ const PRICING_TIERS = [
         buttonText: 'Nâng cấp Thành Viên',
         buttonClass: 'btn-primary',
         popular: true,
+    },
+    {
+        id: 'premium',
+        name: 'Gói PREMIUM',
+        emoji: '👑',
+        price: '499.000đ',
+        period: '/năm',
+        features: [
+            'KGen Gallery · VEO 3.1 Video Studio',
+            'Chatbot Viral · Carousel AI',
+            'Token ưu đãi & +10 app sắp ra mắt',
+            'Toàn bộ tính năng · Không giới hạn'
+        ],
+        limitations: [],
+        buttonText: 'Đăng ký Premium',
+        buttonClass: 'btn-primary',
+        popular: false,
     }
 ];
 

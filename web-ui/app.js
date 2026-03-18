@@ -225,6 +225,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                             APP_STATE.currentUser = sbUser;
                             localStorage.setItem('kgen_session', JSON.stringify(sbUser));
                             updateAuthUI();
+                            // Dispatch login event for pending promo actions (only on actual sign-in, not page reload)
+                            if (event === 'SIGNED_IN') {
+                                document.dispatchEvent(new CustomEvent('kgen:loggedIn', { detail: sbUser }));
+                            }
                         }
                     } else if (event === 'SIGNED_OUT') {
                         APP_STATE.currentUser = null;
@@ -3296,6 +3300,9 @@ function handleLogin() {
     closeAuthModal();
     updateAuthUI();
     refreshGalleryForAuth();
+
+    // Dispatch login event so pending promo actions (buy premium / topup) can run
+    document.dispatchEvent(new CustomEvent('kgen:loggedIn', { detail: sessionUser }));
 
     showToast(`👋 Chào mừng trở lại, ${user.name}!`, 'success');
 }

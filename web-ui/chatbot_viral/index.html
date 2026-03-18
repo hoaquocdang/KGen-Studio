@@ -615,6 +615,205 @@
             .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
         }
 
+        /* ===== VEO SECTION VISIBILITY ===== */
+        .veo-desktop-only { display: block; }
+        .veo-mobile-only { display: none; }
+        @media (max-width: 768px) {
+            .veo-desktop-only { display: none !important; }
+            .veo-mobile-only { display: block !important; }
+        }
+
+        /* ===== VEO MOBILE MODULE ===== */
+        .veo-mobile {
+            padding: 56px 20px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .veo-mobile-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .veo-mobile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15));
+            border: 1px solid rgba(139,92,246,0.35);
+            border-radius: 100px;
+            margin-bottom: 18px;
+        }
+        .veo-mobile-badge .badge-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #a78bfa);
+            animation: blink 1.5s ease infinite;
+            flex-shrink: 0;
+        }
+        .veo-mobile-badge span {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #818cf8, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .veo-mobile-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+        .veo-mobile-title .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a78bfa 40%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .veo-mobile-desc {
+            color: #a1a1aa;
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+        /* VEO brand identity row */
+        .veo-brand-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(15,12,41,0.98), rgba(48,43,99,0.95));
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .veo-brand-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6366f1, #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.4);
+            flex-shrink: 0;
+        }
+        .veo-brand-text .brand-sub {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #818cf8;
+            line-height: 1;
+        }
+        .veo-brand-text .brand-name {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+        /* Feature list */
+        .veo-feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .veo-feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+        }
+        .veo-feature-emoji {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .veo-feature-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+        .veo-feature-desc {
+            font-size: 0.78rem;
+            color: #71717a;
+            line-height: 1.45;
+        }
+        /* Stats grid */
+        .veo-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .veo-stat-card {
+            border-radius: 14px;
+            padding: 14px 10px;
+            text-align: center;
+        }
+        .veo-stat-val {
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .veo-stat-lbl {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #52525b;
+        }
+        /* CTA button */
+        .veo-mobile-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 17px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #7c3aed);
+            color: white;
+            text-decoration: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            box-shadow: 0 8px 28px rgba(99,102,241,0.45), 0 0 0 1px rgba(139,92,246,0.3);
+            transition: all 0.25s;
+            margin-bottom: 16px;
+        }
+        .veo-mobile-cta:active {
+            transform: scale(0.97);
+            box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+        }
+        /* Pills row */
+        .veo-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .veo-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
         /* Marquee ticker */
         .ticker-wrap {
             overflow: hidden;
@@ -771,8 +970,8 @@
 
 <div style="height: 1px; background: rgba(255,255,255,0.05);"></div>
 
-<!-- ===== VEO 3.1 VIDEO MODULE ===== -->
-<section id="veo-video" style="padding: 80px 40px; max-width: 1300px; margin: 0 auto; position: relative;">
+<!-- ===== VEO 3.1 VIDEO MODULE — DESKTOP ONLY ===== -->
+<section id="veo-video" class="veo-desktop-only" style="padding: 80px 40px; max-width: 1300px; margin: 0 auto; position: relative;">
 
     <!-- Section Header -->
     <div class="reveal" style="text-align:center; margin-bottom: 56px;">
@@ -981,6 +1180,129 @@
         <div style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:100px;font-size:0.8rem;color:#a1a1aa;font-weight:500;">
             <span style="font-size:1rem;">⚡</span> Flow Board No-code
         </div>
+    </div>
+</section>
+
+<!-- ===== VEO 3.1 VIDEO MODULE — MOBILE ONLY ===== -->
+<section class="veo-mobile veo-mobile-only" aria-label="VEO 3.1 Video Studio">
+
+    <!-- Ambient background orbs -->
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+        <div style="position:absolute;width:300px;height:300px;top:-80px;right:-60px;background:radial-gradient(ellipse,rgba(99,102,241,0.2),transparent 70%);filter:blur(50px);"></div>
+        <div style="position:absolute;width:250px;height:250px;bottom:-60px;left:-40px;background:radial-gradient(ellipse,rgba(34,211,238,0.12),transparent 70%);filter:blur(50px);"></div>
+    </div>
+
+    <div style="position:relative;z-index:2;">
+
+        <!-- Header -->
+        <div class="veo-mobile-header">
+            <div class="veo-mobile-badge">
+                <span class="badge-dot"></span>
+                <span>Mới nhất · VEO 3.1 by Google DeepMind</span>
+            </div>
+            <h2 class="veo-mobile-title">
+                Tạo Video AI<br>
+                <span class="gradient-text">Đỉnh Cao Thế Giới</span>
+            </h2>
+            <p class="veo-mobile-desc">
+                Công nghệ <strong style="color:#a78bfa;">VEO 3.1</strong> từ Google DeepMind — tạo video cinematic từ text hoặc ảnh, âm thanh AI tích hợp.
+            </p>
+        </div>
+
+        <!-- Brand identity -->
+        <div class="veo-brand-row">
+            <div class="veo-brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" fill="white"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="1.5"/></svg>
+            </div>
+            <div class="veo-brand-text">
+                <div class="brand-sub">Google DeepMind</div>
+                <div class="brand-name">VEO 3.1 Studio</div>
+            </div>
+            <div style="margin-left:auto;padding:5px 12px;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);border-radius:8px;font-size:0.7rem;font-weight:700;color:#34d399;">LIVE</div>
+        </div>
+
+        <!-- Feature list -->
+        <div class="veo-feature-list">
+            <div class="veo-feature-item">
+                <div class="veo-feature-emoji" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);">🎬</div>
+                <div>
+                    <div class="veo-feature-title">Text → Video Cinematic</div>
+                    <div class="veo-feature-desc">Nhập mô tả, nhận video chất lượng 1080p với chuyển động AI mượt mà</div>
+                </div>
+            </div>
+            <div class="veo-feature-item">
+                <div class="veo-feature-emoji" style="background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);">🎵</div>
+                <div>
+                    <div class="veo-feature-title">Âm Thanh &amp; Nhạc Nền AI</div>
+                    <div class="veo-feature-desc">Tự động tạo nhạc nền, hiệu ứng âm thanh và giọng đọc thuần AI</div>
+                </div>
+            </div>
+            <div class="veo-feature-item">
+                <div class="veo-feature-emoji" style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);">🖼️</div>
+                <div>
+                    <div class="veo-feature-title">Ảnh → Video Động</div>
+                    <div class="veo-feature-desc">Biến ảnh tĩnh thành clip sống động với chuyển động thực tế</div>
+                </div>
+            </div>
+            <div class="veo-feature-item">
+                <div class="veo-feature-emoji" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);">⚡</div>
+                <div>
+                    <div class="veo-feature-title">Flow Interface Trực Quan</div>
+                    <div class="veo-feature-desc">Giao diện kéo-thả như Google Flow, dễ dùng ai cũng làm được</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="veo-stats-grid">
+            <div class="veo-stat-card" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);">
+                <div class="veo-stat-val" style="color:#818cf8;">4K</div>
+                <div class="veo-stat-lbl">Output</div>
+            </div>
+            <div class="veo-stat-card" style="background:rgba(34,211,238,0.06);border:1px solid rgba(34,211,238,0.2);">
+                <div class="veo-stat-val" style="color:#22d3ee;">60fps</div>
+                <div class="veo-stat-lbl">Frame Rate</div>
+            </div>
+            <div class="veo-stat-card" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);">
+                <div class="veo-stat-val" style="color:#a78bfa;">AI</div>
+                <div class="veo-stat-lbl">Audio Sync</div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <a href="https://kgen.cloud/video" class="veo-mobile-cta">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" fill="white"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="2"/></svg>
+            Tạo Video Ngay
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="opacity:0.8;"><path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+
+        <!-- Verification chips -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span style="font-size:0.72rem;color:#71717a;font-weight:500;">Powered by Google VEO 3.1</span>
+            </div>
+            <span style="color:#3f3f46;font-size:0.65rem;">·</span>
+            <div style="display:flex;align-items:center;gap:5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span style="font-size:0.72rem;color:#71717a;font-weight:500;">Flow Interface · No-code</span>
+            </div>
+            <span style="color:#3f3f46;font-size:0.65rem;">·</span>
+            <div style="display:flex;align-items:center;gap:5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span style="font-size:0.72rem;color:#71717a;font-weight:500;">Audio AI tích hợp</span>
+            </div>
+        </div>
+
+        <!-- Quick pills -->
+        <div class="veo-pills">
+            <div class="veo-pill"><span>🎬</span> Text to Video</div>
+            <div class="veo-pill"><span>🖼️</span> Image to Video</div>
+            <div class="veo-pill"><span>🎵</span> AI Music &amp; SFX</div>
+            <div class="veo-pill"><span>🎤</span> AI Voiceover</div>
+            <div class="veo-pill"><span>📱</span> TikTok &amp; Reels Ready</div>
+        </div>
+
     </div>
 </section>
 
