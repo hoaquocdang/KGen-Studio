@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -2134,160 +2134,175 @@
     </div>
 
 
-    <!-- ===== WELCOME OFFER POPUP ===== -->
-    <div id="welcome-popup" style="
-        display:none; position:fixed; inset:0; z-index:99999;
-        background:rgba(0,0,0,0.75); backdrop-filter:blur(16px);
-        align-items:center; justify-content:center; padding:16px;
-    ">
-        <div id="welcome-popup-card" style="
-            position:relative; max-width:560px; width:100%;
-            background:linear-gradient(145deg,#0f0f1a,#161628);
-            border-radius:24px; overflow:hidden;
-            box-shadow:0 0 0 1.5px rgba(139,92,246,0.4), 0 40px 80px rgba(0,0,0,0.6);
-            animation: popupIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-        ">
-            <!-- Animated gradient top bar -->
-            <div style="height:4px; background:linear-gradient(90deg,#7c3aed,#3b82f6,#06b6d4,#8b5cf6); background-size:200%; animation:gradientShift 3s linear infinite;"></div>
+    <!-- ===== PROMO WIDGET — FLOATING BOTTOM RIGHT ===== -->
+    <div id="promo-widget" style="display:none; position:fixed; bottom:24px; right:24px; z-index:9998; width:300px; max-width:calc(100vw - 32px);">
 
-            <!-- Close -->
-            <button onclick="closeWelcomePopup()" style="
-                position:absolute; top:16px; right:16px; z-index:10;
-                width:32px; height:32px; border-radius:50%; border:none;
-                background:rgba(255,255,255,0.1); color:#aaa; font-size:18px;
-                cursor:pointer; display:flex; align-items:center; justify-content:center;
-                transition:all 0.2s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
+      <!-- Pill toggle (shown after dismiss) -->
+      <div id="promo-pill" onclick="expandPromoWidget()" style="
+          display:none; cursor:pointer; margin-left:auto; width:fit-content;
+          background:linear-gradient(135deg,#7c3aed,#3b82f6);
+          padding:8px 16px; border-radius:100px;
+          color:#fff; font-size:0.78rem; font-weight:700;
+          box-shadow:0 4px 20px rgba(124,58,237,0.45);
+          transition:transform 0.2s; align-items:center; gap:6px;
+      " onmouseover="this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.transform='translateY(0)'">
+        🎁 Ưu đãi KGen
+      </div>
 
-            <div style="padding:32px 28px 28px;">
-                <!-- Header -->
-                <div style="text-align:center; margin-bottom:24px;">
-                    <div style="font-size:2.4rem; margin-bottom:8px; line-height:1;">🎁</div>
-                    <div style="
-                        display:inline-block; padding:4px 14px; border-radius:100px;
-                        background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(59,130,246,0.3));
-                        border:1px solid rgba(139,92,246,0.4); font-size:0.72rem;
-                        color:#a78bfa; font-weight:700; letter-spacing:1px; margin-bottom:12px;
-                    ">ƯU ĐÃI ĐẶC BIỆT CHO THÀNH VIÊN MỚI</div>
-                    <h2 style="font-size:1.5rem; font-weight:800; color:#fff; margin:0 0 8px 0; line-height:1.3;">
-                        Sử dụng Token không giới hạn<br>
-                        <span style="background:linear-gradient(90deg,#8b5cf6,#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">chỉ từ 99K/tháng</span>
-                    </h2>
-                    <p style="color:#9ca3af; font-size:0.85rem; margin:0;">Tham gia hơn <strong style="color:#e5e7eb;">5,000+ người dùng</strong> đang tạo nội dung với KGen AI</p>
-                </div>
-
-                <!-- Plans row -->
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
-                    <!-- Free -->
-                    <div style="padding:14px 10px; background:rgba(255,255,255,0.04); border-radius:14px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
-                        <div style="font-size:1.2rem;">🆓</div>
-                        <div style="font-size:0.8rem; font-weight:700; color:#e5e7eb; margin:4px 0 2px;">FREE</div>
-                        <div style="font-size:0.68rem; color:#6b7280;">10 Token ban đầu</div>
-                        <div style="font-size:0.7rem; color:#6b7280; margin-top:4px;">Prompt gallery</div>
-                    </div>
-                    <!-- Member - highlighted -->
-                    <div style="padding:14px 10px; background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.15)); border-radius:14px; border:1.5px solid rgba(139,92,246,0.5); text-align:center; position:relative;">
-                        <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,#7c3aed,#3b82f6); color:#fff; font-size:0.6rem; font-weight:700; padding:2px 8px; border-radius:100px; white-space:nowrap;">PHỔ BIẾN</div>
-                        <div style="font-size:1.2rem; margin-top:6px;">💎</div>
-                        <div style="font-size:0.8rem; font-weight:700; color:#a78bfa; margin:4px 0 2px;">THÀNH VIÊN</div>
-                        <div style="font-size:0.75rem; font-weight:700; color:#e5e7eb;">199K/tháng</div>
-                        <div style="font-size:0.68rem; color:#a78bfa; margin-top:2px;">Chatbot Video AI</div>
-                    </div>
-                    <!-- Token -->
-                    <div style="padding:14px 10px; background:rgba(255,255,255,0.04); border-radius:14px; border:1px solid rgba(255,185,0,0.25); text-align:center;">
-                        <div style="font-size:1.2rem;">🪙</div>
-                        <div style="font-size:0.8rem; font-weight:700; color:#fbbf24; margin:4px 0 2px;">NẠP TOKEN</div>
-                        <div style="font-size:0.75rem; font-weight:700; color:#e5e7eb;">Từ 50K</div>
-                        <div style="font-size:0.68rem; color:#fbbf24; margin-top:2px;">Mua thêm ảnh</div>
-                    </div>
-                </div>
-
-                <!-- Ecosystem apps -->
-                <div style="margin-bottom:20px;">
-                    <div style="font-size:0.72rem; font-weight:600; color:#6b7280; letter-spacing:0.5px; margin-bottom:10px; text-transform:uppercase;">🌐 Hệ sinh thái độc quyền</div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(255,255,255,0.05); border-radius:100px; border:1px solid rgba(255,255,255,0.1);">
-                            <span>🎨</span><span style="font-size:0.75rem; color:#e5e7eb; font-weight:500;">KGen Gallery</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(255,255,255,0.05); border-radius:100px; border:1px solid rgba(255,255,255,0.1);">
-                            <span>📱</span><span style="font-size:0.75rem; color:#e5e7eb; font-weight:500;">Carousel AI</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(255,255,255,0.05); border-radius:100px; border:1px solid rgba(255,255,255,0.1);">
-                            <span>🤖</span><span style="font-size:0.75rem; color:#e5e7eb; font-weight:500;">Hub SEO AI</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:6px; padding:7px 12px; background:rgba(139,92,246,0.15); border-radius:100px; border:1px solid rgba(139,92,246,0.35);">
-                            <span>🔮</span><span style="font-size:0.75rem; color:#a78bfa; font-weight:600;">+10 app sắp ra mắt</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CTA -->
-                <button onclick="closeWelcomePopup(); document.getElementById('btn-login')?.click();" style="
-                    width:100%; padding:14px; border:none; border-radius:14px; cursor:pointer;
-                    background:linear-gradient(135deg,#7c3aed,#3b82f6);
-                    color:#fff; font-size:1rem; font-weight:700; letter-spacing:0.3px;
-                    box-shadow:0 8px 24px rgba(124,58,237,0.4);
-                    transition:transform 0.2s, box-shadow 0.2s;
-                    display:flex; align-items:center; justify-content:center; gap:8px;
-                " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(124,58,237,0.5)'"
-                   onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 24px rgba(124,58,237,0.4)'">
-                    🚀 Đăng ký miễn phí ngay
-                </button>
-                <div style="text-align:center; margin-top:10px;">
-                    <span style="font-size:0.75rem; color:#6b7280;">Đã có tài khoản? </span>
-                    <button onclick="closeWelcomePopup(); document.getElementById('btn-login')?.click();" style="background:none; border:none; color:#8b5cf6; font-size:0.75rem; cursor:pointer; font-weight:600; padding:0;">Đăng nhập</button>
-                </div>
+      <!-- FREE / GUEST CARD -->
+      <div id="promo-card-free" style="
+          display:none; background:linear-gradient(160deg,#0f0f1e,#14142a);
+          border-radius:20px; overflow:hidden;
+          border:1px solid rgba(139,92,246,0.35);
+          box-shadow:0 8px 40px rgba(0,0,0,0.6);
+          animation:promoSlideIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+      ">
+        <div style="height:3px;background:linear-gradient(90deg,#7c3aed,#3b82f6,#06b6d4);"></div>
+        <div style="padding:16px 16px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+          <div>
+            <div style="font-size:1.3rem;line-height:1;margin-bottom:6px;">🎁</div>
+            <div style="font-size:0.92rem;font-weight:800;color:#fff;line-height:1.3;">Nâng cấp Premium<br>
+              <span style="background:linear-gradient(90deg,#8b5cf6,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:0.85rem;">chỉ 499.000đ/năm</span>
             </div>
+            <div style="font-size:0.7rem;color:#6b7280;margin-top:3px;">5.000+ người dùng đang tạo nội dung với KGen</div>
+          </div>
+          <button onclick="dismissPromoWidget()" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:none;background:rgba(255,255,255,0.08);color:#9ca3af;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">&times;</button>
         </div>
+        <div style="padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(59,130,246,0.15));border-radius:12px;border:1px solid rgba(124,58,237,0.4);text-align:center;">
+            <div style="font-size:1rem;">💎</div>
+            <div style="font-size:0.72rem;font-weight:700;color:#a78bfa;margin:3px 0 1px;">PREMIUM</div>
+            <div style="font-size:0.78rem;font-weight:800;color:#f9fafb;">499K/năm</div>
+            <div style="font-size:0.62rem;color:#8b5cf6;margin-top:2px;">Toàn bộ tính năng</div>
+          </div>
+          <div style="padding:10px;background:rgba(251,191,36,0.06);border-radius:12px;border:1px solid rgba(251,191,36,0.25);text-align:center;">
+            <div style="font-size:1rem;">🪙</div>
+            <div style="font-size:0.72rem;font-weight:700;color:#fbbf24;margin:3px 0 1px;">TOKEN</div>
+            <div style="font-size:0.78rem;font-weight:800;color:#f9fafb;">Từ 50K</div>
+            <div style="font-size:0.62rem;color:#fbbf24;margin-top:2px;">Mua thêm ảnh/video</div>
+          </div>
+        </div>
+        <div style="padding:0 16px 10px;">
+          <div style="font-size:0.68rem;color:#4b5563;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Bao gồm</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="font-size:0.72rem;color:#9ca3af;display:flex;align-items:center;gap:5px;"><span style="color:#7c3aed;">✓</span> KGen Gallery · VEO 3.1 Video Studio</div>
+            <div style="font-size:0.72rem;color:#9ca3af;display:flex;align-items:center;gap:5px;"><span style="color:#7c3aed;">✓</span> Chatbot Viral · Carousel AI</div>
+            <div style="font-size:0.72rem;color:#9ca3af;display:flex;align-items:center;gap:5px;"><span style="color:#7c3aed;">✓</span> Token ưu đãi & +10 app sắp ra mắt</div>
+          </div>
+        </div>
+        <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;">
+          <button onclick="closePromoAndLogin()" style="width:100%;padding:11px;border:none;border-radius:11px;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:0.85rem;font-weight:700;box-shadow:0 4px 16px rgba(124,58,237,0.4);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🚀 Đăng ký miễn phí</button>
+          <button onclick="closePromoAndLogin()" style="width:100%;padding:9px;border:1px solid rgba(251,191,36,0.4);border-radius:11px;cursor:pointer;background:rgba(251,191,36,0.08);color:#fbbf24;font-size:0.8rem;font-weight:600;transition:all 0.2s;" onmouseover="this.style.background='rgba(251,191,36,0.15)'" onmouseout="this.style.background='rgba(251,191,36,0.08)'">🪙 Nạp Token ngay</button>
+        </div>
+      </div>
+
+      <!-- PREMIUM COMPACT CARD -->
+      <div id="promo-card-premium" style="
+          display:none; background:linear-gradient(160deg,#0f0f1e,#14142a);
+          border-radius:18px; overflow:hidden;
+          border:1px solid rgba(251,191,36,0.3);
+          box-shadow:0 8px 32px rgba(0,0,0,0.5);
+          animation:promoSlideIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+      ">
+        <div style="height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);"></div>
+        <div style="padding:14px 14px 0;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🪙</div>
+            <div>
+              <div style="font-size:0.85rem;font-weight:800;color:#fff;">Nạp Token Premium</div>
+              <div style="font-size:0.7rem;color:#fbbf24;">Ưu đãi dành riêng cho bạn 🎉</div>
+            </div>
+          </div>
+          <button onclick="dismissPromoWidget()" style="flex-shrink:0;width:24px;height:24px;border-radius:50%;border:none;background:rgba(255,255,255,0.07);color:#9ca3af;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">&times;</button>
+        </div>
+        <div style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          <div style="padding:8px 4px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid rgba(255,255,255,0.07);text-align:center;">
+            <div style="font-size:0.8rem;font-weight:800;color:#f9fafb;">50K</div>
+            <div style="font-size:0.6rem;color:#6b7280;margin-top:2px;">100 token</div>
+          </div>
+          <div style="padding:8px 4px;background:rgba(251,191,36,0.1);border-radius:10px;border:1px solid rgba(251,191,36,0.3);text-align:center;position:relative;">
+            <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#000;font-size:0.55rem;font-weight:700;padding:1px 6px;border-radius:100px;white-space:nowrap;">HOT</div>
+            <div style="font-size:0.8rem;font-weight:800;color:#fbbf24;">99K</div>
+            <div style="font-size:0.6rem;color:#fbbf24;margin-top:2px;">250 token</div>
+          </div>
+          <div style="padding:8px 4px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid rgba(255,255,255,0.07);text-align:center;">
+            <div style="font-size:0.8rem;font-weight:800;color:#f9fafb;">199K</div>
+            <div style="font-size:0.6rem;color:#6b7280;margin-top:2px;">600 token</div>
+          </div>
+        </div>
+        <div style="padding:0 14px 14px;">
+          <button onclick="dismissPromoWidget();window.kgenBuyToken?.();" style="width:100%;padding:10px;border:none;border-radius:10px;cursor:pointer;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;font-size:0.82rem;font-weight:800;box-shadow:0 4px 14px rgba(245,158,11,0.4);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">🪙 Mua Token Ngay</button>
+        </div>
+      </div>
     </div>
 
     <style>
-    @keyframes popupIn {
-        from { opacity:0; transform:scale(0.8) translateY(20px); }
-        to   { opacity:1; transform:scale(1) translateY(0); }
+    @keyframes promoSlideIn {
+        from { opacity:0; transform:translateY(16px) scale(0.97); }
+        to   { opacity:1; transform:translateY(0) scale(1); }
     }
     @keyframes gradientShift {
-        0%   { background-position:0% 50%;   }
+        0%   { background-position:0% 50%; }
         100% { background-position:200% 50%; }
+    }
+    @media (max-width:480px) {
+        #promo-widget { bottom:16px; right:16px; left:16px; width:auto; max-width:none; }
     }
     </style>
 
     <script>
     (function() {
-        // Show popup after 10s — only for non-logged-in users, once per session
-        const POPUP_KEY = 'kgen_wp_shown';
-        if (sessionStorage.getItem(POPUP_KEY)) return;
-
+        const KEY = 'kgen_promo_dismissed';
+        if (sessionStorage.getItem(KEY)) return;
         setTimeout(function() {
-            // Check if user is already logged in
             const user = window.APP_STATE?.currentUser;
-            if (user) return;
-
-            const el = document.getElementById('welcome-popup');
-            if (!el) return;
-            el.style.display = 'flex';
-            sessionStorage.setItem(POPUP_KEY, '1');
-        }, 10000);
+            const isPrem = user?.isPremium || user?.plan==='premium' || user?.subscription_status==='active';
+            const widget = document.getElementById('promo-widget');
+            if (!widget) return;
+            const cardId = isPrem ? 'promo-card-premium' : 'promo-card-free';
+            const card = document.getElementById(cardId);
+            if (card) card.style.display = 'block';
+            widget.style.display = 'block';
+        }, 8000);
     })();
 
-    function closeWelcomePopup() {
-        const el = document.getElementById('welcome-popup');
-        if (!el) return;
-        const card = document.getElementById('welcome-popup-card');
-        if (card) {
-            card.style.animation = 'popupOut 0.3s ease-in both';
-            card.style.transform = 'scale(0.9)';
-            card.style.opacity = '0';
-        }
-        setTimeout(() => { el.style.display = 'none'; }, 280);
+    function dismissPromoWidget() {
+        ['promo-card-free','promo-card-premium'].forEach(function(id) {
+            const c = document.getElementById(id);
+            if (c && c.style.display !== 'none') {
+                c.style.cssText += ';opacity:0;transform:translateY(8px) scale(0.97);transition:all 0.25s ease;';
+                setTimeout(function(){ c.style.display='none'; }, 240);
+            }
+        });
+        const pill = document.getElementById('promo-pill');
+        if (pill) setTimeout(function(){ pill.style.display='flex'; }, 260);
+        sessionStorage.setItem('kgen_promo_dismissed','1');
     }
-    window.closeWelcomePopup = closeWelcomePopup;
 
-    // Close on backdrop click
-    document.getElementById('welcome-popup')?.addEventListener('click', function(e) {
-        if (e.target === this) closeWelcomePopup();
-    });
+    function expandPromoWidget() {
+        const pill = document.getElementById('promo-pill');
+        if (pill) pill.style.display = 'none';
+        const user = window.APP_STATE?.currentUser;
+        const isPrem = user?.isPremium || user?.plan==='premium' || user?.subscription_status==='active';
+        const card = document.getElementById(isPrem ? 'promo-card-premium' : 'promo-card-free');
+        if (card) { card.style.display='block'; card.style.animation='promoSlideIn 0.35s cubic-bezier(0.16,1,0.3,1) both'; }
+        sessionStorage.removeItem('kgen_promo_dismissed');
+    }
+
+    function closePromoAndLogin() {
+        dismissPromoWidget();
+        setTimeout(function(){ document.getElementById('btn-login')?.click(); }, 200);
+    }
+
+    window.dismissPromoWidget = dismissPromoWidget;
+    window.expandPromoWidget = expandPromoWidget;
+    window.closePromoAndLogin = closePromoAndLogin;
     </script>
+
+
+
+
 
     <script src="i18n.js?v=20260313_1810"></script>
     <script src="site-config.js?v=20260313_1810"></script>
