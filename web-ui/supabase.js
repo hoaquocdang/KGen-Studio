@@ -470,8 +470,9 @@ function createCheckoutSession(tier) {
     const packTiers = [...PRICING_TIERS, ...(typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : [])];
     const pack = packTiers.find(t => t.id === tier);
 
-    // Default fallback if not found
-    let priceVnd = tier === 'premium' ? 499000 : (tier === 'member' ? 199000 : 199000);
+    // Default fallback if pack not found
+    const PRICE_MAP = { premium: 499000, member: 199000, topup_50: 59000, topup_100: 99000, topup_200: 199000 };
+    let priceVnd = PRICE_MAP[tier] || 99000;
 
     // Process price
     if (pack) {
