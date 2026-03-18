@@ -697,12 +697,134 @@
                 font-size: 0.78rem;
             }
         }
-        /* ====== KGEN TOOLS SECTION ====== */
+        /* ====== TOOLS SECTION — REDESIGNED ====== */
         .tools-section {
             position: relative;
             z-index: 5;
-            padding: 80px 40px;
-            background: linear-gradient(180deg, transparent 0%, rgba(10,10,12,0.98) 8%, #0a0a0c 100%);
+            padding: 80px 40px 100px;
+            background: #0a0a0c;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .tools-inner { max-width: 960px; margin: 0 auto; }
+
+        /* Header */
+        .tools-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 4px 14px; border-radius: 100px;
+            background: rgba(255,71,71,0.1); border: 1px solid rgba(255,71,71,0.25);
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #ff6b6b; margin-bottom: 16px;
+        }
+        .tools-h { font-family: var(--font-heading); font-size: clamp(1.8rem,3vw,2.6rem);
+            font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;
+            background: linear-gradient(170deg,#fff 40%,#6b7280 100%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .tools-sub { font-size: 0.9rem; color: #4b5563; margin-bottom: 48px; }
+
+        /* Token CTA */
+        .token-cta {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 20px; flex-wrap: wrap;
+            background: linear-gradient(135deg,rgba(255,71,71,0.08),rgba(255,138,71,0.05));
+            border: 1px solid rgba(255,71,71,0.2); border-radius: 16px;
+            padding: 20px 28px; margin-bottom: 40px;
+        }
+        .token-cta-left { display: flex; align-items: center; gap: 14px; }
+        .token-cta-icon {
+            width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(135deg,#ff4747,#ff8a47);
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+        }
+        .token-cta-text h4 { font-size: 0.95rem; font-weight: 800; color: #f9fafb; margin-bottom: 3px; }
+        .token-cta-text p { font-size: 0.78rem; color: #6b7280; line-height: 1.5; }
+        .token-cta-text p b { color: #d1d5db; }
+        .btn-token {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 24px; border-radius: 12px;
+            background: linear-gradient(135deg,#ff4747,#ff6b35);
+            color: #fff; text-decoration: none;
+            font-weight: 800; font-size: 0.85rem;
+            box-shadow: 0 6px 20px rgba(255,71,71,0.35);
+            transition: all 0.3s; white-space: nowrap; flex-shrink: 0;
+        }
+        .btn-token:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,71,71,0.5); }
+
+        /* Cards grid — 4 equal columns */
+        .tgrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) { .tgrid { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width: 520px)  { .tgrid { grid-template-columns: 1fr; } }
+
+        .tcard {
+            position: relative;
+            display: flex; flex-direction: column; gap: 12px;
+            padding: 22px 20px 20px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-top: 3px solid var(--accent,#ff4747);
+            border-radius: 16px;
+            text-decoration: none; color: var(--text-main);
+            transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+        }
+        .tcard:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--accent,#ff4747);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px -8px rgba(0,0,0,0.5);
+        }
+
+        .tcard-top { display: flex; align-items: flex-start; justify-content: space-between; }
+        .tcard-icon { font-size: 1.8rem; line-height: 1; }
+        .tcard-badge {
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+            padding: 2px 8px; border-radius: 100px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: #9ca3af;
+        }
+        .tcard-name {
+            font-family: var(--font-heading); font-size: 1rem; font-weight: 800;
+            letter-spacing: -0.01em; color: #f9fafb;
+        }
+        .tcard-desc {
+            font-size: 0.79rem; color: #4b5563; line-height: 1.6;
+            flex: 1;
+        }
+        .tcard-tags {
+            display: flex; flex-wrap: wrap; gap: 5px;
+        }
+        .tcard-tag {
+            padding: 2px 8px; border-radius: 4px;
+            background: rgba(255,255,255,0.04);
+            font-size: 0.65rem; color: #6b7280;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .tcard-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            margin-top: 4px; padding: 7px 14px; border-radius: 8px;
+            font-size: 0.78rem; font-weight: 700; text-decoration: none;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #d1d5db; transition: all 0.2s; width: fit-content;
+        }
+        .tcard-btn:hover {
+            background: var(--accent-bg, rgba(255,71,71,0.12));
+            border-color: var(--accent, #ff4747);
+            color: var(--accent, #ff4747);
+        }
+
+        .tools-credit {
+            text-align: center; margin-top: 48px; padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.75rem; color: #374151;
+        }
+
+        @media (max-width: 600px) {
+            .tools-section { padding: 60px 20px 80px; }
+            .token-cta { flex-direction: column; }
+            .btn-token { width: 100%; justify-content: center; }
         }
 
         .tools-section-inner {
@@ -1131,123 +1253,95 @@
 
   </div><!-- /.hero-page -->
 
-    <!-- ========== KGEN TOOLS SECTION ========== -->
+    <!-- ===== KGEN TOOLS SECTION ===== -->
     <section class="tools-section">
-      <div class="tools-section-inner">
+      <div class="tools-inner">
 
-        <!-- Header -->
-        <div class="tools-header">
-          <div class="tools-badge">⚡ KGen Ecosystem</div>
-          <h2 class="tools-title">Công Cụ AI<br>Cho Người Việt</h2>
-          <p class="tools-subtitle">Đầy đủ tính năng từ tạo ảnh, tạo video đến kịch bản viral TikTok — tất cả tại một nơi.</p>
-        </div>
+        <div class="tools-eyebrow">⚡ KGen Ecosystem</div>
+        <h2 class="tools-h">Công Cụ AI cho Người Việt</h2>
+        <p class="tools-sub">Đầy đủ tính năng — tạo ảnh, tạo video, kịch bản TikTok &amp; so sánh AI model.</p>
 
-        <!-- Token Buy Banner -->
-        <div class="token-banner">
-          <div class="token-info">
-            <div class="token-icon">🪙</div>
-            <div class="token-text">
-              <h3>Nạp Token — Dùng Không Giới Hạn</h3>
-              <p>Free: <strong>100 ảnh/tháng</strong> · Pro 79K: <strong>1.000 token</strong> · Premium 199K: <strong>2.500 token</strong><br>
-              Token dùng cho tất cả công cụ: ảnh AI, video VEO 3.1, chatbot kịch bản.</p>
+        <!-- Token CTA -->
+        <div class="token-cta">
+          <div class="token-cta-left">
+            <div class="token-cta-icon">🪙</div>
+            <div class="token-cta-text">
+              <h4>Nạp Token — Dùng không giới hạn</h4>
+              <p>Miễn phí <b>100 ảnh/tháng</b> · Pro 79K → <b>1.000 token</b> · Premium 199K → <b>2.500 token</b><br>Token dùng chung cho tất cả công cụ trong hệ sinh thái KGen.</p>
             </div>
           </div>
-          <a href="https://kgen.cloud" class="btn-buy-token">
-            🚀 Mua Token Ngay
-          </a>
+          <a href="https://kgen.cloud" class="btn-token">🚀 Mua Token Ngay</a>
         </div>
 
-        <!-- Tool Cards -->
-        <div class="tools-grid">
+        <!-- 4 equal cards -->
+        <div class="tgrid">
 
-          <!-- Card 1: KGen Gallery (Featured) -->
-          <a href="https://kgen.cloud" class="tool-card theme-red featured">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-              <div>
-                <span class="card-badge badge-hot">🔥 Phổ biến nhất</span>
-                <div class="card-icon" style="margin-top:14px;">🎨</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:0.72rem;color:#6b7280;margin-bottom:4px;">Tạo ảnh AI</div>
-                <div style="font-size:1.6rem;font-weight:900;color:#ff6b6b;">Imagen 3</div>
-                <div style="font-size:0.72rem;color:#6b7280;">Google DeepMind</div>
-              </div>
+          <!-- Gallery -->
+          <a href="https://kgen.cloud" class="tcard" style="--accent:#ff4747;--accent-bg:rgba(255,71,71,0.1);">
+            <div class="tcard-top">
+              <div class="tcard-icon">🎨</div>
+              <span class="tcard-badge">🔥 Phổ biến</span>
             </div>
-            <div class="card-body">
-              <h3>KGen Gallery</h3>
-              <p>Tạo ảnh AI chất lượng cao với Imagen 3 từ Google DeepMind. Thư viện prompt 1000+, nâng cấp prompt bằng AI, lưu collection, xuất carousel</p>
+            <div class="tcard-name">KGen Gallery</div>
+            <div class="tcard-desc">Tạo ảnh AI chất lượng cao với Imagen 3 (Google DeepMind). Thư viện 1000+ prompt, nâng cấp prompt bằng AI, lưu collection.</div>
+            <div class="tcard-tags">
+              <span class="tcard-tag">Imagen 3</span>
+              <span class="tcard-tag">Text to Image</span>
+              <span class="tcard-tag">Prompt Library</span>
             </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-              <div class="card-tags">
-                <span class="card-tag">Text to Image</span>
-                <span class="card-tag">Prompt Library</span>
-                <span class="card-tag">AI Enhance</span>
-                <span class="card-tag">Collections</span>
-              </div>
-              <a href="https://kgen.cloud" class="card-cta cta-red">Tạo ảnh ngay →</a>
-            </div>
+            <a href="https://kgen.cloud" class="tcard-btn">Tạo ảnh →</a>
           </a>
 
-          <!-- Card 2: VEO 3.1 Video -->
-          <a href="https://kgen.cloud/video" class="tool-card theme-violet">
-            <div>
-              <span class="card-badge badge-new">✨ Mới nhất</span>
-              <div class="card-icon" style="margin-top:14px;">🎬</div>
+          <!-- Video -->
+          <a href="https://kgen.cloud/video" class="tcard" style="--accent:#8b5cf6;--accent-bg:rgba(139,92,246,0.1);">
+            <div class="tcard-top">
+              <div class="tcard-icon">🎬</div>
+              <span class="tcard-badge">✨ Mới</span>
             </div>
-            <div class="card-body">
-              <h3>VEO 3.1 Video Studio</h3>
-              <p>Tạo video AI cinematic từ text hoặc ảnh. Công nghệ VEO 3.1 của Google — chất lượng Hollywood, giá chỉ 25% so với Google gốc.</p>
+            <div class="tcard-name">VEO 3.1 Studio</div>
+            <div class="tcard-desc">Tạo video AI cinematic từ text hoặc ảnh. Công nghệ VEO 3.1 của Google — chất lượng Hollywood.</div>
+            <div class="tcard-tags">
+              <span class="tcard-tag">Text to Video</span>
+              <span class="tcard-tag">4K</span>
+              <span class="tcard-tag">Slow-motion</span>
             </div>
-            <div class="card-tags">
-              <span class="card-tag">Text to Video</span>
-              <span class="card-tag">4K Quality</span>
-              <span class="card-tag">Slow-motion</span>
-            </div>
-            <a href="https://kgen.cloud/video" class="card-cta cta-violet">Tạo video →</a>
+            <a href="https://kgen.cloud/video" class="tcard-btn">Tạo video →</a>
           </a>
 
-          <!-- Card 3: Chatbot Viral -->
-          <a href="https://kgen.cloud/chatbot_viral" class="tool-card theme-amber">
-            <div>
-              <span class="card-badge badge-pro">⚡ AI Kịch Bản</span>
-              <div class="card-icon" style="margin-top:14px;">📱</div>
+          <!-- Chatbot -->
+          <a href="https://kgen.cloud/chatbot_viral" class="tcard" style="--accent:#f59e0b;--accent-bg:rgba(245,158,11,0.1);">
+            <div class="tcard-top">
+              <div class="tcard-icon">📱</div>
+              <span class="tcard-badge">⚡ AI Script</span>
             </div>
-            <div class="card-body">
-              <h3>Chatbot Viral</h3>
-              <p>Bộ AI tạo kịch bản video viral TikTok, Reels, Shorts số 1 Việt Nam. Tiết kiệm hàng giờ sáng tạo nội dung mỗi ngày.</p>
+            <div class="tcard-name">Chatbot Viral</div>
+            <div class="tcard-desc">Bộ AI viết kịch bản video TikTok, Reels, Shorts số 1 Việt Nam. Tiết kiệm hàng giờ mỗi ngày.</div>
+            <div class="tcard-tags">
+              <span class="tcard-tag">TikTok</span>
+              <span class="tcard-tag">Hook Viral</span>
+              <span class="tcard-tag">Reels</span>
             </div>
-            <div class="card-tags">
-              <span class="card-tag">TikTok Script</span>
-              <span class="card-tag">Reels</span>
-              <span class="card-tag">Viral Hook</span>
-            </div>
-            <a href="https://kgen.cloud/chatbot_viral" class="card-cta cta-amber">Dùng ngay →</a>
+            <a href="https://kgen.cloud/chatbot_viral" class="tcard-btn">Dùng ngay →</a>
           </a>
 
-          <!-- Card 4: Model Comparison -->
-          <a href="https://kgen.cloud/model-comparison" class="tool-card theme-cyan">
-            <div>
-              <span class="card-badge badge-free">🆓 Miễn phí</span>
-              <div class="card-icon" style="margin-top:14px;">🔬</div>
+          <!-- Model Compare -->
+          <a href="https://kgen.cloud/model-comparison" class="tcard" style="--accent:#22d3ee;--accent-bg:rgba(34,211,238,0.1);">
+            <div class="tcard-top">
+              <div class="tcard-icon">🔬</div>
+              <span class="tcard-badge">🆓 Free</span>
             </div>
-            <div class="card-body">
-              <h3>So Sánh AI Models</h3>
-              <p>So sánh trực quan giữa các model AI tạo ảnh hàng đầu: Imagen 3, Midjourney, DALL-E, Stable Diffusion và nhiều hơn nữa.</p>
+            <div class="tcard-name">So Sánh Models</div>
+            <div class="tcard-desc">So sánh kết quả giữa các model AI hàng đầu: Imagen 3, Midjourney, DALL·E, Stable Diffusion.</div>
+            <div class="tcard-tags">
+              <span class="tcard-tag">Benchmark</span>
+              <span class="tcard-tag">Side by Side</span>
             </div>
-            <div class="card-tags">
-              <span class="card-tag">Benchmark</span>
-              <span class="card-tag">Side by Side</span>
-            </div>
-            <a href="https://kgen.cloud/model-comparison" class="card-cta cta-cyan">So sánh →</a>
+            <a href="https://kgen.cloud/model-comparison" class="tcard-btn">Xem ngay →</a>
           </a>
 
         </div>
 
-        <!-- Footer credits -->
-        <div class="tools-footer">
-          Xây dựng bởi <strong style="color:#6b7280;">Hoà Quốc Đặng</strong> &nbsp;·&nbsp; KGen Ecosystem © 2026
-        </div>
-
+        <div class="tools-credit">Xây dựng bởi <b style="color:#4b5563">Hoà Quốc Đặng</b> &nbsp;&middot;&nbsp; KGen Ecosystem © 2026</div>
       </div>
     </section>
 
