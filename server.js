@@ -59,7 +59,7 @@ const MIME = {
 
 // Rate limiting (simple in-memory)
 const rateLimits = new Map();
-const RATE_LIMIT = 10; // requests per minute per IP
+const RATE_LIMIT = 120; // requests per minute per IP
 const RATE_WINDOW = 60000; // 1 minute
 
 function checkRateLimit(ip) {
@@ -289,11 +289,7 @@ const server = http.createServer((req, res) => {
 
     // ===== VEO STATUS → kie.ai trực tiếp (key ẩn trong server) =====
     if (url.pathname.startsWith('/api/veo/status/') && req.method === 'GET') {
-        if (!checkRateLimit(clientIP)) {
-            res.writeHead(429, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ code: 429, msg: 'Rate limit exceeded' }));
-            return;
-        }
+        // Không rate-limit status polling
         if (!KIE_API_KEY) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ code: 500, msg: 'API key chưa được cấu hình.' }));
