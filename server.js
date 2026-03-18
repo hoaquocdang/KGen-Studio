@@ -201,7 +201,16 @@ function serveStatic(filePath, res) {
                 res.end('Not Found');
                 return;
             }
-            res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+            // Cache-Control: HTML always fresh, JS/CSS no-cache to pick up updates
+            const cacheHeader = (ext === '.html')
+                ? 'no-cache, no-store, must-revalidate'
+                : (ext === '.js' || ext === '.css')
+                    ? 'no-cache'
+                    : 'public, max-age=86400';
+            res.writeHead(200, {
+                'Content-Type': MIME[ext] || 'application/octet-stream',
+                'Cache-Control': cacheHeader,
+            });
             res.end(data);
         });
     });
