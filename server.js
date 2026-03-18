@@ -206,38 +206,74 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // ===== VEO API PROXY =====
-    if (url.pathname.startsWith('/api/veo/')) {
+    // ===== VEO GENERATE → n8n webhook (URL ẩn trong site-config.js) =====
+    if (url.pathname === '/api/veo/generate' && req.method === 'POST') {
         if (!checkRateLimit(clientIP)) {
             res.writeHead(429, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Rate limit exceeded' }));
+            res.end(JSON.stringify({ code: 429, msg: 'Quá nhiều request. Đợi 1 phút.' }));
+            return;
+        }
+
+        const N8N_VEO_URL = SITE_CONFIG.n8nVeo?.generateUrl || process.env.N8N_VEO_GENERATE_URL || '';
+        if (!N8N_VEO_URL) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ code: 500, msg: 'VEO webhook chưa được cấu hình trên server.' }));
+            return;
+        }
+
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            console.log(`🎬 VEO Generate → n8n from ${clientIP}`);
+            // Forward to n8n (n8n giữ kie.ai API key trong credentials)
+            const n8nUrl = new URL(N8N_VEO_URL);
+            const options = {
+                hostname: n8nUrl.hostname,
+                port: n8nUrl.port || 443,
+                path: n8nUrl.pathname,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(body),
+                },
+            };
+            const proto = n8nUrl.protocol === 'https:' ? https : http;
+            const n8nReq = proto.request(options, (n8nRes) => {
+                res.writeHead(n8nRes.statusCode, {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                });
+                n8nRes.pipe(res);
+            });
+            n8nReq.on('error', (e) => {
+                console.error('n8n VEO error:', e.message);
+                res.writeHead(502, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ code: 502, msg: 'Lỗi kết nối VEO service.' }));
+            });
+            n8nReq.write(body);
+            n8nReq.end();
+        });
+        return;
+    }
+
+    // ===== VEO STATUS → kie.ai trực tiếp (key ẩn trong server) =====
+    if (url.pathname.startsWith('/api/veo/status/') && req.method === 'GET') {
+        if (!checkRateLimit(clientIP)) {
+            res.writeHead(429, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ code: 429, msg: 'Rate limit exceeded' }));
             return;
         }
         if (!KIE_API_KEY) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'API key chưa được cấu hình.' }));
+            res.end(JSON.stringify({ code: 500, msg: 'API key chưa được cấu hình.' }));
             return;
         }
-        // Map: /api/veo/generate → /api/v1/veo/generate
-        //       /api/veo/status/TASKID → /api/v1/veo/TASKID  (GET)
-        let kieVeoPath = url.pathname.replace('/api/veo', '/api/v1/veo');
-        // /api/veo/status/TASKID → /api/v1/veo/TASKID
-        kieVeoPath = kieVeoPath.replace('/api/v1/veo/status/', '/api/v1/veo/');
-
-        if (req.method === 'POST') {
-            let body = '';
-            req.on('data', chunk => body += chunk);
-            req.on('end', () => {
-                console.log(`🎬 VEO Proxy POST ${kieVeoPath} from ${clientIP}`);
-                proxyToKieAI(kieVeoPath, 'POST', body, res);
-            });
-        } else if (req.method === 'GET') {
-            const fullPath = kieVeoPath + url.search;
-            console.log(`🎬 VEO Proxy GET ${fullPath} from ${clientIP}`);
-            proxyToKieAI(fullPath, 'GET', null, res);
-        }
+        const taskId = url.pathname.replace('/api/veo/status/', '');
+        console.log(`🎬 VEO Status check: ${taskId} from ${clientIP}`);
+        proxyToKieAI(`/api/v1/veo/${taskId}`, 'GET', null, res);
         return;
     }
+
 
     // Health check
     if (url.pathname === '/api/health') {
