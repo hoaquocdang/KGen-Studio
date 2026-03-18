@@ -841,8 +841,8 @@ const TOPUP_PACKAGES = [
         emoji: '🪙',
         price: 59000,
         priceDisplay: '59.000đ',
-        credits: 110,
-        perToken: '~536đ/token',
+        credits: 500,
+        perToken: '~118đ/token · ~27 ảnh',
         bonus: '',
         best: false
     },
@@ -852,8 +852,8 @@ const TOPUP_PACKAGES = [
         emoji: '💰',
         price: 99000,
         priceDisplay: '99.000đ',
-        credits: 200,
-        perToken: '~495đ/token',
+        credits: 1000,
+        perToken: '~99đ/token · ~55 ảnh',
         bonus: 'HOT',
         best: true
     },
@@ -863,8 +863,8 @@ const TOPUP_PACKAGES = [
         emoji: '💎',
         price: 199000,
         priceDisplay: '199.000đ',
-        credits: 430,
-        perToken: '~463đ/token',
+        credits: 3000,
+        perToken: '~66đ/token · ~166 ảnh',
         bonus: 'Tiết kiệm nhất',
         best: false
     }
