@@ -27,12 +27,14 @@ try {
 
 const KIE_API_KEY = process.env.KIE_API_KEY || SITE_CONFIG.api?.kieApiKey || '';
 const KIE_BASE_URL = process.env.KIE_BASE_URL || SITE_CONFIG.api?.kieApiBase || 'https://api.kie.ai';
+const N8N_VEO_GENERATE_URL = process.env.N8N_VEO_GENERATE_URL || SITE_CONFIG.n8nVeo?.generateUrl || '';
 
 if (!KIE_API_KEY) {
     console.warn('⚠️ No KIE_API_KEY configured! Set via env or site-config.js');
 }
 
 console.log(`🔑 Kie AI Key: ${KIE_API_KEY ? '***' + KIE_API_KEY.slice(-6) : 'NOT SET'}`);
+console.log(`🎬 VEO n8n URL: ${N8N_VEO_GENERATE_URL ? N8N_VEO_GENERATE_URL.replace(/webhook\/.+/, 'webhook/***') : 'NOT SET ❌'}`);
 
 // MIME types
 const MIME = {
@@ -214,7 +216,7 @@ const server = http.createServer((req, res) => {
             return;
         }
 
-        const N8N_VEO_URL = SITE_CONFIG.n8nVeo?.generateUrl || process.env.N8N_VEO_GENERATE_URL || '';
+        const N8N_VEO_URL = N8N_VEO_GENERATE_URL;
         if (!N8N_VEO_URL) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ code: 500, msg: 'VEO webhook chưa được cấu hình trên server.' }));
