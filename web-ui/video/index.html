@@ -372,9 +372,8 @@ select option{background:#0e0b1a;color:var(--text);}
 // ============================================================
 
 const CONFIG = {
-  n8nBase: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
-  generatePath: '/kgen-veo-generate',
-  statusPath: '/kgen-veo-status',
+  generateUrl: '/api/veo/generate',
+  statusBase: '/api/veo/status/',
   pollInterval: 8000,   // 8 giây
   maxPollTime: 600000,  // 10 phút
 };
@@ -545,8 +544,7 @@ async function generate() {
   if (userApiKey) payload.userApiKey = userApiKey;
 
   try {
-    const webhookUrl = `${CONFIG.n8nBase}${CONFIG.generatePath}`;
-    const res = await fetch(webhookUrl, {
+    const res = await fetch(CONFIG.generateUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -657,10 +655,8 @@ function startPolling(taskId) {
     if (prog) prog.style.width = `${Math.min(90, elapsed / 1000 * 0.5)}%`;
 
     try {
-      const res = await fetch(`${CONFIG.n8nBase}${CONFIG.statusPath}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId }),
+      const res = await fetch(CONFIG.statusBase + taskId, {
+        method: 'GET',
       });
       if (!res.ok) return;
       const data = await res.json();
