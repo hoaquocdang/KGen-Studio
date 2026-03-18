@@ -216,18 +216,26 @@ const server = http.createServer((req, res) => {
             return;
         }
 
-        const N8N_VEO_URL = N8N_VEO_GENERATE_URL;
-        if (!N8N_VEO_URL) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ code: 500, msg: 'VEO webhook chưa được cấu hình trên server.' }));
-            return;
-        }
-
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
+            const N8N_VEO_URL = N8N_VEO_GENERATE_URL;
+
+            // Helper: gọi kie.ai trực tiếp (fallback)
+            const callKieDirect = () => {
+                console.log(`🎬 VEO Generate → kie.ai DIRECT from ${clientIP}`);
+                proxyToKieAI('/api/v1/veo/generate', 'POST', body, res);
+            };
+
+            // Nếu chưa config n8n → gọi kie.ai trực tiếp
+            if (!N8N_VEO_URL) {
+                console.warn('⚠️ n8n VEO URL not set, falling back to kie.ai direct');
+                callKieDirect();
+                return;
+            }
+
+            // Gọi n8n webhook
             console.log(`🎬 VEO Generate → n8n from ${clientIP}`);
-            // Forward to n8n (n8n giữ kie.ai API key trong credentials)
             const n8nUrl = new URL(N8N_VEO_URL);
             const options = {
                 hostname: n8nUrl.hostname,
@@ -240,17 +248,32 @@ const server = http.createServer((req, res) => {
                 },
             };
             const proto = n8nUrl.protocol === 'https:' ? https : http;
+            let n8nBody = '';
             const n8nReq = proto.request(options, (n8nRes) => {
-                res.writeHead(n8nRes.statusCode, {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
+                n8nRes.on('data', chunk => n8nBody += chunk);
+                n8nRes.on('end', () => {
+                    // Kiểm tra n8n có trả lỗi không (4xx/5xx hoặc text không phải JSON)
+                    const isErrorStatus = n8nRes.statusCode >= 400;
+                    let parsed = null;
+                    try { parsed = JSON.parse(n8nBody); } catch {}
+                    const isN8nError = !parsed || parsed.message || (typeof n8nBody === 'string' && n8nBody.toLowerCase().includes('not supported'));
+
+                    if (isErrorStatus || isN8nError) {
+                        console.warn(`⚠️ n8n returned error (${n8nRes.statusCode}): ${n8nBody.substring(0, 100)}`);
+                        console.warn('↩️  Falling back to kie.ai direct');
+                        callKieDirect();
+                    } else {
+                        res.writeHead(n8nRes.statusCode, {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*',
+                        });
+                        res.end(n8nBody);
+                    }
                 });
-                n8nRes.pipe(res);
             });
             n8nReq.on('error', (e) => {
-                console.error('n8n VEO error:', e.message);
-                res.writeHead(502, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ code: 502, msg: 'Lỗi kết nối VEO service.' }));
+                console.error('n8n VEO error:', e.message, '→ falling back to kie.ai');
+                callKieDirect();
             });
             n8nReq.write(body);
             n8nReq.end();
