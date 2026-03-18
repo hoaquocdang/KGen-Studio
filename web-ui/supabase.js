@@ -815,23 +815,6 @@ const PRICING_TIERS = [
         popular: false,
     },
     {
-        id: 'member',
-        name: 'Gói THÀNH VIÊN',
-        emoji: '💎',
-        price: '199.000đ',
-        period: '/tháng',
-        features: [
-            'Mở khoá Chatbot tạo Video AI',
-            'Truy cập Bộ công cụ Video chuyên sâu',
-            'Sử dụng chung nền tảng Hệ sinh thái',
-            'Trợ lý Kỹ thuật Hỗ trợ riêng'
-        ],
-        limitations: [],
-        buttonText: 'Nâng cấp Thành Viên',
-        buttonClass: 'btn-primary',
-        popular: true,
-    },
-    {
         id: 'premium',
         name: 'Gói PREMIUM',
         emoji: '👑',
@@ -846,9 +829,10 @@ const PRICING_TIERS = [
         limitations: [],
         buttonText: 'Đăng ký Premium',
         buttonClass: 'btn-primary',
-        popular: false,
+        popular: true,
     }
 ];
+
 
 const TOPUP_PACKAGES = [
     {
@@ -903,7 +887,7 @@ function renderPricingModal() {
         s.textContent = `
         #pricing-modal-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);opacity:0;transition:opacity 0.3s;overflow-y:auto;padding:20px 12px;}
         #pricing-modal-overlay.active{opacity:1;}
-        .pm-shell{background:linear-gradient(170deg,#13131f 0%,#09090f 100%);border:1px solid rgba(255,255,255,0.07);border-radius:24px;width:100%;max-width:980px;padding:40px 36px 36px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.03) inset;animation:pmIn 0.4s cubic-bezier(0.16,1,0.3,1);}
+        .pm-shell{background:linear-gradient(170deg,#13131f 0%,#09090f 100%);border:1px solid rgba(255,255,255,0.07);border-radius:24px;width:100%;max-width:700px;padding:40px 36px 36px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.03) inset;animation:pmIn 0.4s cubic-bezier(0.16,1,0.3,1);}
         @keyframes pmIn{from{transform:translateY(28px);opacity:0}to{transform:translateY(0);opacity:1}}
         @media(max-width:640px){.pm-shell{padding:28px 16px 24px;border-radius:16px;}}
         .pm-close-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.07);color:#6b7280;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1;}
@@ -912,8 +896,8 @@ function renderPricingModal() {
         .pm-title{font-size:clamp(1.4rem,2.5vw,2rem);font-weight:900;color:#fff;margin-bottom:5px;letter-spacing:-0.5px;}
         .pm-sub{font-size:0.88rem;color:#3f3f46;margin-bottom:30px;}
         /* Plans */
-        .pm-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:32px;}
-        @media(max-width:760px){.pm-plans{grid-template-columns:1fr;}}
+        .pm-plans{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:32px;}
+        @media(max-width:560px){.pm-plans{grid-template-columns:1fr;}}
         .pm-plan-card{border-radius:18px;padding:24px 20px 20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);position:relative;display:flex;flex-direction:column;transition:all 0.25s;}
         .pm-plan-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.45);}
         .pm-plan-card.pm-featured{border-color:rgba(139,92,246,0.45);background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.07));}
@@ -972,26 +956,20 @@ function renderPricingModal() {
     const planCards = [
         {
             id: 'free', emoji: '🌱', name: 'FREE', price: '0đ', period: '/mãi mãi',
-            badge: '', badgeCls: '',
+            badge: '', badgeCls: '', cardCls: '',
             features: ['Tặng kèm 10 Token ban đầu', 'Tự nạp API Key cá nhân để dùng', 'Truy cập 100% thư viện prompt'],
             cons: ['Chưa mở khoá bộ công cụ Video'],
             btnText: 'Đang dùng', btnCls: 'pm-ghost', disabled: true
         },
         {
-            id: 'member', emoji: '💎', name: 'THÀNH VIÊN', price: '199.000đ', period: '/tháng',
-            badge: 'Phổ biến', badgeCls: 'indigo', cardCls: 'pm-featured',
-            features: ['Mở khoá Chatbot tạo Video AI', 'Truy cập Bộ công cụ Video chuyên sâu', 'Sử dụng chung nền tảng Hệ sinh thái', 'Trợ lý Kỹ thuật Hỗ trợ riêng'],
-            cons: [],
-            btnText: 'Nâng cấp Thành Viên', btnCls: 'pm-indigo', disabled: false
-        },
-        {
             id: 'premium', emoji: '👑', name: 'PREMIUM', price: '499.000đ', period: '/năm',
-            badge: 'Tiết kiệm nhất', badgeCls: 'gold', cardCls: 'pm-gold',
+            badge: '🔥 Phổ biến nhất', badgeCls: 'gold', cardCls: 'pm-gold',
             features: ['KGen Gallery · VEO 3.1 Video Studio', 'Chatbot Viral · Carousel AI', 'Token ưu đãi & +10 app sắp ra mắt', 'Toàn bộ tính năng · Ưu tiên hỗ trợ'],
             cons: [],
-            btnText: 'Đăng ký Premium', btnCls: 'pm-gold', disabled: false
+            btnText: '🚀 Đăng ký Premium', btnCls: 'pm-gold', disabled: false
         }
     ];
+
 
     const overlay = document.createElement('div');
     overlay.id = 'pricing-modal-overlay';
