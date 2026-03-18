@@ -1,0 +1,220 @@
+{
+  "name": "KGen VEO 3.1 Video Studio",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kgen-veo-generate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-generate",
+      "name": "Webhook: Generate Video",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "kgen-veo-generate"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kgen-veo-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-status",
+      "name": "Webhook: Status Check",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 520],
+      "webhookId": "kgen-veo-status"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// KGen VEO 3.1 — Prepare Generate Request\n// Maps frontend payload → kie.ai API format\n// ============================================================\n\nconst body = $input.first().json.body;\n\n// Required\nif (!body.prompt) throw new Error('prompt is required');\n\n// Build payload\nconst payload = {\n  prompt: body.prompt,\n  model: body.model || 'veo3_fast',\n  aspect_ratio: body.aspect_ratio || '16:9',\n  enableTranslation: body.enableTranslation !== false,\n  enableFallback: false,\n};\n\n// Generation type\nif (body.generationType) {\n  payload.generationType = body.generationType;\n}\n\n// Seed\nif (body.seeds && body.seeds >= 10000 && body.seeds <= 99999) {\n  payload.seeds = body.seeds;\n}\n\n// Watermark (optional)\nif (body.watermark) {\n  payload.watermark = body.watermark;\n}\n\n// Image URLs from frontend dataUrls\n// Frontend sends base64 dataUrls → we need public URLs\n// Strategy: if imageDataUrls provided, extract them\nif (body.imageDataUrls && body.imageDataUrls.length > 0) {\n  // For now, pass as-is — production should upload to CDN first\n  // kie.ai requires public accessible URLs\n  payload.imageUrls = body.imageDataUrls;\n}\n\n// For REFERENCE_2_VIDEO, force veo3_fast\nif (payload.generationType === 'REFERENCE_2_VIDEO') {\n  payload.model = 'veo3_fast';\n}\n\n// User API key override\nconst userApiKey = body.userApiKey || '';\n\nreturn [{\n  json: {\n    payload,\n    userApiKey,\n    originalBody: body,\n  }\n}];\n"
+      },
+      "id": "code-prepare",
+      "name": "Prepare Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/veo/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ $json.payload }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-generate",
+      "name": "Call Kie.ai Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kie-api-key",
+          "name": "Kie.ai API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle response from kie.ai\nconst result = $input.first().json;\n\nif (result.code !== 200) {\n  return [{\n    json: {\n      success: false,\n      code: result.code,\n      msg: result.msg || 'Lỗi từ kie.ai API',\n      data: null,\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    success: true,\n    code: 200,\n    msg: 'success',\n    data: {\n      taskId: result.data?.taskId,\n    }\n  }\n}];\n"
+      },
+      "id": "code-handle-gen",
+      "name": "Handle Generate Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-generate",
+      "name": "Respond: Generate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract taskId from status check request\nconst body = $input.first().json.body;\nconst taskId = body.taskId;\n\nif (!taskId) throw new Error('taskId is required');\n\nreturn [{ json: { taskId } }];\n"
+      },
+      "id": "code-status-prep",
+      "name": "Prepare Status Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 520]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.kie.ai/api/v1/veo/{{ $json.taskId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "http-status",
+      "name": "Get Video Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 520],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kie-api-key",
+          "name": "Kie.ai API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process status response\nconst result = $input.first().json;\n\n// Forward the raw response from kie.ai\nreturn [{\n  json: {\n    code: result.code,\n    msg: result.msg,\n    data: result.data,\n    status: result.data?.info ? 'COMPLETED' : 'PROCESSING',\n  }\n}];\n"
+      },
+      "id": "code-status-resp",
+      "name": "Handle Status Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 520]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-status",
+      "name": "Respond: Status",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 520]
+    }
+  ],
+  "connections": {
+    "Webhook: Generate Video": {
+      "main": [
+        [{ "node": "Prepare Request", "type": "main", "index": 0 }]
+      ]
+    },
+    "Webhook: Status Check": {
+      "main": [
+        [{ "node": "Prepare Status Request", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Request": {
+      "main": [
+        [{ "node": "Call Kie.ai Generate", "type": "main", "index": 0 }]
+      ]
+    },
+    "Call Kie.ai Generate": {
+      "main": [
+        [{ "node": "Handle Generate Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Handle Generate Response": {
+      "main": [
+        [{ "node": "Respond: Generate", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Status Request": {
+      "main": [
+        [{ "node": "Get Video Status", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Video Status": {
+      "main": [
+        [{ "node": "Handle Status Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Handle Status Response": {
+      "main": [
+        [{ "node": "Respond: Status", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromAList"
+  },
+  "staticData": null,
+  "tags": ["KGen", "VEO", "Video AI"],
+  "meta": {
+    "description": "KGen VEO 3.1 Video Studio — 2 webhooks:\n1. POST /webhook/kgen-veo-generate → Gửi yêu cầu tạo video tới kie.ai, trả về taskId\n2. POST /webhook/kgen-veo-status → Poll trạng thái video, trả về URL khi done\n\nCREDENTIALS: Tạo credential 'Kie.ai API Key' kiểu Header Auth:\n  Name: Authorization\n  Value: Bearer YOUR_KIE_AI_KEY\n\nSau đó cập nhật CONFIG.n8nBase trong video/index.html"
+  }
+}

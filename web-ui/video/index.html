@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KGen Video Studio — Tạo Video AI VEO 3.1</title>
+<meta name="description" content="Tạo video AI cinematic với VEO 3.1 từ Google DeepMind. Text to video, image to video, 4K, âm thanh AI.">
+<link rel="canonical" href="https://kgen.cloud/video">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#07050f;
+  --bg2:#0e0b1a;
+  --bg3:#13102a;
+  --surface:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --indigo:#6366f1;
+  --violet:#8b5cf6;
+  --cyan:#22d3ee;
+  --text:#f4f4f5;
+  --text-sub:#71717a;
+  --text-dim:#52525b;
+  --glow-i:rgba(99,102,241,0.4);
+  --glow-v:rgba(139,92,246,0.35);
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;min-height:100vh;}
+
+/* NOISE */
+body::before{content:'';position:fixed;inset:0;z-index:0;opacity:0.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(7,5,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,0.15);}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);}
+.nav-logo img{width:28px;height:28px;border-radius:8px;}
+.nav-logo-text{font-weight:800;font-size:0.95rem;letter-spacing:-0.3px;}
+.nav-logo-text em{font-style:normal;background:linear-gradient(135deg,var(--indigo),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-badge{display:flex;align-items:center;gap:6px;padding:4px 12px;background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1));border:1px solid rgba(99,102,241,0.3);border-radius:100px;font-size:0.72rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#a78bfa;}
+.nav-badge span{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 1.5s ease infinite;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-back{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;background:var(--surface);border:1px solid var(--border);color:var(--text-sub);text-decoration:none;border-radius:8px;font-size:0.8rem;font-weight:600;transition:all 0.2s;}
+.nav-back:hover{background:rgba(255,255,255,0.07);color:var(--text);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:380px 1fr;height:calc(100vh - 60px);margin-top:60px;position:relative;z-index:1;}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid rgba(99,102,241,0.12);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.3);border-radius:2px;}
+
+.sidebar-header{padding:20px 20px 0;flex-shrink:0;}
+.sidebar-header h1{font-size:1rem;font-weight:800;letter-spacing:-0.3px;margin-bottom:4px;}
+.sidebar-header p{font-size:0.78rem;color:var(--text-sub);line-height:1.5;}
+
+/* FORM SECTIONS */
+.form-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:16px;flex:1;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:0.75rem;font-weight:700;color:var(--text-sub);letter-spacing:0.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.form-label .req{color:var(--indigo);}
+
+/* PROMPT */
+#prompt{width:100%;min-height:110px;background:rgba(99,102,241,0.06);border:1.5px solid rgba(99,102,241,0.25);border-radius:12px;padding:12px 14px;color:var(--text);font-size:0.88rem;font-family:'Inter',sans-serif;line-height:1.6;resize:vertical;outline:none;transition:all 0.2s;}
+#prompt:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
+#prompt::placeholder{color:var(--text-dim);}
+.char-count{font-size:0.7rem;color:var(--text-dim);text-align:right;}
+
+/* TABS */
+.mode-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:7px 6px;border:none;background:transparent;color:var(--text-sub);font-size:0.72rem;font-weight:600;border-radius:7px;cursor:pointer;transition:all 0.2s;letter-spacing:0.2px;}
+.tab-btn.active{background:linear-gradient(135deg,var(--indigo),var(--violet));color:white;box-shadow:0 4px 12px rgba(99,102,241,0.35);}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,0.05);color:var(--text);}
+
+/* IMAGE UPLOAD */
+.img-upload-area{display:none;flex-direction:column;gap:8px;}
+.img-upload-area.visible{display:flex;}
+.drop-zone{border:1.5px dashed rgba(99,102,241,0.3);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(99,102,241,0.04);position:relative;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--indigo);background:rgba(99,102,241,0.08);}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-zone-icon{font-size:1.4rem;margin-bottom:6px;opacity:0.6;}
+.drop-zone p{font-size:0.78rem;color:var(--text-sub);}
+.drop-zone p strong{color:var(--text);}
+.img-preview{display:flex;gap:8px;flex-wrap:wrap;}
+.img-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid rgba(99,102,241,0.3);}
+.img-thumb img{width:100%;height:100%;object-fit:cover;}
+.img-thumb .remove{position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,0.8);border-radius:50%;border:none;cursor:pointer;color:white;font-size:0.55rem;display:flex;align-items:center;justify-content:center;}
+.upload-note{font-size:0.72rem;color:var(--text-dim);background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:8px 10px;line-height:1.5;}
+
+/* SELECTS & INPUTS */
+select,input[type=number]{width:100%;background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;transition:all 0.2s;-webkit-appearance:none;cursor:pointer;}
+select:focus,input[type=number]:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,0.12);}
+select option{background:#0e0b1a;color:var(--text);}
+
+/* SELECT WRAPPER */
+.select-wrap{position:relative;}
+.select-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;font-size:0.75rem;}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.1);border-radius:22px;transition:all 0.3s;}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:all 0.3s;}
+.toggle input:checked+.toggle-slider{background:linear-gradient(135deg,var(--indigo),var(--violet));}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);}
+.toggle-label{font-size:0.8rem;color:var(--text-sub);}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:4px 0;}
+
+/* API KEY */
+.api-key-wrap{position:relative;}
+.api-key-wrap input{padding-right:40px;font-family:monospace;font-size:0.82rem;letter-spacing:0.5px;}
+.api-key-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:0.85rem;padding:4px;}
+
+/* GENERATE BUTTON */
+.btn-generate{width:100%;padding:14px;background:linear-gradient(135deg,#4f46e5,var(--violet),#7c3aed);color:white;border:none;border-radius:12px;font-size:0.95rem;font-weight:800;cursor:pointer;transition:all 0.3s;box-shadow:0 8px 24px rgba(99,102,241,0.4);letter-spacing:0.2px;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;}
+.btn-generate::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transition:left 0.5s;}
+.btn-generate:hover::before{left:100%;}
+.btn-generate:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(99,102,241,0.55);}
+.btn-generate:active{transform:translateY(0);}
+.btn-generate:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* CREDITS INFO */
+.credits-info{background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;}
+.credits-icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--indigo),var(--violet));display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+.credits-text{font-size:0.75rem;color:var(--text-sub);line-height:1.4;}
+.credits-text strong{color:var(--text);}
+
+/* MAIN CONTENT */
+.main{background:var(--bg);overflow-y:auto;display:flex;flex-direction:column;}
+.main-top{padding:24px 28px 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.main-top h2{font-size:0.9rem;font-weight:700;color:var(--text-sub);}
+.results-meta{font-size:0.78rem;color:var(--text-dim);}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;}
+.empty-orb{width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%);position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:28px;}
+.empty-orb::before{content:'';position:absolute;inset:-2px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.2),rgba(34,211,238,0.15));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:1.5px;animation:spin 8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-icon{font-size:3rem;opacity:0.5;}
+.empty-state h3{font-size:1.15rem;font-weight:700;margin-bottom:8px;}
+.empty-state p{color:var(--text-sub);font-size:0.88rem;max-width:380px;line-height:1.6;}
+
+/* QUEUE */
+.queue-list{padding:20px 28px;display:flex;flex-direction:column;gap:14px;}
+.job-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.3s;}
+.job-card.done{border-color:rgba(34,211,238,0.2);}
+.job-card.error{border-color:rgba(255,71,71,0.2);}
+.job-header{padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.job-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.status-processing{background:var(--indigo);animation:blink 1s ease infinite;}
+.status-done{background:#22d3ee;}
+.status-error{background:#ff4747;}
+.job-info{flex:1;min-width:0;}
+.job-prompt{font-size:0.83rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.job-meta{font-size:0.72rem;color:var(--text-dim);margin-top:2px;}
+.job-action{flex-shrink:0;}
+.btn-icon{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.8rem;transition:all 0.2s;}
+.btn-icon:hover{background:rgba(255,255,255,0.08);color:var(--text);}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:rgba(255,255,255,0.06);}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--indigo),var(--cyan));width:0%;transition:width 0.5s ease;border-radius:0 2px 2px 0;}
+
+/* VIDEO RESULT */
+.video-result{padding:0 16px 16px;}
+.video-wrap{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;}
+.video-wrap.portrait{aspect-ratio:9/16;max-width:260px;}
+.video-wrap video{width:100%;height:100%;display:block;object-fit:contain;}
+.video-overlay{position:absolute;bottom:10px;right:10px;display:flex;gap:6px;}
+.btn-dl{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:white;font-size:0.75rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.btn-dl:hover{background:rgba(255,255,255,0.15);}
+
+/* LOADING */
+.loader{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.2);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;}
+
+/* TOAST */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;background:rgba(15,12,30,0.95);border:1px solid rgba(99,102,241,0.3);border-radius:10px;font-size:0.83rem;font-weight:600;color:var(--text);backdrop-filter:blur(10px);animation:slideIn 0.3s ease;max-width:320px;}
+.toast.success{border-color:rgba(34,211,238,0.4);color:#67e8f9;}
+.toast.error{border-color:rgba(255,71,71,0.4);color:#fca5a5;}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
+  .sidebar{max-height:60vh;}
+}
+
+/* FLOW DOTS BG */
+.flow-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.flow-bg-inner{position:absolute;inset:0;background-image:radial-gradient(rgba(99,102,241,0.07) 1px,transparent 1px);background-size:32px 32px;}
+</style>
+</head>
+<body>
+
+<div class="flow-bg"><div class="flow-bg-inner"></div></div>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">
+    <img src="/logo_white.png" alt="KGen" onerror="this.style.display='none'">
+    <span class="nav-logo-text">KGen <em>Video</em></span>
+  </a>
+  <div class="nav-badge">
+    <span></span>VEO 3.1 Studio · Live
+  </div>
+  <div class="nav-right">
+    <a href="/chatbot_viral" class="nav-back"><i class="fa-solid fa-arrow-left"></i> Về Chatbot</a>
+  </div>
+</nav>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>⚡ Tạo Video VEO 3.1</h1>
+      <p>Powered by Google DeepMind · kie.ai</p>
+    </div>
+
+    <div class="form-body">
+
+      <!-- PROMPT -->
+      <div class="form-group">
+        <label class="form-label" for="prompt">Prompt <span class="req">*</span></label>
+        <textarea id="prompt" placeholder="Mô tả video bạn muốn tạo... VD: Cảnh hoàng hôn cinematic trên đỉnh núi, camera slow-motion, ánh sáng vàng rực, chất lượng 4K..." rows="5"></textarea>
+        <div class="char-count"><span id="char-count">0</span>/2000</div>
+      </div>
+
+      <!-- MODE TABS -->
+      <div class="form-group">
+        <label class="form-label">Chế Độ Tạo</label>
+        <div class="mode-tabs" id="mode-tabs">
+          <button class="tab-btn active" data-mode="TEXT_2_VIDEO">📝 Text</button>
+          <button class="tab-btn" data-mode="FIRST_AND_LAST_FRAMES_2_VIDEO">🖼️ Image</button>
+          <button class="tab-btn" data-mode="REFERENCE_2_VIDEO">🎭 Ref</button>
+        </div>
+      </div>
+
+      <!-- IMAGE UPLOAD (hidden by default) -->
+      <div class="img-upload-area" id="img-upload-area">
+        <div class="form-label">
+          <span id="img-upload-label">Tải Ảnh Lên</span>
+        </div>
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" accept="image/*" multiple>
+          <div class="drop-zone-icon">📁</div>
+          <p><strong>Chọn hoặc kéo thả ảnh</strong></p>
+          <p style="font-size:0.72rem;color:var(--text-dim);margin-top:4px;">PNG, JPG, WEBP — Tối đa 10MB/ảnh</p>
+        </div>
+        <div class="img-preview" id="img-preview"></div>
+        <div class="upload-note" id="upload-note">
+          📌 <strong>Image to Video:</strong> 1 ảnh = clip sống động. 2 ảnh = transition từ ảnh 1 → ảnh 2.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- MODEL -->
+      <div class="form-group">
+        <label class="form-label" for="model">Model AI</label>
+        <div class="select-wrap">
+          <select id="model">
+            <option value="veo3_fast">⚡ VEO 3.1 Fast — Nhanh &amp; Tiết Kiệm</option>
+            <option value="veo3">🌟 VEO 3.1 Quality — Chất Lượng Cao Nhất</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ASPECT RATIO -->
+      <div class="form-group">
+        <label class="form-label" for="aspect">Tỉ Lệ Khung Hình</label>
+        <div class="select-wrap">
+          <select id="aspect">
+            <option value="16:9">📺 16:9 — Ngang (YouTube, TV)</option>
+            <option value="9:16">📱 9:16 — Dọc (TikTok, Reels)</option>
+            <option value="Auto">🎯 Auto — Hệ Thống Quyết Định</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SEED -->
+      <div class="form-group">
+        <label class="form-label" for="seed">Seed <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim)">(Tùy chọn · 10000–99999)</span></label>
+        <input type="number" id="seed" placeholder="Để trống = ngẫu nhiên" min="10000" max="99999">
+      </div>
+
+      <!-- TRANSLATION TOGGLE -->
+      <div class="form-group">
+        <div class="toggle-row">
+          <span class="toggle-label">🌐 Tự động dịch prompt sang Tiếng Anh</span>
+          <label class="toggle">
+            <input type="checkbox" id="translate" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- API KEY -->
+      <div class="form-group">
+        <label class="form-label" for="api-key">API Key <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(kie.ai — Tùy chọn)</span></label>
+        <div class="api-key-wrap">
+          <input type="password" id="api-key" placeholder="Để trống = dùng key KGen server" autocomplete="off">
+          <button class="api-key-toggle" id="toggle-key" title="Hiện/ẩn key">
+            <i class="fa fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- CREDITS INFO -->
+      <div class="credits-info">
+        <div class="credits-icon">💡</div>
+        <div class="credits-text">
+          <strong>Chi phí:</strong> VEO Fast ~4 credits · VEO Quality ~8 credits · 4K ~2× credits.<br>
+          Giá = 25% so với Google gốc. <a href="https://kie.ai/pricing" target="_blank" style="color:var(--indigo)">Xem bảng giá</a>
+        </div>
+      </div>
+
+      <!-- GENERATE -->
+      <button class="btn-generate" id="btn-generate">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" fill="white"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="2"/></svg>
+        Tạo Video Ngay
+      </button>
+
+    </div>
+  </aside>
+
+  <!-- ===== MAIN PANEL ===== -->
+  <main class="main" id="main-panel">
+    <div class="main-top">
+      <h2 id="results-title">Kết Quả</h2>
+      <span class="results-meta" id="results-meta"></span>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-orb">
+        <div class="empty-icon">🎬</div>
+      </div>
+      <h3>Chưa có video nào</h3>
+      <p>Nhập prompt mô tả video bạn muốn tạo, chọn chế độ và nhấn <strong>Tạo Video Ngay</strong> để bắt đầu.</p>
+      <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+        <button class="tab-btn" onclick="setExamplePrompt(0)" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text-sub);cursor:pointer;font-size:0.78rem;">🌅 Hoàng hôn cinematic</button>
+        <button class="tab-btn" onclick="setExamplePrompt(1)" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text-sub);cursor:pointer;font-size:0.78rem;">🌊 Sóng biển slow-motion</button>
+        <button class="tab-btn" onclick="setExamplePrompt(2)" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text-sub);cursor:pointer;font-size:0.78rem;">🌆 Thành phố ban đêm</button>
+      </div>
+    </div>
+
+    <!-- JOBS LIST -->
+    <div class="queue-list" id="queue-list" style="display:none;"></div>
+  </main>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ============================================================
+// KGen Video Studio — VEO 3.1
+// Kết nối qua n8n webhook gateway
+// ============================================================
+
+const CONFIG = {
+  n8nBase: 'https://n8n-1adi.srv1465145.hstgr.cloud/webhook',
+  generatePath: '/kgen-veo-generate',
+  statusPath: '/kgen-veo-status',
+  pollInterval: 8000,   // 8 giây
+  maxPollTime: 600000,  // 10 phút
+};
+
+const EXAMPLE_PROMPTS = [
+  'Cảnh quay cinematic buổi hoàng hôn tráng lệ trên đỉnh núi, camera slow-motion bay qua mây, ánh sáng vàng cam rực rỡ, chất lượng 4K, phong cách National Geographic',
+  'Sóng biển xanh ngọc vỡ ở bờ biển nhiệt đới, slow-motion tốc độ cao bắt từng giọt nước, ánh sáng ban mai, cinematic landscape, cực kỳ chi tiết',
+  'Thành phố ban đêm nhìn từ trên cao, đèn đường nhấp nháy như dòng sông ánh sáng, máy bay phản lực vệt sáng bay ngang, phong cách Blade Runner, 4K HDR'
+];
+
+let jobs = [];
+let uploadedImages = [];
+let currentMode = 'TEXT_2_VIDEO';
+
+// ---- DOM ----
+const promptEl = document.getElementById('prompt');
+const charCountEl = document.getElementById('char-count');
+const modelEl = document.getElementById('model');
+const aspectEl = document.getElementById('aspect');
+const seedEl = document.getElementById('seed');
+const translateEl = document.getElementById('translate');
+const apiKeyEl = document.getElementById('api-key');
+const btnGenerate = document.getElementById('btn-generate');
+const emptyState = document.getElementById('empty-state');
+const queueList = document.getElementById('queue-list');
+const resultsTitle = document.getElementById('results-title');
+const resultsMeta = document.getElementById('results-meta');
+
+// ---- CHAR COUNT ----
+promptEl.addEventListener('input', () => {
+  charCountEl.textContent = promptEl.value.length;
+});
+
+// ---- API KEY TOGGLE ----
+document.getElementById('toggle-key').addEventListener('click', () => {
+  const t = apiKeyEl.type === 'password' ? 'text' : 'password';
+  apiKeyEl.type = t;
+  document.querySelector('#toggle-key i').className = t === 'text' ? 'fa fa-eye-slash' : 'fa fa-eye';
+});
+
+// ---- MODE TABS ----
+document.getElementById('mode-tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('#mode-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMode = btn.dataset.mode;
+  updateModeUI();
+});
+
+function updateModeUI() {
+  const area = document.getElementById('img-upload-area');
+  const note = document.getElementById('upload-note');
+  const label = document.getElementById('img-upload-label');
+  const fileInput = document.getElementById('file-input');
+
+  if (currentMode === 'TEXT_2_VIDEO') {
+    area.classList.remove('visible');
+    // model can be anything
+  } else if (currentMode === 'FIRST_AND_LAST_FRAMES_2_VIDEO') {
+    area.classList.add('visible');
+    label.textContent = 'Tải Ảnh Lên (Tối đa 2 ảnh)';
+    note.innerHTML = '📌 <strong>Image to Video:</strong> 1 ảnh = clip sống động. 2 ảnh = transition từ ảnh đầu → ảnh cuối.';
+    fileInput.multiple = true;
+  } else if (currentMode === 'REFERENCE_2_VIDEO') {
+    area.classList.add('visible');
+    label.textContent = 'Tải Ảnh Tham Chiếu (1–3 ảnh)';
+    note.innerHTML = '📌 <strong>Reference to Video:</strong> Chỉ hỗ trợ VEO Fast. Sẽ tự động chọn model phù hợp.';
+    fileInput.multiple = true;
+    if (modelEl.value === 'veo3') {
+      modelEl.value = 'veo3_fast';
+      toast('⚠️ Reference mode chỉ hỗ trợ VEO Fast, đã tự động chuyển.', 'info');
+    }
+  }
+}
+
+// Force fast model for REFERENCE mode
+modelEl.addEventListener('change', () => {
+  if (currentMode === 'REFERENCE_2_VIDEO' && modelEl.value === 'veo3') {
+    modelEl.value = 'veo3_fast';
+    toast('⚠️ Reference mode chỉ hỗ trợ VEO Fast.', 'info');
+  }
+});
+
+// ---- IMAGE UPLOAD ----
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  handleFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener('change', () => handleFiles([...fileInput.files]));
+
+function handleFiles(files) {
+  const max = currentMode === 'REFERENCE_2_VIDEO' ? 3 : 2;
+  files = files.filter(f => f.type.startsWith('image/')).slice(0, max - uploadedImages.length);
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedImages.push({ file: f, dataUrl: e.target.result });
+      renderPreviews();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function renderPreviews() {
+  const preview = document.getElementById('img-preview');
+  preview.innerHTML = uploadedImages.map((img, i) => `
+    <div class="img-thumb">
+      <img src="${img.dataUrl}" alt="img ${i+1}">
+      <button class="remove" onclick="removeImage(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeImage(i) {
+  uploadedImages.splice(i, 1);
+  renderPreviews();
+}
+
+// ---- IMAGE UPLOAD TO SERVER (convert to URL) ----
+async function uploadImageToServer(dataUrl) {
+  // Convert dataUrl to blob then upload via n8n or return as-is for base64
+  // Since n8n can handle base64, we just pass the dataUrl
+  return dataUrl;
+}
+
+// ---- EXAMPLE PROMPTS ----
+function setExamplePrompt(idx) {
+  promptEl.value = EXAMPLE_PROMPTS[idx];
+  charCountEl.textContent = promptEl.value.length;
+  promptEl.focus();
+}
+window.setExamplePrompt = setExamplePrompt;
+
+// ---- GENERATE ----
+btnGenerate.addEventListener('click', generate);
+
+async function generate() {
+  const prompt = promptEl.value.trim();
+  if (!prompt) { toast('Vui lòng nhập prompt mô tả video.', 'error'); return; }
+
+  // Validate images
+  if ((currentMode === 'FIRST_AND_LAST_FRAMES_2_VIDEO' || currentMode === 'REFERENCE_2_VIDEO') && uploadedImages.length === 0) {
+    toast('Vui lòng tải ít nhất 1 ảnh lên.', 'error'); return;
+  }
+
+  btnGenerate.disabled = true;
+  btnGenerate.innerHTML = '<span class="loader"></span> Đang Gửi Yêu Cầu...';
+
+  const payload = {
+    prompt,
+    model: modelEl.value,
+    generationType: currentMode,
+    aspect_ratio: aspectEl.value,
+    enableTranslation: translateEl.checked,
+    imageDataUrls: uploadedImages.map(i => i.dataUrl),
+  };
+
+  const seed = parseInt(seedEl.value);
+  if (seed >= 10000 && seed <= 99999) payload.seeds = seed;
+
+  const userApiKey = apiKeyEl.value.trim();
+  if (userApiKey) payload.userApiKey = userApiKey;
+
+  try {
+    const webhookUrl = `${CONFIG.n8nBase}${CONFIG.generatePath}`;
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+
+    if (data.code !== 200 && data.code !== undefined) {
+      throw new Error(data.msg || 'Lỗi từ server');
+    }
+
+    const taskId = data.data?.taskId || data.taskId;
+    if (!taskId) throw new Error('Không nhận được taskId từ server');
+
+    toast('✅ Đã gửi yêu cầu! Đang xử lý video...', 'success');
+    addJob({ taskId, prompt, model: payload.model, aspect: payload.aspect_ratio, mode: currentMode });
+    startPolling(taskId);
+
+  } catch (err) {
+    console.error(err);
+    toast(`❌ Lỗi: ${err.message}`, 'error');
+  } finally {
+    btnGenerate.disabled = false;
+    btnGenerate.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" fill="white"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="2"/></svg> Tạo Video Ngay`;
+  }
+}
+
+// ---- JOB MANAGEMENT ----
+function addJob(job) {
+  job.status = 'processing';
+  job.startTime = Date.now();
+  job.videoUrl = null;
+  jobs.unshift(job);
+  renderJobs();
+}
+
+function renderJobs() {
+  if (jobs.length === 0) {
+    emptyState.style.display = 'flex';
+    queueList.style.display = 'none';
+    return;
+  }
+  emptyState.style.display = 'none';
+  queueList.style.display = 'flex';
+  resultsTitle.textContent = `Kết Quả (${jobs.length})`;
+
+  queueList.innerHTML = jobs.map((job, i) => {
+    const elapsed = Math.round((Date.now() - job.startTime) / 1000);
+    const isPortrait = job.aspect === '9:16';
+
+    return `
+    <div class="job-card ${job.status}" id="job-${job.taskId}">
+      <div class="job-header">
+        <div class="job-status-dot status-${job.status}"></div>
+        <div class="job-info">
+          <div class="job-prompt">${escHtml(job.prompt)}</div>
+          <div class="job-meta">
+            ${job.model === 'veo3' ? '🌟 Quality' : '⚡ Fast'} · ${job.aspect} · 
+            ${job.status === 'processing' ? `⏳ ${elapsed}s đã trôi qua...` : ''}
+            ${job.status === 'done' ? '✅ Hoàn tất' : ''}
+            ${job.status === 'error' ? '❌ Thất bại' : ''}
+          </div>
+        </div>
+        ${job.status === 'processing' ? `<div class="job-action"><button class="btn-icon" onclick="cancelJob('${job.taskId}')" title="Hủy"><i class="fa fa-xmark"></i></button></div>` : ''}
+        ${job.status === 'done' && job.videoUrl ? `<div class="job-action"><a class="btn-icon" href="${job.videoUrl}" download="kgen-video.mp4" title="Tải về"><i class="fa fa-download"></i></a></div>` : ''}
+      </div>
+      ${job.status === 'processing' ? `<div class="progress-bar"><div class="progress-fill" id="prog-${job.taskId}" style="width:${Math.min(90, elapsed * 0.5)}%"></div></div>` : ''}
+      ${job.status === 'done' && job.videoUrl ? `
+        <div class="video-result">
+          <div class="video-wrap ${isPortrait ? 'portrait' : ''}">
+            <video controls playsinline preload="metadata">
+              <source src="${job.videoUrl}" type="video/mp4">
+            </video>
+            <div class="video-overlay">
+              <a class="btn-dl" href="${job.videoUrl}" download><i class="fa fa-download"></i> Tải Video</a>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+      ${job.status === 'error' ? `<div style="padding:0 16px 14px;font-size:0.8rem;color:#fca5a5;">${escHtml(job.errorMsg || 'Đã xảy ra lỗi khi tạo video.')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function cancelJob(taskId) {
+  const job = jobs.find(j => j.taskId === taskId);
+  if (job) { job.status = 'error'; job.errorMsg = 'Đã hủy bởi người dùng.'; renderJobs(); }
+}
+window.cancelJob = cancelJob;
+
+// ---- POLLING ----
+const pollers = {};
+
+function startPolling(taskId) {
+  const startTime = Date.now();
+
+  pollers[taskId] = setInterval(async () => {
+    const elapsed = Date.now() - startTime;
+    if (elapsed > CONFIG.maxPollTime) {
+      clearInterval(pollers[taskId]);
+      updateJob(taskId, 'error', null, 'Quá thời gian chờ (10 phút). Video có thể vẫn đang xử lý trên server.');
+      return;
+    }
+
+    // Update progress bar
+    const prog = document.getElementById(`prog-${taskId}`);
+    if (prog) prog.style.width = `${Math.min(90, elapsed / 1000 * 0.5)}%`;
+
+    try {
+      const res = await fetch(`${CONFIG.n8nBase}${CONFIG.statusPath}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Check completion
+      const info = data.data?.info || data.info;
+      if (info?.resultUrls) {
+        // Done!
+        clearInterval(pollers[taskId]);
+        const urls = typeof info.resultUrls === 'string'
+          ? JSON.parse(info.resultUrls.replace(/'/g, '"'))
+          : info.resultUrls;
+        const videoUrl = Array.isArray(urls) ? urls[0] : urls;
+        updateJob(taskId, 'done', videoUrl);
+        toast('🎉 Video đã hoàn thành! Nhấn play để xem.', 'success');
+      } else if (data.code === 501 || data.status === 'FAILED') {
+        clearInterval(pollers[taskId]);
+        updateJob(taskId, 'error', null, data.msg || 'Tạo video thất bại.');
+      }
+    } catch (e) { /* ignore poll errors */ }
+  }, CONFIG.pollInterval);
+}
+
+function updateJob(taskId, status, videoUrl, errorMsg) {
+  const job = jobs.find(j => j.taskId === taskId);
+  if (!job) return;
+  job.status = status;
+  if (videoUrl) job.videoUrl = videoUrl;
+  if (errorMsg) job.errorMsg = errorMsg;
+  renderJobs();
+}
+
+// ---- UTILS ----
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast${type === 'success' ? ' success' : type === 'error' ? ' error' : ''}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+// ---- INIT ----
+updateModeUI();
+renderJobs();
+</script>
+</body>
+</html>

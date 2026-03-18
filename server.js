@@ -206,6 +206,39 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // ===== VEO API PROXY =====
+    if (url.pathname.startsWith('/api/veo/')) {
+        if (!checkRateLimit(clientIP)) {
+            res.writeHead(429, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Rate limit exceeded' }));
+            return;
+        }
+        if (!KIE_API_KEY) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'API key chưa được cấu hình.' }));
+            return;
+        }
+        // Map: /api/veo/generate → /api/v1/veo/generate
+        //       /api/veo/status/TASKID → /api/v1/veo/TASKID  (GET)
+        let kieVeoPath = url.pathname.replace('/api/veo', '/api/v1/veo');
+        // /api/veo/status/TASKID → /api/v1/veo/TASKID
+        kieVeoPath = kieVeoPath.replace('/api/v1/veo/status/', '/api/v1/veo/');
+
+        if (req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk => body += chunk);
+            req.on('end', () => {
+                console.log(`🎬 VEO Proxy POST ${kieVeoPath} from ${clientIP}`);
+                proxyToKieAI(kieVeoPath, 'POST', body, res);
+            });
+        } else if (req.method === 'GET') {
+            const fullPath = kieVeoPath + url.search;
+            console.log(`🎬 VEO Proxy GET ${fullPath} from ${clientIP}`);
+            proxyToKieAI(fullPath, 'GET', null, res);
+        }
+        return;
+    }
+
     // Health check
     if (url.pathname === '/api/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });

@@ -44,6 +44,8 @@ $files = [
     'chatbot_viral/step1.png'   => $BASE . 'chatbot_viral/step1.png',
     'chatbot_viral/step2.png'   => $BASE . 'chatbot_viral/step2.png',
     'chatbot_viral/step3.png'   => $BASE . 'chatbot_viral/step3.png',
+    // Video Studio — VEO 3.1
+    'video/index.html'               => $BASE . 'video/index.html',
     // Chatbot Viral — Gem Store
     'chatbot_viral/gem/index.html'      => $BASE . 'chatbot_viral/gem/index.html',
     'chatbot_viral/gem/thumb_nguoi_que.png' => $BASE . 'chatbot_viral/gem/thumb_nguoi_que.png',
