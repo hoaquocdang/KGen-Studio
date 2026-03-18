@@ -375,7 +375,7 @@ const CONFIG = {
   generateUrl: '/api/veo/generate',
   statusBase: '/api/veo/status/',
   pollInterval: 8000,   // 8 giây
-  maxPollTime: 600000,  // 10 phút
+  maxPollTime: 900000,  // 15 phút
 };
 
 const EXAMPLE_PROMPTS = [
@@ -626,6 +626,10 @@ function renderJobs() {
         </div>
       ` : ''}
       ${job.status === 'error' ? `<div style="padding:0 16px 14px;font-size:0.8rem;color:#fca5a5;">${escHtml(job.errorMsg || 'Đã xảy ra lỗi khi tạo video.')}</div>` : ''}
+      ${job.status === 'timeout' ? `<div style="padding:0 16px 14px;">
+        <p style="font-size:0.8rem;color:#fbbf24;margin-bottom:8px;">⏰ Quá 15 phút — video có thể vẫn đang xử lý trên kie.ai.</p>
+        <button onclick="retryPoll('${job.taskId}')" style="padding:6px 14px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:8px;color:#a78bfa;font-size:0.78rem;font-weight:600;cursor:pointer;">🔄 Kiểm tra lại</button>
+      </div>` : ''}
     </div>`;
   }).join('');
 }
@@ -646,7 +650,7 @@ function startPolling(taskId) {
     const elapsed = Date.now() - startTime;
     if (elapsed > CONFIG.maxPollTime) {
       clearInterval(pollers[taskId]);
-      updateJob(taskId, 'error', null, 'Quá thời gian chờ (10 phút). Video có thể vẫn đang xử lý trên server.');
+      updateJob(taskId, 'timeout', null, taskId);
       return;
     }
 
@@ -680,14 +684,26 @@ function startPolling(taskId) {
   }, CONFIG.pollInterval);
 }
 
-function updateJob(taskId, status, videoUrl, errorMsg) {
+function updateJob(taskId, status, videoUrl, extra) {
   const job = jobs.find(j => j.taskId === taskId);
   if (!job) return;
   job.status = status;
   if (videoUrl) job.videoUrl = videoUrl;
-  if (errorMsg) job.errorMsg = errorMsg;
+  if (status === 'error') job.errorMsg = extra;
+  if (status === 'timeout') job.timeoutTaskId = extra;
   renderJobs();
 }
+
+function retryPoll(taskId) {
+  const job = jobs.find(j => j.taskId === taskId);
+  if (!job) return;
+  job.status = 'processing';
+  job.startTime = Date.now();
+  toast('🔄 Đang kiểm tra lại trạng thái video...', 'info');
+  renderJobs();
+  startPolling(taskId);
+}
+window.retryPoll = retryPoll;
 
 // ---- UTILS ----
 function escHtml(str) {
