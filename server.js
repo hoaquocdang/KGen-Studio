@@ -29,11 +29,53 @@ const KIE_API_KEY = process.env.KIE_API_KEY || SITE_CONFIG.api?.kieApiKey || '';
 const KIE_BASE_URL = process.env.KIE_BASE_URL || SITE_CONFIG.api?.kieApiBase || 'https://api.kie.ai';
 const N8N_VEO_GENERATE_URL = process.env.N8N_VEO_GENERATE_URL || SITE_CONFIG.n8nVeo?.generateUrl || '';
 
+// ============================================================
+// GEMINI API KEY POOL — Round-Robin Rotation
+// Set GEMINI_KEY_1, GEMINI_KEY_2, ... GEMINI_KEY_N in .env
+// Falls back to GEMINI_KEY if only one key configured
+// Each free key: 100 images/day free, 20 rpm
+// ============================================================
+const GEMINI_KEY_POOL = [];
+for (let i = 1; i <= 20; i++) {
+    const key = process.env[`GEMINI_KEY_${i}`];
+    if (key && key.trim()) GEMINI_KEY_POOL.push(key.trim());
+}
+// Single key fallback
+const GEMINI_SINGLE_KEY = process.env.GEMINI_KEY || SITE_CONFIG.api?.geminiApiKey || '';
+if (GEMINI_SINGLE_KEY && !GEMINI_KEY_POOL.includes(GEMINI_SINGLE_KEY)) {
+    GEMINI_KEY_POOL.push(GEMINI_SINGLE_KEY);
+}
+let _geminiKeyIndex = 0;
+const _geminiKeyErrors = new Map(); // key → { count, resetAt }
+
+function getNextGeminiKey() {
+    if (GEMINI_KEY_POOL.length === 0) return null;
+    const now = Date.now();
+    // Try up to pool.length times to find a non-rate-limited key
+    for (let attempt = 0; attempt < GEMINI_KEY_POOL.length; attempt++) {
+        _geminiKeyIndex = (_geminiKeyIndex + 1) % GEMINI_KEY_POOL.length;
+        const key = GEMINI_KEY_POOL[_geminiKeyIndex];
+        const err = _geminiKeyErrors.get(key);
+        if (!err || now > err.resetAt) {
+            if (err) _geminiKeyErrors.delete(key); // reset after cooldown
+            return key;
+        }
+    }
+    // All keys rate-limited — use whichever cooldown expires soonest
+    return GEMINI_KEY_POOL[_geminiKeyIndex % GEMINI_KEY_POOL.length];
+}
+
+function markGeminiKey429(key) {
+    _geminiKeyErrors.set(key, { count: (_geminiKeyErrors.get(key)?.count || 0) + 1, resetAt: Date.now() + 65000 });
+    console.warn(`⚠️ Gemini key ...${key.slice(-6)} rate-limited → cooling 65s. Pool size: ${GEMINI_KEY_POOL.length}`);
+}
+
 if (!KIE_API_KEY) {
     console.warn('⚠️ No KIE_API_KEY configured! Set via env or site-config.js');
 }
 
 console.log(`🔑 Kie AI Key: ${KIE_API_KEY ? '***' + KIE_API_KEY.slice(-6) : 'NOT SET'}`);
+console.log(`🖼️ Gemini Key Pool: ${GEMINI_KEY_POOL.length} key(s) loaded`);
 console.log(`🎬 VEO n8n URL: ${N8N_VEO_GENERATE_URL ? N8N_VEO_GENERATE_URL.replace(/webhook\/.+/, 'webhook/***') : 'NOT SET ❌'}`);
 
 // MIME types
@@ -211,6 +253,133 @@ const server = http.createServer((req, res) => {
             console.log(`📡 Proxy GET ${fullPath} from ${clientIP}`);
             proxyToKieAI(fullPath, 'GET', null, res);
         }
+        return;
+    }
+
+    // ===== /api/generate-image — Gemini Imagen via key pool =====
+    if (url.pathname === '/api/generate-image' && req.method === 'POST') {
+        if (!checkRateLimit(clientIP)) {
+            res.writeHead(429, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Quá nhiều request. Đợi 1 phút.' }));
+            return;
+        }
+
+        if (GEMINI_KEY_POOL.length === 0) {
+            res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ success: false, error: 'Gemini API key chưa được cấu hình trên server.' }));
+            return;
+        }
+
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            let reqData = {};
+            try { reqData = JSON.parse(body); } catch (e) {
+                res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ success: false, error: 'Invalid JSON' }));
+                return;
+            }
+
+            const { prompt, aspectRatio = '1:1', sampleCount = 1 } = reqData;
+            if (!prompt) {
+                res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ success: false, error: 'prompt is required' }));
+                return;
+            }
+
+            // Try keys in pool — rotate on 429, retry up to pool.length times
+            const maxAttempts = Math.min(GEMINI_KEY_POOL.length, 3);
+            let lastError = 'Unknown error';
+
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const apiKey = getNextGeminiKey();
+                if (!apiKey) break;
+
+                // Try Imagen 4 first, fall back to Imagen 3 if not available
+                const models = ['imagen-4.0-generate-001', 'imagen-3.0-generate-002'];
+                for (const modelId of models) {
+                    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:predict?key=${apiKey}`;
+                    const payload = JSON.stringify({
+                        instances: [{ prompt }],
+                        parameters: { sampleCount: Math.min(sampleCount, 4), aspectRatio },
+                    });
+
+                    try {
+                        const result = await new Promise((resolve, reject) => {
+                            const gUrl = new URL(geminiUrl);
+                            const opts = {
+                                hostname: gUrl.hostname,
+                                port: 443,
+                                path: gUrl.pathname + gUrl.search,
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+                                timeout: 60000,
+                            };
+                            const req2 = https.request(opts, (r2) => {
+                                let data = '';
+                                r2.on('data', c => data += c);
+                                r2.on('end', () => resolve({ status: r2.statusCode, body: data }));
+                            });
+                            req2.on('error', reject);
+                            req2.on('timeout', () => { req2.destroy(); reject(new Error('timeout')); });
+                            req2.write(payload);
+                            req2.end();
+                        });
+
+                        if (result.status === 429) {
+                            markGeminiKey429(apiKey);
+                            lastError = 'Rate limited';
+                            break; // try next key, same model
+                        }
+
+                        if (result.status === 404 && modelId === 'imagen-4.0-generate-001') {
+                            console.log('Imagen 4 not available, trying Imagen 3...');
+                            continue; // try next model in loop
+                        }
+
+                        if (result.status !== 200) {
+                            lastError = `Gemini HTTP ${result.status}`;
+                            continue;
+                        }
+
+                        let parsed;
+                        try { parsed = JSON.parse(result.body); } catch (e) {
+                            lastError = 'Invalid JSON from Gemini';
+                            continue;
+                        }
+
+                        const predictions = parsed.predictions || [];
+                        if (predictions.length === 0) {
+                            lastError = 'No image generated';
+                            continue;
+                        }
+
+                        const images = predictions.map(p => ({
+                            b64: p.bytesBase64Encoded,
+                            mime: p.mimeType || 'image/png',
+                        }));
+
+                        console.log(`🎨 Generated ${images.length} image(s) with ${modelId} key ...${apiKey.slice(-6)} from ${clientIP}`);
+                        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                        res.end(JSON.stringify({
+                            success: true,
+                            model: modelId,
+                            images,
+                            keyIndex: _geminiKeyIndex,
+                        }));
+                        return; // Done!
+
+                    } catch (err) {
+                        lastError = err.message;
+                        console.error(`Gemini attempt ${attempt + 1}/${maxAttempts} failed:`, err.message);
+                    }
+                }
+            }
+
+            // All attempts failed
+            res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ success: false, error: lastError }));
+        });
         return;
     }
 
