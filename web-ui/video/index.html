@@ -560,7 +560,7 @@ async function generate() {
     const taskId = data.data?.taskId || data.taskId;
     if (!taskId) throw new Error('Không nhận được taskId từ server');
 
-    toast('✅ Đã gửi yêu cầu! Đang xử lý video...', 'success');
+    toast('✅ Đã gửi! Video đang render trên server Google VEO 3.1...⏱️ Dự kiến 3–10 phút với Fast mode.', 'success');
     addJob({ taskId, prompt, model: payload.model, aspect: payload.aspect_ratio, mode: currentMode });
     startPolling(taskId);
 
@@ -654,9 +654,14 @@ function startPolling(taskId) {
       return;
     }
 
-    // Update progress bar
+    // Update progress bar — eased animation
     const prog = document.getElementById(`prog-${taskId}`);
-    if (prog) prog.style.width = `${Math.min(90, elapsed / 1000 * 0.5)}%`;
+    if (prog) {
+      const pct = elapsed < 120000
+        ? Math.min(60, (elapsed/120000)*60)          // 0→60% trong 2 phút đầu
+        : Math.min(88, 60 + ((elapsed-120000)/480000)*28); // 60→88% trong 8 phút còn lại
+      prog.style.width = `${pct}%`;
+    }
 
     try {
       const res = await fetch(CONFIG.statusBase + taskId, {
