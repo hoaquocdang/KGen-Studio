@@ -237,8 +237,8 @@ document.addEventListener('click', (e) => {
 // Base prices in VND
 const BASE_PRICES_VND = {
     free: 0,
-    pro: 39000,
-    premium: 199000,
+    pro: 199000,
+    premium: 499000,
 };
 
 // Lang → Currency mapping
