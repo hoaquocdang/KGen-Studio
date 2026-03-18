@@ -210,9 +210,9 @@
   "settings": {
     "executionOrder": "v1",
     "saveExecutionProgress": true,
-    "callerPolicy": "workflowsFromAList"
+    "callerPolicy": "any"
   },
-  "staticData": null,
+  "active": true,
   "tags": ["KGen", "VEO", "Video AI"],
   "meta": {
     "description": "KGen VEO 3.1 Video Studio — 2 webhooks:\n1. POST /webhook/kgen-veo-generate → Gửi yêu cầu tạo video tới kie.ai, trả về taskId\n2. POST /webhook/kgen-veo-status → Poll trạng thái video, trả về URL khi done\n\nCREDENTIALS: Tạo credential 'Kie.ai API Key' kiểu Header Auth:\n  Name: Authorization\n  Value: Bearer YOUR_KIE_AI_KEY\n\nSau đó cập nhật CONFIG.n8nBase trong video/index.html"
