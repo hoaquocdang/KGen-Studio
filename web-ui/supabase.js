@@ -854,27 +854,33 @@ const TOPUP_PACKAGES = [
         id: 'topup_50',
         name: 'Nạp Tiêu Chuẩn',
         emoji: '🪙',
-        price: '50.000đ',
-        credits: 500,
-        bonus: '+0%',
+        price: 59000,
+        priceDisplay: '59.000đ',
+        credits: 110,
+        perToken: '~536đ/token',
+        bonus: '',
         best: false
     },
     {
         id: 'topup_100',
         name: 'Nạp Phổ Biến',
         emoji: '💰',
-        price: '100.000đ',
-        credits: 1200,
-        bonus: '+20% (Khuyên dùng)',
+        price: 99000,
+        priceDisplay: '99.000đ',
+        credits: 200,
+        perToken: '~495đ/token',
+        bonus: 'HOT',
         best: true
     },
     {
         id: 'topup_200',
         name: 'Nạp Cao Cấp',
         emoji: '💎',
-        price: '200.000đ',
-        credits: 2800,
-        bonus: '+40% (Tiết kiệm nhất)',
+        price: 199000,
+        priceDisplay: '199.000đ',
+        credits: 430,
+        perToken: '~463đ/token',
+        bonus: 'Tiết kiệm nhất',
         best: false
     }
 ];
@@ -888,110 +894,212 @@ function renderPricingModal() {
     if (existing) existing.remove();
 
     const currentTier = APP_STATE.currentUser?.tier || 'free';
-    const _cp = typeof convertPrice === 'function' ? convertPrice : (v) => v.toLocaleString() + 'đ';
-    const _period = typeof getCurrencyPeriod === 'function' ? getCurrencyPeriod() : '/tháng';
-    const _bpv = typeof BASE_PRICES_VND !== 'undefined' ? BASE_PRICES_VND : { free: 0, pro: 39000, premium: 199000 };
+
+    // Inject scoped CSS once
+    if (!document.getElementById('pm-styles')) {
+        const s = document.createElement('style');
+        s.id = 'pm-styles';
+        s.textContent = `
+        #pricing-modal-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);opacity:0;transition:opacity 0.3s;overflow-y:auto;padding:20px 12px;}
+        #pricing-modal-overlay.active{opacity:1;}
+        .pm-shell{background:linear-gradient(170deg,#13131f 0%,#09090f 100%);border:1px solid rgba(255,255,255,0.07);border-radius:24px;width:100%;max-width:980px;padding:40px 36px 36px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.03) inset;animation:pmIn 0.4s cubic-bezier(0.16,1,0.3,1);}
+        @keyframes pmIn{from{transform:translateY(28px);opacity:0}to{transform:translateY(0);opacity:1}}
+        @media(max-width:640px){.pm-shell{padding:28px 16px 24px;border-radius:16px;}}
+        .pm-close-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.07);color:#6b7280;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1;}
+        .pm-close-btn:hover{background:rgba(255,255,255,0.14);color:#fff;}
+        .pm-eyebrow{display:inline-flex;align-items:center;gap:7px;padding:4px 14px;border-radius:100px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);font-size:0.7rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#818cf8;margin-bottom:10px;}
+        .pm-title{font-size:clamp(1.4rem,2.5vw,2rem);font-weight:900;color:#fff;margin-bottom:5px;letter-spacing:-0.5px;}
+        .pm-sub{font-size:0.88rem;color:#3f3f46;margin-bottom:30px;}
+        /* Plans */
+        .pm-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:32px;}
+        @media(max-width:760px){.pm-plans{grid-template-columns:1fr;}}
+        .pm-plan-card{border-radius:18px;padding:24px 20px 20px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.025);position:relative;display:flex;flex-direction:column;transition:all 0.25s;}
+        .pm-plan-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.45);}
+        .pm-plan-card.pm-featured{border-color:rgba(139,92,246,0.45);background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.07));}
+        .pm-plan-card.pm-gold{border-color:rgba(245,158,11,0.4);background:linear-gradient(135deg,rgba(245,158,11,0.09),rgba(252,211,77,0.04));}
+        .pm-plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:100px;font-size:0.65rem;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;}
+        .pm-plan-badge.indigo{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;}
+        .pm-plan-badge.gold{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;}
+        .pm-plan-emoji{font-size:1.9rem;margin-bottom:10px;}
+        .pm-plan-name{font-size:0.68rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#52525b;margin-bottom:8px;}
+        .pm-plan-price{font-size:2rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;}
+        .pm-plan-period{font-size:0.75rem;color:#3f3f46;margin-bottom:18px;}
+        .pm-divider{height:1px;background:rgba(255,255,255,0.05);margin:14px 0;}
+        .pm-plan-features{list-style:none;padding:0;margin:0 0 18px 0;display:flex;flex-direction:column;gap:8px;flex:1;}
+        .pm-plan-features li{font-size:0.79rem;color:#71717a;display:flex;align-items:flex-start;gap:8px;line-height:1.4;}
+        .pm-plan-features li .pm-check{color:#22d3ee;font-weight:900;flex-shrink:0;}
+        .pm-plan-features li.pm-con{color:#27272a;}
+        .pm-plan-features li.pm-con .pm-check{color:#27272a;}
+        .pm-plan-btn{width:100%;padding:12px;border-radius:12px;border:none;font-size:0.87rem;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.2px;}
+        .pm-plan-btn.pm-ghost{background:rgba(255,255,255,0.05);color:#3f3f46;cursor:default;}
+        .pm-plan-btn.pm-indigo{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 5px 18px rgba(99,102,241,0.35);}
+        .pm-plan-btn.pm-indigo:hover{box-shadow:0 9px 28px rgba(99,102,241,0.5);transform:translateY(-1px);}
+        .pm-plan-btn.pm-gold{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;box-shadow:0 5px 18px rgba(245,158,11,0.35);}
+        .pm-plan-btn.pm-gold:hover{box-shadow:0 9px 28px rgba(245,158,11,0.5);transform:translateY(-1px);}
+        /* Topup */
+        .pm-sep{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent);margin:4px 0 30px;}
+        .pm-topup-title{text-align:center;margin-bottom:20px;}
+        .pm-topup-title h3{font-size:1.25rem;font-weight:900;color:#fff;margin-bottom:5px;}
+        .pm-topup-title p{font-size:0.82rem;color:#3f3f46;max-width:440px;margin:0 auto;line-height:1.5;}
+        .pm-topups{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+        @media(max-width:640px){.pm-topups{grid-template-columns:1fr;}}
+        .pm-tu-card{border-radius:16px;padding:20px 14px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.025);text-align:center;position:relative;transition:all 0.25s;}
+        .pm-tu-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,0.35);}
+        .pm-tu-card.pm-hot-tu{border-color:rgba(245,158,11,0.38);background:rgba(245,158,11,0.06);}
+        .pm-tu-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:2px 10px;border-radius:100px;font-size:0.6rem;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;}
+        .pm-tu-badge.fire{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;}
+        .pm-tu-badge.eco{background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.28);}
+        .pm-tu-emoji{font-size:2rem;margin-bottom:9px;}
+        .pm-tu-name{font-size:0.72rem;font-weight:700;color:#52525b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+        .pm-tu-credits{font-size:1.9rem;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1;}
+        .pm-tu-credits span{font-size:0.8rem;font-weight:600;color:#3f3f46;}
+        .pm-tu-per{font-size:0.67rem;color:#3f3f46;margin:4px 0 12px;}
+        .pm-tu-price{font-size:1.2rem;font-weight:900;color:#f9fafb;margin-bottom:14px;}
+        .pm-tu-btn{width:100%;padding:10px;border-radius:10px;border:none;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+        .pm-tu-btn.normal-tu{background:rgba(255,255,255,0.06);color:#d4d4d8;border:1px solid rgba(255,255,255,0.09);}
+        .pm-tu-btn.normal-tu:hover{background:rgba(255,255,255,0.11);}
+        .pm-tu-btn.hot-tu{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;box-shadow:0 4px 14px rgba(245,158,11,0.4);}
+        .pm-tu-btn.hot-tu:hover{box-shadow:0 8px 24px rgba(245,158,11,0.55);transform:translateY(-1px);}
+        /* Footer chips */
+        .pm-footer{margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
+        .pm-chip{display:flex;align-items:center;gap:6px;font-size:0.73rem;color:#3f3f46;}
+        .pm-chip svg{flex-shrink:0;}
+        `;
+        document.head.appendChild(s);
+    }
+
+    const planCards = [
+        {
+            id: 'free', emoji: '🌱', name: 'FREE', price: '0đ', period: '/mãi mãi',
+            badge: '', badgeCls: '',
+            features: ['Tặng kèm 10 Token ban đầu', 'Tự nạp API Key cá nhân để dùng', 'Truy cập 100% thư viện prompt'],
+            cons: ['Chưa mở khoá bộ công cụ Video'],
+            btnText: 'Đang dùng', btnCls: 'pm-ghost', disabled: true
+        },
+        {
+            id: 'member', emoji: '💎', name: 'THÀNH VIÊN', price: '199.000đ', period: '/tháng',
+            badge: 'Phổ biến', badgeCls: 'indigo', cardCls: 'pm-featured',
+            features: ['Mở khoá Chatbot tạo Video AI', 'Truy cập Bộ công cụ Video chuyên sâu', 'Sử dụng chung nền tảng Hệ sinh thái', 'Trợ lý Kỹ thuật Hỗ trợ riêng'],
+            cons: [],
+            btnText: 'Nâng cấp Thành Viên', btnCls: 'pm-indigo', disabled: false
+        },
+        {
+            id: 'premium', emoji: '👑', name: 'PREMIUM', price: '499.000đ', period: '/năm',
+            badge: 'Tiết kiệm nhất', badgeCls: 'gold', cardCls: 'pm-gold',
+            features: ['KGen Gallery · VEO 3.1 Video Studio', 'Chatbot Viral · Carousel AI', 'Token ưu đãi & +10 app sắp ra mắt', 'Toàn bộ tính năng · Ưu tiên hỗ trợ'],
+            cons: [],
+            btnText: 'Đăng ký Premium', btnCls: 'pm-gold', disabled: false
+        }
+    ];
 
     const overlay = document.createElement('div');
     overlay.id = 'pricing-modal-overlay';
-    overlay.className = 'pricing-overlay';
+
+    // Build plan cards HTML
+    const plansHtml = planCards.map(plan => {
+        const isCurrent = currentTier === plan.id;
+        return `
+        <div class="pm-plan-card ${plan.cardCls || ''}">
+            ${plan.badge ? `<div class="pm-plan-badge ${plan.badgeCls}">${plan.badge}</div>` : ''}
+            <div class="pm-plan-emoji">${plan.emoji}</div>
+            <div class="pm-plan-name">${plan.name}</div>
+            <div class="pm-plan-price">${plan.price}</div>
+            <div class="pm-plan-period">${plan.period}</div>
+            <div class="pm-divider"></div>
+            <ul class="pm-plan-features">
+                ${plan.features.map(f => `<li><span class="pm-check">✓</span>${f}</li>`).join('')}
+                ${plan.cons.map(c => `<li class="pm-con"><span class="pm-check">✕</span>${c}</li>`).join('')}
+            </ul>
+            <button class="pm-plan-btn ${isCurrent ? 'pm-ghost' : plan.btnCls} pm-plan-action" data-tier="${plan.id}" ${(isCurrent || plan.id === 'free') ? 'disabled' : ''}>
+                ${isCurrent ? '✓ Đang sử dụng' : plan.btnText}
+            </button>
+        </div>`;
+    }).join('');
+
+    // Build topup cards HTML
+    const topupHtml = (typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : []).map(pack => {
+        const hasBadge = pack.best || pack.bonus;
+        const badgeCls = pack.best ? 'fire' : 'eco';
+        const badgeText = pack.best ? `🔥 ${pack.bonus}` : pack.bonus;
+        return `
+        <div class="pm-tu-card ${pack.best ? 'pm-hot-tu' : ''}">
+            ${hasBadge ? `<div class="pm-tu-badge ${badgeCls}">${badgeText}</div>` : ''}
+            <div class="pm-tu-emoji">${pack.emoji}</div>
+            <div class="pm-tu-name">${pack.name}</div>
+            <div class="pm-tu-credits">${pack.credits} <span>Token</span></div>
+            <div class="pm-tu-per">${pack.perToken || ''}</div>
+            <div class="pm-tu-price">${pack.priceDisplay || pack.price}</div>
+            <button class="pm-tu-btn ${pack.best ? 'hot-tu' : 'normal-tu'} pm-topup-action" data-pack="${pack.id}">
+                ${pack.best ? '🪙 Mua ngay' : 'Mua ngay'}
+            </button>
+        </div>`;
+    }).join('');
+
     overlay.innerHTML = `
-        <div class="pricing-modal">
-            <button class="modal-close" id="pricing-close">&times;</button>
-            <div class="pricing-header">
-                <h2 class="pricing-title">${typeof t === 'function' ? t('pricing.title') : 'Chọn gói phù hợp'}</h2>
-                <p class="pricing-subtitle">${typeof t === 'function' ? t('home.subtitle') : 'Mở khóa toàn bộ sức mạnh của KGen Studio'}</p>
-            </div>
-            
-            <div style="margin-bottom: 24px;">
-                <h3 style="text-align:center; font-size:1.4rem; font-weight:700; margin-bottom: 16px;">Đăng ký Gói Nền tảng</h3>
-                <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-                    ${PRICING_TIERS.map(tier => `
-                        <div class="pricing-card ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}" data-tier="${tier.id}">
-                            ${tier.popular ? '<div class="popular-badge">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
-                            ${currentTier === tier.id ? '<div class="current-badge">✓ ' + (typeof t === 'function' ? t('common.save') : 'Gói hiện tại') + '</div>' : ''}
-                            <div class="pricing-card-header">
-                                <span class="tier-emoji">${tier.emoji}</span>
-                                <h3 class="tier-name">${tier.name}</h3>
-                                <div class="tier-price">
-                                    <span class="price-amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
-                                    <span class="price-period">${_period}</span>
-                                </div>
-                            </div>
-                            <ul class="tier-features">
-                                ${tier.features.map(f => `<li>${f}</li>`).join('')}
-                                ${tier.limitations.map(l => `<li class="limitation">❌ ${l}</li>`).join('')}
-                            </ul>
-                            <button class="btn ${tier.buttonClass} pricing-btn" 
-                                data-tier="${tier.id}"
-                                ${currentTier === tier.id ? 'disabled' : ''}>
-                                ${currentTier === tier.id ? '✓ ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
+        <div class="pm-shell">
+            <button class="pm-close-btn" id="pm-close-btn">&times;</button>
 
-            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
-                <h3 style="text-align:center; font-size:1.4rem; font-weight:700; margin-bottom: 8px;">Nạp thêm <span style="color:var(--accent-blue)">Credits</span></h3>
-                <p style="text-align:center; color:var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px; max-width:80%; margin-left:auto; margin-right:auto;">Dùng cho khách hàng đã xài hết Credit trong Gói Tháng mà vẫn còn nhu cầu sinh ảnh/bài viết.</p>
-                
-                <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-                    ${(typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : []).map(pack => `
-                        <div class="pricing-card" style="padding:20px; text-align:center;">
-                            ${pack.best ? '<div class="popular-badge" style="background:#10b981; color:#fff; top:-12px;">' + pack.bonus + '</div>' : ''}
-                            <div style="font-size:2.5rem; margin-bottom:12px;">${pack.emoji}</div>
-                            <h3 style="font-size:1.1rem; margin-bottom:4px;">${pack.name}</h3>
-                            <div style="color:var(--accent-blue); font-size:1.6rem; font-weight:800; margin-bottom:12px;">
-                                ${pack.credits} <span style="font-size:0.9rem; font-weight:600; color:var(--text-secondary);">Token</span>
-                            </div>
-                            <div style="font-size:1.2rem; font-weight:700; margin-bottom:20px;">${pack.price}</div>
-                            <button class="btn ${pack.best ? 'btn-primary' : 'btn-outline'} topup-pricing-btn" style="width:100%; border-radius:12px;" data-pack="${pack.id}">
-                                Nạp ngay
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
+            <div class="pm-eyebrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#818cf8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                KGen Ecosystem · Bảng Giá 2026
             </div>
+            <h2 class="pm-title">Chọn gói phù hợp</h2>
+            <p class="pm-sub">Mở khoá toàn bộ sức mạnh AI — Không giới hạn sáng tạo</p>
 
-            <div class="pricing-footer">
-                <p>${typeof t === 'function' ? t('pricing.footer') : '🔒 Thanh toán tự động KGen Guard'}</p>
-                <p style="margin-top:4px;font-size:0.78rem;color:var(--text-tertiary)">${typeof t === 'function' ? t('pricing.footer_sub') : 'Kích hoạt ngay khi nhận thanh toán. Quản lý dễ dàng.'}</p>
+            <div class="pm-plans">${plansHtml}</div>
+
+            <div class="pm-sep"></div>
+
+            <div class="pm-topup-title">
+                <h3>Nạp thêm <span style="background:linear-gradient(135deg,#f59e0b,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Token</span></h3>
+                <p>Dùng cho tất cả tài khoản — Token được dùng cho sinh ảnh AI, Video VEO 3.1 và các tính năng AI khác.</p>
+            </div>
+            <div class="pm-topups">${topupHtml}</div>
+
+            <div class="pm-footer">
+                <div class="pm-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Thanh toán bảo mật SSL</div>
+                <div class="pm-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Kích hoạt tự động 1–5 phút</div>
+                <div class="pm-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Hỗ trợ 24/7 qua Zalo</div>
             </div>
         </div>
     `;
 
     document.body.appendChild(overlay);
 
-    // Events
-    document.getElementById('pricing-close').addEventListener('click', closePricingModal);
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) closePricingModal();
-    });
+    // Close
+    document.getElementById('pm-close-btn').addEventListener('click', closePricingModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closePricingModal(); });
 
-    // Pricing buttons
-    overlay.querySelectorAll('.pricing-btn').forEach(btn => {
+    // Plan buttons
+    overlay.querySelectorAll('.pm-plan-action').forEach(btn => {
         btn.addEventListener('click', () => {
             const tier = btn.dataset.tier;
-            if (tier === 'free') return;
-            handleUpgrade(tier);
+            if (btn.disabled || tier === 'free') return;
+            if (!APP_STATE.currentUser) {
+                closePricingModal();
+                showToast('Vui lòng đăng nhập trước khi mua gói', 'error');
+                if (typeof openAuthModal === 'function') openAuthModal();
+                return;
+            }
+            closePricingModal();
+            createCheckoutSession(tier);
         });
     });
 
     // Topup buttons
-    overlay.querySelectorAll('.topup-pricing-btn').forEach(btn => {
+    overlay.querySelectorAll('.pm-topup-action').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!APP_STATE.currentUser) {
                 closePricingModal();
-                showToast("Vui lòng đăng nhập trước khi nạp thêm Credit");
+                showToast('Vui lòng đăng nhập trước khi nạp Token', 'error');
+                if (typeof openAuthModal === 'function') openAuthModal();
                 return;
             }
-            const packId = btn.dataset.pack;
-            handleUpgrade(packId);
+            closePricingModal();
+            createCheckoutSession(btn.dataset.pack);
         });
     });
 
-    // Animate in
     requestAnimationFrame(() => overlay.classList.add('active'));
 }
 
