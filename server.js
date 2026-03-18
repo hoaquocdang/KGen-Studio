@@ -42,13 +42,19 @@ const MIME = {
     '.css': 'text/css',
     '.js': 'application/javascript',
     '.json': 'application/json',
+    '.xml':  'application/xml',
+    '.txt':  'text/plain',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
     '.webp': 'image/webp',
+    '.gif': 'image/gif',
     '.svg': 'image/svg+xml',
     '.ico': 'image/x-icon',
     '.woff2': 'font/woff2',
+    '.woff':  'font/woff',
+    '.mp4':  'video/mp4',
+    '.webm': 'video/webm',
 };
 
 // Rate limiting (simple in-memory)

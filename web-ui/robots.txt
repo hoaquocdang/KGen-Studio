@@ -1,0 +1,50 @@
+# ============================================================
+# robots.txt — kgen.cloud
+# Chuẩn SEO + AIO (AI Overview / Google SGE)
+# ============================================================
+
+# Tất cả crawler (bao gồm Googlebot, Bingbot, v.v.)
+User-agent: *
+Allow: /
+Allow: /video
+Allow: /chatbot_viral
+Allow: /chatbot_viral/gem
+Allow: /model-comparison
+Allow: /info
+
+# Không index trang admin & API
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /deploy/
+
+# ============================================================
+# AI Crawlers — cho phép để xuất hiện trên AI Overview (AIO)
+# Google SGE, Bing Chat, Perplexity, ChatGPT Browse
+# ============================================================
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# ============================================================
+# Sitemap
+# ============================================================
+Sitemap: https://kgen.cloud/sitemap.xml

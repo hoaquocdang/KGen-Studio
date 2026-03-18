@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xsi:schemaLocation="
+    http://www.sitemaps.org/schemas/sitemap/0.9
+    http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- ============================================================ -->
+  <!-- TRANG CHỦ — Ưu tiên cao nhất                                 -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://kgen.cloud/kgen-og.png</image:loc>
+      <image:title>KGen Gallery — Nền tảng Tạo Ảnh AI &amp; Prompt Chuyên Nghiệp</image:title>
+      <image:caption>KGen Gallery: Tạo ảnh AI chất lượng cao với Imagen 3, quản lý prompt, chia sẻ cộng đồng sáng tạo Việt Nam.</image:caption>
+    </image:image>
+  </url>
+
+  <!-- ============================================================ -->
+  <!-- VEO 3.1 VIDEO STUDIO — Tính năng mới, ưu tiên cao            -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/video</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://kgen.cloud/kgen-og.png</image:loc>
+      <image:title>KGen Video Studio — Tạo Video AI VEO 3.1 bằng Google DeepMind</image:title>
+      <image:caption>Tạo video AI cinematic 4K từ text và ảnh với công nghệ VEO 3.1 của Google DeepMind. Giá chỉ 25% so với Google gốc.</image:caption>
+    </image:image>
+  </url>
+
+  <!-- ============================================================ -->
+  <!-- CHATBOT VIRAL — Công cụ tạo kịch bản TikTok                  -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/chatbot_viral</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://kgen.cloud/chatbot_viral/chatbot-banner.webp</image:loc>
+      <image:title>KGen Chatbot Viral — Bộ AI Kịch Bản Video Viral TikTok Số 1 Việt Nam</image:title>
+      <image:caption>Tạo kịch bản video viral TikTok, Facebook Reels, YouTube Shorts bằng AI thông minh, nhanh chóng và sáng tạo.</image:caption>
+    </image:image>
+  </url>
+
+  <!-- ============================================================ -->
+  <!-- CHATBOT GEM STORE — Cửa hàng chatbot AI                      -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/chatbot_viral/gem</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- ============================================================ -->
+  <!-- MODEL COMPARISON — So sánh mô hình AI                        -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/model-comparison</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- ============================================================ -->
+  <!-- PROFILE — Hòa Quốc Đặng AI Strategist                        -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/info</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.60</priority>
+  </url>
+
+</urlset>
