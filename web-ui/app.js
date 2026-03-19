@@ -3959,36 +3959,34 @@ function showGoogleSetupPrompt() {
 
 async function setupPricing() {
     const container = document.getElementById('pricing-container');
-    if (!container || typeof PRICING_TIERS === 'undefined') return;
+    if (!container) return;
+
+    // Use PRICING_TIERS & TOPUP_PACKAGES from supabase.js (the single source of truth)
+    const tiers = window.PRICING_TIERS || [];
+    const topups = window.TOPUP_PACKAGES || [];
+    if (tiers.length === 0) return;
 
     const currentTier = APP_STATE.currentUser?.tier || 'free';
-    const _cp = typeof convertPrice === 'function' ? convertPrice : (v) => v.toLocaleString() + 'đ';
-    const _period = typeof getCurrencyPeriod === 'function' ? getCurrencyPeriod() : '/tháng';
 
     // Load dynamic prices from Supabase api_config (synced with Admin Panel)
-    let _bpv = typeof BASE_PRICES_VND !== 'undefined' ? { ...BASE_PRICES_VND } : { free: 0, pro: 39000, premium: 199000 };
     if (typeof window.loadCentralConfig === 'function') {
         try {
             const config = await window.loadCentralConfig();
             if (config.plan_prices) {
-                if (config.plan_prices.pro?.price) _bpv.pro = config.plan_prices.pro.price;
-                if (config.plan_prices.premium?.price) _bpv.premium = config.plan_prices.premium.price;
-                // Update PRICING_TIERS features with dynamic credits
-                PRICING_TIERS.forEach(tier => {
+                tiers.forEach(tier => {
                     const planData = config.plan_prices[tier.id];
+                    if (planData && planData.price) {
+                        tier.price = planData.price.toLocaleString('vi') + 'đ';
+                    }
                     if (planData && planData.tokens_limit) {
-                        if (tier.id === 'pro') {
-                            tier.price = _cp(planData.price);
-                            tier.features[0] = `Tặng ${planData.tokens_limit} Credits / tháng (~${planData.tokens_limit} ảnh thường)`;
-                        } else if (tier.id === 'premium') {
-                            tier.price = _cp(planData.price);
-                            tier.features[0] = `Tặng ${planData.tokens_limit.toLocaleString()} Credits / tháng (Business)`;
+                        if (tier.id === 'premium') {
+                            tier.features[0] = `KGen Gallery · VEO 3.1 Video Studio — ${planData.tokens_limit.toLocaleString()} Credits/năm`;
                         } else if (tier.id === 'free') {
                             tier.features[0] = `Tặng kèm ${planData.tokens_limit} Credits ban đầu`;
                         }
                     }
                 });
-                console.log('💰 Pricing synced from Supabase:', _bpv);
+                console.log('💰 Pricing synced from Supabase');
             }
         } catch (e) { console.warn('Pricing sync fallback:', e.message); }
     }
@@ -3996,25 +3994,26 @@ async function setupPricing() {
     container.innerHTML = `
         <div style="margin-bottom: 32px;">
             <div class="pricing-grid-inline">
-                ${PRICING_TIERS.map(tier => `
+                ${tiers.map(tier => `
                     <div class="pricing-card-inline ${tier.popular ? 'popular' : ''} ${currentTier === tier.id ? 'current' : ''}">
-                        ${tier.popular ? '<div class="popular-badge-inline">🔥 ' + (typeof t === 'function' ? t('home.popular').replace('💎 ', '') : 'Phổ biến nhất') + '</div>' : ''}
+                        ${tier.popular ? '<div class="popular-badge-inline">🔥 Phổ biến nhất</div>' : ''}
                         <div class="tier-header-inline">
                             <span class="tier-emoji-inline">${tier.emoji}</span>
                             <h3>${tier.name}</h3>
                         </div>
                         <div class="tier-price-inline">
-                            <span class="amount">${_bpv[tier.id] !== undefined ? _cp(_bpv[tier.id]) : tier.price}</span>
-                            <span class="period">${_period}</span>
+                            <span class="amount">${tier.price}</span>
+                            <span class="period">${tier.period}</span>
                         </div>
+                        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.06); margin:16px 0;">
                         <ul class="tier-features-inline">
-                            ${tier.features.map(f => `<li>${f}</li>`).join('')}
-                            ${tier.limitations.map(l => `<li class="limit">\u274c ${l}</li>`).join('')}
+                            ${tier.features.map(f => `<li>✅ ${f}</li>`).join('')}
+                            ${(tier.limitations || []).map(l => `<li class="limit">❌ ${l}</li>`).join('')}
                         </ul>
-                        <button class="btn ${tier.buttonClass} tier-btn-inline" 
+                        <button class="btn ${tier.buttonClass} tier-btn-inline"
                             data-tier="${tier.id}"
-                            ${currentTier === tier.id ? 'disabled' : ''}>
-                            ${currentTier === tier.id ? '\u2713 ' + (typeof t === 'function' ? t('common.save') : 'Đang sử dụng') : tier.buttonText}
+                            ${(currentTier === tier.id || tier.id === 'free') ? 'disabled' : ''}>
+                            ${currentTier === tier.id ? '✓ Đang sử dụng' : tier.buttonText}
                         </button>
                     </div>
                 `).join('')}
@@ -4023,37 +4022,50 @@ async function setupPricing() {
 
         <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.05);">
             <div style="text-align:center; margin-bottom: 24px;">
-                <h2 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">Nạp thêm <span style="color:var(--accent-blue)">Credits</span></h2>
-                <p style="color:var(--text-secondary); max-width:500px; margin:0 auto;">Dùng cho khách hàng đã xài hết Credit trong Gói Tháng mà vẫn còn nhu cầu.</p>
+                <h2 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">Nạp thêm <span style="background:linear-gradient(135deg,#f59e0b,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Credits</span></h2>
+                <p style="color:var(--text-secondary); max-width:500px; margin:0 auto;">Dùng cho tất cả tài khoản — Credits dùng để tạo ảnh AI, Video VEO 3.1 và các tính năng AI khác.</p>
             </div>
-            <div class="pricing-grid-inline" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-                ${(typeof TOPUP_PACKAGES !== 'undefined' ? TOPUP_PACKAGES : []).map(pack => `
-                    <div class="pricing-card-inline" style="padding:24px; text-align:center;">
-                        ${pack.best ? '<div class="popular-badge-inline" style="background:#10b981; color:#fff;">' + pack.bonus + '</div>' : ''}
-                        <div style="font-size:3rem; margin-bottom:12px;">${pack.emoji}</div>
-                        <h3 style="font-size:1.2rem; margin-bottom:4px;">${pack.name}</h3>
-                        <div style="color:var(--accent-blue); font-size:1.8rem; font-weight:800; margin-bottom:16px;">
-                            ${pack.credits} <span style="font-size:1rem; font-weight:600; color:var(--text-secondary);">Credits</span>
+            <div class="pricing-grid-inline" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                ${topups.map(pack => {
+                    const hasBadge = pack.best || pack.bonus;
+                    const badgeStyle = pack.best
+                        ? 'background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;'
+                        : 'background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3);';
+                    const badgeText = pack.best ? '🔥 HOT' : (pack.bonus || '');
+                    const priceStr = pack.priceDisplay || (typeof pack.price === 'number' ? pack.price.toLocaleString('vi') + 'đ' : pack.price);
+                    return `
+                    <div class="pricing-card-inline ${pack.best ? 'popular' : ''}" style="padding:24px; text-align:center; position:relative;">
+                        ${hasBadge && badgeText ? `<div class="popular-badge-inline" style="${badgeStyle}">${badgeText}</div>` : ''}
+                        <div style="font-size:2.5rem; margin-bottom:10px;">${pack.emoji}</div>
+                        <h3 style="font-size:0.9rem; font-weight:700; margin-bottom:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${pack.name}</h3>
+                        <div style="color:var(--accent-blue); font-size:2rem; font-weight:900; margin-bottom:4px; letter-spacing:-1px;">
+                            ${pack.credits} <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Credits</span>
                         </div>
-                        <div style="font-size:1.4rem; font-weight:700; margin-bottom:20px;">${pack.price}</div>
-                        <button class="btn ${pack.best ? 'btn-primary' : 'btn-outline'} topup-btn-inline" style="width:100%; border-radius:12px;" data-pack="${pack.id}">
-                            Mua ngay
+                        ${pack.perToken ? `<div style="font-size:0.68rem; color:var(--text-tertiary); margin-bottom:12px;">${pack.perToken}</div>` : '<div style="margin-bottom:12px;"></div>'}
+                        <div style="font-size:1.5rem; font-weight:800; margin-bottom:18px; color:var(--text-primary);">${priceStr}</div>
+                        <button class="btn ${pack.best ? 'btn-primary' : 'btn-ghost'} topup-btn-inline" style="width:100%; border-radius:12px; font-weight:700;" data-pack="${pack.id}">
+                            ${pack.best ? '🪙 Mua ngay' : 'Mua ngay'}
                         </button>
-                    </div>
-                `).join('')}
+                    </div>`;
+                }).join('')}
             </div>
         </div>
         <div class="pricing-footer-inline">
-            <p>${typeof t === 'function' ? t('pricing.footer') : '🔒 Thanh toán tự động KGen Guard'}</p>
-            <p class="sub-note">${typeof t === 'function' ? t('pricing.footer_sub') : 'Kích hoạt ngay khi nhận thanh toán. Quản lý dễ dàng.'}</p>
+            <p>🔒 Hệ thống Thanh Toán Tự Động KGen Guard</p>
+            <p class="sub-note">Kích hoạt tự động 1–5 phút sau khi nhận thanh toán. Hỗ trợ 24/7 qua Zalo.</p>
         </div>
     `;
 
-    // Attach events
+    // Attach events for plan tiers
     container.querySelectorAll('.tier-btn-inline').forEach(btn => {
         btn.addEventListener('click', () => {
             const tier = btn.dataset.tier;
-            if (tier === 'free') return;
+            if (btn.disabled || tier === 'free') return;
+            if (!APP_STATE.currentUser) {
+                showToast('Vui lòng đăng nhập trước khi mua gói', 'error');
+                if (typeof openAuthModal === 'function') openAuthModal();
+                return;
+            }
             if (typeof handleUpgrade === 'function') {
                 handleUpgrade(tier);
             }
@@ -4064,8 +4076,8 @@ async function setupPricing() {
     container.querySelectorAll('.topup-btn-inline').forEach(btn => {
         btn.addEventListener('click', () => {
             if (!APP_STATE.currentUser) {
-                switchTab('home');
-                showToast("Vui lòng đăng nhập trước khi nạp thêm Credit");
+                showToast('Vui lòng đăng nhập trước khi nạp thêm Credit', 'error');
+                if (typeof openAuthModal === 'function') openAuthModal();
                 return;
             }
             const packId = btn.dataset.pack;
