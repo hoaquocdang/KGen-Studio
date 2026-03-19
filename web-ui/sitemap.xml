@@ -82,4 +82,60 @@
     <priority>0.60</priority>
   </url>
 
+  <!-- ============================================================ -->
+  <!-- BLOG — SEO Content Hub                                       -->
+  <!-- ============================================================ -->
+  <url>
+    <loc>https://kgen.cloud/blog/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://kgen.cloud/banner.png</image:loc>
+      <image:title>Blog KGen — Hướng Dẫn AI, Prompt Engineering &amp; Tạo Ảnh AI Chuyên Sâu</image:title>
+      <image:caption>Blog kiến thức AI số 1 Việt Nam: prompt engineering, Imagen 3, VEO 3.1, Gemini AI và công cụ sáng tạo.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://kgen.cloud/blog/cach-viet-prompt-tao-anh-ai/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+    <image:image>
+      <image:loc>https://kgen.cloud/banner_gemini.png</image:loc>
+      <image:title>Cách Viết Prompt Tạo Ảnh AI Chuyên Nghiệp — Hướng Dẫn Từ A đến Z</image:title>
+      <image:caption>Framework 5 bước SACLT để viết prompt AI tạo ảnh chuyên nghiệp. 30+ ví dụ thực tế cho người Việt Nam.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://kgen.cloud/blog/veo-3-1-huong-dan-tao-video-ai/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.78</priority>
+  </url>
+  <url>
+    <loc>https://kgen.cloud/blog/so-sanh-imagen-3-vs-midjourney-vs-dalle-3/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://kgen.cloud/blog/prompt-chup-anh-san-pham-thuong-mai/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://kgen.cloud/blog/carousel-ai-tao-noi-dung-cho-mang-xa-hoi/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+  <url>
+    <loc>https://kgen.cloud/blog/ai-content-creator-viet-nam-2026/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+
 </urlset>

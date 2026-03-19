@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ===== PRIMARY SEO ===== -->
+  <title>Blog KGen | Hướng Dẫn AI, Prompt Engineering & Tạo Ảnh AI Chuyên Sâu</title>
+  <meta name="title" content="Blog KGen | Hướng Dẫn AI, Prompt Engineering & Tạo Ảnh AI Chuyên Sâu">
+  <meta name="description" content="Hướng dẫn tạo ảnh AI chuyên sâu, bí quyết viết prompt Midjourney, Imagen 3, Gemini. Cập nhật tin tức AI mới nhất, mẹo tạo video AI VEO 3.1 bằng tiếng Việt.">
+  <meta name="keywords" content="blog AI, hướng dẫn AI, prompt engineering, tạo ảnh AI, Midjourney tiếng Việt, Imagen 3, Gemini AI, VEO 3.1, KGen, AI content creator, prompt AI">
+  <meta name="author" content="KGen Studio — hoaquocdang">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://kgen.cloud/blog/">
+
+  <!-- ===== OPEN GRAPH ===== -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kgen.cloud/blog/">
+  <meta property="og:site_name" content="KGen Blog">
+  <meta property="og:locale" content="vi_VN">
+  <meta property="og:title" content="Blog KGen | Hướng Dẫn AI, Prompt Engineering & Tạo Ảnh AI">
+  <meta property="og:description" content="Hướng dẫn tạo ảnh AI, prompt Midjourney, Imagen 3, VEO 3.1 và tin tức AI mới nhất bằng tiếng Việt. Cộng đồng AI sáng tạo số 1 Việt Nam.">
+  <meta property="og:image" content="https://kgen.cloud/banner.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- ===== TWITTER CARD ===== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@hoaquocdang">
+  <meta name="twitter:title" content="Blog KGen | Hướng Dẫn AI, Prompt Engineering & Tạo Ảnh AI">
+  <meta name="twitter:description" content="Hướng dẫn AI chuyên sâu, prompt engineering, tạo ảnh AI và video AI VEO 3.1 bằng tiếng Việt.">
+  <meta name="twitter:image" content="https://kgen.cloud/banner.png">
+
+  <!-- ===== SCHEMA.ORG BLOG ===== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "Blog KGen",
+    "description": "Hướng dẫn tạo ảnh AI, prompt engineering, VEO 3.1 và tin tức AI mới nhất bằng tiếng Việt",
+    "url": "https://kgen.cloud/blog/",
+    "publisher": {
+      "@type": "Organization",
+      "name": "KGen Studio",
+      "url": "https://kgen.cloud",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://kgen.cloud/logo.png"
+      }
+    },
+    "inLanguage": "vi",
+    "blogPost": [
+      {
+        "@type": "BlogPosting",
+        "headline": "Cách Viết Prompt Tạo Ảnh AI Chuyên Nghiệp — Bí Quyết Từ A đến Z",
+        "url": "https://kgen.cloud/blog/cach-viet-prompt-tao-anh-ai/",
+        "datePublished": "2026-03-15",
+        "dateModified": "2026-03-19",
+        "image": "https://kgen.cloud/banner_gemini.png",
+        "author": {"@type": "Person", "name": "hoaquocdang"}
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "VEO 3.1 Là Gì? Hướng Dẫn Tạo Video AI Cinematic Từ Text",
+        "url": "https://kgen.cloud/blog/veo-3-1-huong-dan-tao-video-ai/",
+        "datePublished": "2026-03-10",
+        "dateModified": "2026-03-19",
+        "image": "https://kgen.cloud/banner.png",
+        "author": {"@type": "Person", "name": "hoaquocdang"}
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "So Sánh Imagen 3 vs Midjourney vs DALL-E 3: Cái Nào Tốt Nhất 2026?",
+        "url": "https://kgen.cloud/blog/so-sanh-imagen-3-vs-midjourney-vs-dalle-3/",
+        "datePublished": "2026-03-05",
+        "dateModified": "2026-03-19",
+        "image": "https://kgen.cloud/banner_gemini.png",
+        "author": {"@type": "Person", "name": "hoaquocdang"}
+      }
+    ]
+  }
+  </script>
+
+  <!-- ===== BREADCRUMB SCHEMA ===== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://kgen.cloud/"},
+      {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://kgen.cloud/blog/"}
+    ]
+  }
+  </script>
+
+  <!-- ===== FONTS & ASSETS ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="https://kgen.cloud/favicon.png">
+  <link rel="canonical" href="https://kgen.cloud/blog/">
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #111118;
+      --bg3: #16161f;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f5;
+      --text2: #9999b3;
+      --text3: #555570;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --gold: #f59e0b;
+      --green: #10b981;
+      --radius: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; gap: 24px;
+    }
+    .logo-link {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--text);
+      font-weight: 800; font-size: 1.1rem; letter-spacing: -0.3px;
+    }
+    .logo-link img { width: 32px; height: 32px; border-radius: 8px; }
+    .logo-link .logo-name span { color: var(--accent2); font-style: italic; }
+    .header-nav { display: flex; align-items: center; gap: 8px; }
+    .header-nav a {
+      color: var(--text2); text-decoration: none; font-size: 0.9rem;
+      padding: 8px 14px; border-radius: 8px; transition: all 0.2s;
+      font-weight: 500;
+    }
+    .header-nav a:hover, .header-nav a.active { color: var(--text); background: var(--bg3); }
+    .header-cta {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border: none; padding: 8px 18px; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer; text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .header-cta:hover { opacity: 0.85; }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+    }
+    .breadcrumb-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--text3);
+    }
+    .breadcrumb-inner a { color: var(--text2); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb-inner a:hover { color: var(--accent); }
+    .breadcrumb-inner .sep { opacity: 0.4; }
+    .breadcrumb-inner .current { color: var(--text); }
+
+    /* ===== HERO ===== */
+    .blog-hero {
+      padding: 80px 24px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .blog-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 900px 400px at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25);
+      color: #a5b4fc; font-size: 0.78rem; font-weight: 600;
+      padding: 5px 14px; border-radius: 100px; margin-bottom: 20px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .blog-hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900; line-height: 1.15;
+      letter-spacing: -1.5px; margin-bottom: 16px;
+    }
+    .blog-hero h1 .grad {
+      background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #f472b6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .blog-hero p {
+      color: var(--text2); font-size: 1.05rem; max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    /* ===== SEARCH ===== */
+    .search-wrap {
+      max-width: 520px; margin: 0 auto 20px;
+      position: relative;
+    }
+    .search-wrap input {
+      width: 100%; padding: 14px 20px 14px 48px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; color: var(--text); font-size: 0.95rem;
+      font-family: inherit; outline: none; transition: border 0.2s;
+    }
+    .search-wrap input::placeholder { color: var(--text3); }
+    .search-wrap input:focus { border-color: rgba(99,102,241,0.5); }
+    .search-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--text3); width: 18px;
+    }
+
+    /* ===== CATEGORY PILLS ===== */
+    .categories {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 8px; margin-bottom: 16px;
+    }
+    .cat-pill {
+      padding: 6px 16px; border-radius: 100px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--text2); transition: all 0.2s;
+    }
+    .cat-pill:hover, .cat-pill.active {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .blog-main {
+      max-width: 1200px; margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: grid; grid-template-columns: 1fr 340px; gap: 48px;
+    }
+    @media (max-width: 900px) {
+      .blog-main { grid-template-columns: 1fr; }
+      .blog-sidebar { display: none; }
+    }
+
+    /* ===== FEATURED POST ===== */
+    .featured-post {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 1fr;
+      margin-bottom: 40px; transition: transform 0.3s;
+    }
+    .featured-post:hover { transform: translateY(-4px); }
+    .featured-post img {
+      width: 100%; height: 280px; object-fit: cover;
+    }
+    .featured-content {
+      padding: 36px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .featured-tag {
+      display: inline-block; padding: 4px 12px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase; margin-bottom: 14px;
+      background: rgba(99,102,241,0.15); color: #a5b4fc;
+    }
+    .featured-content h2 {
+      font-size: 1.4rem; font-weight: 800; line-height: 1.3;
+      margin-bottom: 12px; letter-spacing: -0.5px;
+    }
+    .featured-content h2 a { color: var(--text); text-decoration: none; transition: color 0.2s; }
+    .featured-content h2 a:hover { color: var(--accent); }
+    .featured-content p { color: var(--text2); font-size: 0.9rem; margin-bottom: 20px; }
+    .post-meta { display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--text3); }
+    .post-meta .author { display: flex; align-items: center; gap: 6px; }
+    .post-meta .author img { width: 24px; height: 24px; border-radius: 50%; }
+    .read-more {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--accent); font-weight: 600; font-size: 0.85rem;
+      text-decoration: none; margin-top: 16px; transition: gap 0.2s;
+    }
+    .read-more:hover { gap: 10px; }
+    @media (max-width: 700px) {
+      .featured-post { grid-template-columns: 1fr; }
+      .featured-post img { height: 200px; }
+    }
+
+    /* ===== POST GRID ===== */
+    .section-title {
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text3); text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 24px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .post-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 600px) { .post-grid { grid-template-columns: 1fr; } }
+
+    .post-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      transition: all 0.3s; text-decoration: none; display: block;
+    }
+    .post-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.3); }
+    .post-card-img {
+      width: 100%; height: 180px; object-fit: cover; display: block;
+      background: var(--bg3);
+    }
+    .post-card-body { padding: 20px; }
+    .post-card-tag {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; padding: 3px 9px; border-radius: 5px;
+      display: inline-block; margin-bottom: 10px;
+    }
+    .tag-prompt { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .tag-video { background: rgba(239,68,68,0.12); color: #f87171; }
+    .tag-tool { background: rgba(16,185,129,0.12); color: #34d399; }
+    .tag-news { background: rgba(245,158,11,0.12); color: #fbbf24; }
+    .tag-compare { background: rgba(139,92,246,0.12); color: #c084fc; }
+    .tag-guide { background: rgba(59,130,246,0.12); color: #60a5fa; }
+
+    .post-card h3 {
+      font-size: 1rem; font-weight: 700; line-height: 1.4;
+      color: var(--text); margin-bottom: 8px; letter-spacing: -0.2px;
+    }
+    .post-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.55; }
+    .post-card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.75rem; color: var(--text3);
+    }
+
+    /* ===== LOAD MORE ===== */
+    .load-more-wrap { text-align: center; margin-top: 8px; }
+    .load-more-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--bg2);
+      color: var(--text); font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .load-more-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== NEWSLETTER ===== */
+    .newsletter-box {
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 20px; padding: 40px; text-align: center;
+      margin-top: 40px;
+    }
+    .newsletter-box h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+    .newsletter-box p { color: var(--text2); font-size: 0.9rem; margin-bottom: 24px; }
+    .newsletter-form {
+      display: flex; gap: 10px; max-width: 420px; margin: 0 auto;
+    }
+    .newsletter-form input {
+      flex: 1; padding: 12px 16px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 0.9rem;
+      font-family: inherit; outline: none;
+    }
+    .newsletter-form input::placeholder { color: var(--text3); }
+    .newsletter-form button {
+      padding: 12px 20px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border: none; font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .blog-sidebar {}
+    .sidebar-widget {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      margin-bottom: 24px;
+    }
+    .widget-title {
+      font-size: 0.85rem; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 20px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .trending-list { list-style: none; }
+    .trending-list li {
+      display: flex; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .trending-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .trending-num {
+      font-size: 1.2rem; font-weight: 900;
+      color: var(--text3); min-width: 24px; line-height: 1.4;
+    }
+    .trending-list a {
+      color: var(--text); text-decoration: none; font-size: 0.85rem;
+      font-weight: 600; line-height: 1.4; transition: color 0.2s;
+    }
+    .trending-list a:hover { color: var(--accent); }
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-cloud a {
+      padding: 5px 12px; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.78rem; color: var(--text2);
+      text-decoration: none; transition: all 0.2s;
+    }
+    .tag-cloud a:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .cta-widget {
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: var(--radius); padding: 28px; text-align: center;
+      margin-bottom: 24px;
+    }
+    .cta-widget .emoji { font-size: 2.5rem; margin-bottom: 12px; }
+    .cta-widget h4 { font-size: 1rem; font-weight: 800; margin-bottom: 8px; }
+    .cta-widget p { font-size: 0.8rem; color: var(--text2); margin-bottom: 16px; }
+    .cta-widget a {
+      display: block; padding: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border-radius: 10px; font-weight: 700;
+      font-size: 0.85rem; text-decoration: none;
+    }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 48px 24px 32px;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 768px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
+    .footer-brand p { color: var(--text2); font-size: 0.85rem; margin-top: 12px; }
+    .footer-col h5 { font-size: 0.85rem; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+    .footer-col a {
+      display: block; color: var(--text2); text-decoration: none;
+      font-size: 0.82rem; margin-bottom: 8px; transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--accent); }
+    .footer-bottom {
+      max-width: 1200px; margin: 0 auto;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text3);
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-bottom a { color: var(--text2); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="https://kgen.cloud/" class="logo-link">
+        <img src="https://kgen.cloud/logo.png" alt="KGen Logo" width="32" height="32">
+        <span class="logo-name">KGen <span>Blog</span></span>
+      </a>
+      <nav class="header-nav" aria-label="Main navigation">
+        <a href="https://kgen.cloud/">🏠 Trang chủ</a>
+        <a href="https://kgen.cloud/blog/" class="active">📝 Blog</a>
+        <a href="https://kgen.cloud/video">🎬 Video AI</a>
+        <a href="https://kgen.cloud/chatbot_viral">🤖 AI Tools</a>
+      </nav>
+      <a href="https://kgen.cloud/" class="header-cta">Dùng KGen Miễn Phí →</a>
+    </div>
+  </header>
+
+  <!-- ===== BREADCRUMB ===== -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="https://kgen.cloud/">Trang chủ</a>
+      <span class="sep">›</span>
+      <span class="current">Blog</span>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="blog-hero">
+    <div class="hero-label">✍️ KGen Knowledge Hub</div>
+    <h1>Học AI <span class="grad">Sâu Hơn.</span><br>Tạo Nhanh Hơn.</h1>
+    <p>Hướng dẫn chuyên sâu về Prompt Engineering, Tạo ảnh AI, Video AI và công cụ sáng tạo tiên tiến nhất 2026 — hoàn toàn bằng tiếng Việt.</p>
+
+    <div class="search-wrap" role="search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="search" id="blog-search" placeholder="Tìm bài viết về AI, prompt, video..." aria-label="Tìm kiếm bài viết">
+    </div>
+
+    <div class="categories" role="navigation" aria-label="Danh mục bài viết">
+      <button class="cat-pill active" data-cat="all">Tất cả</button>
+      <button class="cat-pill" data-cat="prompt">Prompt Engineering</button>
+      <button class="cat-pill" data-cat="video">Video AI</button>
+      <button class="cat-pill" data-cat="tool">Công cụ AI</button>
+      <button class="cat-pill" data-cat="compare">So sánh AI</button>
+      <button class="cat-pill" data-cat="news">Tin tức AI</button>
+    </div>
+  </section>
+
+  <!-- ===== MAIN ===== -->
+  <main class="blog-main">
+    <div class="blog-content">
+
+      <!-- Featured Post -->
+      <article class="featured-post">
+        <img src="https://kgen.cloud/banner_gemini.png" alt="Hướng dẫn viết prompt AI chuyên nghiệp" loading="eager" width="560" height="280">
+        <div class="featured-content">
+          <span class="featured-tag">🔥 Bài viết nổi bật</span>
+          <h2><a href="https://kgen.cloud/blog/cach-viet-prompt-tao-anh-ai/">Cách Viết Prompt Tạo Ảnh AI Chuyên Nghiệp — Bí Quyết Từ A đến Z</a></h2>
+          <p>Khám phá framework viết prompt 5 bước được hàng nghìn creator Việt Nam áp dụng để tạo ra ảnh AI chất lượng cao mà không cần nền tảng thiết kế.</p>
+          <div class="post-meta">
+            <span class="author">
+              <img src="https://kgen.cloud/logo.png" alt="KGen" width="24" height="24">
+              hoaquocdang
+            </span>
+            <span>·</span>
+            <time datetime="2026-03-15">15 tháng 3, 2026</time>
+            <span>·</span>
+            <span>8 phút đọc</span>
+          </div>
+          <a href="https://kgen.cloud/blog/cach-viet-prompt-tao-anh-ai/" class="read-more" aria-label="Đọc bài viết về cách viết prompt AI">Đọc ngay →</a>
+        </div>
+      </article>
+
+      <!-- Post Grid -->
+      <div class="section-title">
+        <span>📚</span> Bài viết mới nhất
+      </div>
+
+      <div class="post-grid" id="post-grid">
+
+        <article class="post-card" style="text-decoration:none;">
+          <a href="https://kgen.cloud/blog/veo-3-1-huong-dan-tao-video-ai/" style="display:block; text-decoration:none;">
+            <img class="post-card-img" src="https://kgen.cloud/banner.png" alt="VEO 3.1 hướng dẫn tạo video AI" loading="lazy" width="560" height="180">
+            <div class="post-card-body">
+              <span class="post-card-tag tag-video">🎬 Video AI</span>
+              <h3>VEO 3.1 Là Gì? Hướng Dẫn Tạo Video AI Cinematic Chỉ Với 1 Câu Text</h3>
+              <p>Google DeepMind VEO 3.1 tạo video 4K từ text prompt trong vòng 2 phút. Hướng dẫn từng bước đầy đủ cho người mới bắt đầu.</p>
+            </div>
+            <div class="post-card-footer">
+              <time datetime="2026-03-10">10/03/2026</time>
+              <span>6 phút đọc</span>
+            </div>
+          </a>
+        </article>
+
+        <article class="post-card">
+          <a href="https://kgen.cloud/blog/so-sanh-imagen-3-vs-midjourney-vs-dalle-3/" style="display:block; text-decoration:none;">
+            <img class="post-card-img" src="https://kgen.cloud/banner_gemini.png" alt="So sánh Imagen 3 vs Midjourney vs DALL-E 3" loading="lazy" width="560" height="180">
+            <div class="post-card-body">
+              <span class="post-card-tag tag-compare">⚖️ So sánh</span>
+              <h3>Imagen 3 vs Midjourney vs DALL-E 3: Cái Nào Tốt Nhất 2026?</h3>
+              <p>Bảng so sánh chi tiết 3 nền tảng tạo ảnh AI hàng đầu về chất lượng, giá cả và tính năng — để bạn chọn đúng công cụ.</p>
+            </div>
+            <div class="post-card-footer">
+              <time datetime="2026-03-05">05/03/2026</time>
+              <span>10 phút đọc</span>
+            </div>
+          </a>
+        </article>
+
+        <article class="post-card">
+          <a href="https://kgen.cloud/blog/prompt-chup-anh-san-pham-thuong-mai/" style="display:block; text-decoration:none;">
+            <img class="post-card-img" src="https://kgen.cloud/banner_premium.png" alt="Prompt chụp ảnh sản phẩm thương mại AI" loading="lazy" width="560" height="180">
+            <div class="post-card-body">
+              <span class="post-card-tag tag-prompt">✍️ Prompt</span>
+              <h3>50+ Prompt AI Chụp Ảnh Sản Phẩm Thương Mại Đẳng Cấp Studio</h3>
+              <p>Bộ sưu tập prompt chuyên nghiệp để tạo ảnh sản phẩm với background trắng, dramatic lighting, lifestyle shot — thay thế studio 10 triệu đồng.</p>
+            </div>
+            <div class="post-card-footer">
+              <time datetime="2026-02-28">28/02/2026</time>
+              <span>5 phút đọc</span>
+            </div>
+          </a>
+        </article>
+
+        <article class="post-card">
+          <a href="https://kgen.cloud/blog/gemini-2-flash-la-gi-so-sanh-voi-gpt-4o/" style="display:block; text-decoration:none;">
+            <img class="post-card-img" src="https://kgen.cloud/banner_chatbot.png" alt="Gemini 2.5 Flash so sánh GPT-4o" loading="lazy" width="560" height="180">
+            <div class="post-card-body">
+              <span class="post-card-tag tag-news">📰 Tin tức AI</span>
+              <h3>Gemini 2.5 Flash Ra Mắt: Nhanh Hơn, Rẻ Hơn và Vẫn Đánh Bại GPT-4o</h3>
+              <p>Google ra mắt Gemini 2.5 Flash với tốc độ xử lý gấp đôi, giá chỉ bằng 60% GPT-4o và khả năng reasoning vượt trội. Tất cả những gì bạn cần biết.</p>
+            </div>
+            <div class="post-card-footer">
+              <time datetime="2026-02-20">20/02/2026</time>
+              <span>7 phút đọc</span>
+            </div>
+          </a>
+        </article>
+
+        <article class="post-card">
+          <a href="https://kgen.cloud/blog/carousel-ai-tao-noi-dung-cho-mang-xa-hoi/" style="display:block; text-decoration:none;">
+            <img class="post-card-img" src="https://kgen.cloud/viral_content_avatar.png" alt="Carousel AI tạo nội dung mạng xã hội" loading="lazy" width="560" height="180">
+            <div class="post-card-body">
+              <span class="post-card-tag tag-tool">🛠️ Công cụ</span>
+              <h3>Carousel AI: Cách Tạo Nội Dung Viral Cho LinkedIn, Instagram Trong 5 Phút</h3>
+              <p>Hướng dẫn sử dụng KGen Carousel AI để tạo slide deck hấp dẫn cho LinkedIn, Instagram, TikTok — tăng tương tác gấp 3 lần so với post thường.</p>
+            </div>
+            <div class="post-card-footer">
+              <time datetime="2026-02-15">15/02/2026</time>
+              <span>5 phút đọc</span>
+            </div>
+          </a>
+        </article>
+
+        <article class="post-card">
+          <a href="https://kgen.cloud/blog/ai-content-creator-viet-nam-2026/" style="display:block; text-decoration:none;">
+            <img class="post-card-img" src="https://kgen.cloud/hub_avatar.png" alt="AI Content Creator Việt Nam 2026" loading="lazy" width="560" height="180">
+            <div class="post-card-body">
+              <span class="post-card-tag tag-guide">📖 Hướng dẫn</span>
+              <h3>Lộ Trình Trở Thành AI Content Creator Kiếm 50 Triệu/Tháng Từ 0</h3>
+              <p>Roadmap đầy đủ từ không biết gì đến profitable creator: học prompt engineering, xây kênh, monetize và scale thu nhập với AI tools.</p>
+            </div>
+            <div class="post-card-footer">
+              <time datetime="2026-02-10">10/02/2026</time>
+              <span>12 phút đọc</span>
+            </div>
+          </a>
+        </article>
+
+      </div><!-- /post-grid -->
+
+      <div class="load-more-wrap">
+        <button class="load-more-btn" id="load-more-btn" aria-label="Xem thêm bài viết">
+          Xem thêm bài viết
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12l7 7 7-7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="newsletter-box" role="complementary" aria-label="Đăng ký nhận bài viết mới">
+        <h3>📬 Nhận Bài Viết AI Mới Nhất</h3>
+        <p>Mỗi tuần 1 email — hướng dẫn AI thực chiến, prompt chất lượng cao, và cập nhật tính năng KGen mới nhất.</p>
+        <form class="newsletter-form" id="newsletter-form" action="#" onsubmit="handleNewsletter(event)">
+          <input type="email" id="newsletter-email" placeholder="email@cuaban.com" required autocomplete="email" aria-label="Địa chỉ email">
+          <button type="submit">Đăng ký</button>
+        </form>
+      </div>
+
+    </div><!-- /blog-content -->
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="blog-sidebar" aria-label="Sidebar">
+
+      <div class="cta-widget">
+        <div class="emoji">🔮</div>
+        <h4>Dùng KGen Miễn Phí</h4>
+        <p>Tạo ảnh AI, Video VEO 3.1, Carousel viral — tất cả trong 1 nền tảng.</p>
+        <a href="https://kgen.cloud/">Bắt đầu ngay →</a>
+      </div>
+
+      <div class="sidebar-widget">
+        <div class="widget-title">🔥 Bài viết trending</div>
+        <ul class="trending-list">
+          <li>
+            <span class="trending-num">01</span>
+            <a href="https://kgen.cloud/blog/cach-viet-prompt-tao-anh-ai/">Cách Viết Prompt Tạo Ảnh AI Chuyên Nghiệp — Từ A đến Z</a>
+          </li>
+          <li>
+            <span class="trending-num">02</span>
+            <a href="https://kgen.cloud/blog/veo-3-1-huong-dan-tao-video-ai/">VEO 3.1: Hướng Dẫn Tạo Video AI Cinematic</a>
+          </li>
+          <li>
+            <span class="trending-num">03</span>
+            <a href="https://kgen.cloud/blog/so-sanh-imagen-3-vs-midjourney-vs-dalle-3/">Imagen 3 vs Midjourney vs DALL-E 3: Cái Nào Tốt Nhất?</a>
+          </li>
+          <li>
+            <span class="trending-num">04</span>
+            <a href="https://kgen.cloud/blog/prompt-chup-anh-san-pham-thuong-mai/">50+ Prompt Chụp Ảnh Sản Phẩm Thương Mại</a>
+          </li>
+          <li>
+            <span class="trending-num">05</span>
+            <a href="https://kgen.cloud/blog/ai-content-creator-viet-nam-2026/">Lộ Trình AI Content Creator Kiếm 50 Triệu/Tháng</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-widget">
+        <div class="widget-title">🏷️ Chủ đề phổ biến</div>
+        <div class="tag-cloud">
+          <a href="https://kgen.cloud/blog/?cat=prompt">Prompt Engineering</a>
+          <a href="https://kgen.cloud/blog/?cat=video">Video AI</a>
+          <a href="https://kgen.cloud/blog/?cat=imagen">Imagen 3</a>
+          <a href="https://kgen.cloud/blog/?cat=midjourney">Midjourney</a>
+          <a href="https://kgen.cloud/blog/?cat=gemini">Gemini AI</a>
+          <a href="https://kgen.cloud/blog/?cat=veo">VEO 3.1</a>
+          <a href="https://kgen.cloud/blog/?cat=chatbot">Chatbot AI</a>
+          <a href="https://kgen.cloud/blog/?cat=seo">SEO AI</a>
+          <a href="https://kgen.cloud/blog/?cat=tiktok">TikTok AI</a>
+          <a href="https://kgen.cloud/blog/?cat=carousel">Carousel</a>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="https://kgen.cloud/" class="logo-link">
+          <img src="https://kgen.cloud/logo.png" alt="KGen" width="28" height="28" style="border-radius:7px;">
+          <span style="font-weight:800;">KGen <span style="color:#c084fc;font-style:italic;">Blog</span></span>
+        </a>
+        <p style="margin-top:12px;">Nền tảng kiến thức AI sáng tạo số 1 Việt Nam. Hướng dẫn tạo ảnh AI, video AI và prompt engineering chuyên sâu.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Chuyên mục</h5>
+        <a href="https://kgen.cloud/blog/?cat=prompt">Prompt Engineering</a>
+        <a href="https://kgen.cloud/blog/?cat=video">Video AI</a>
+        <a href="https://kgen.cloud/blog/?cat=tool">Công cụ AI</a>
+        <a href="https://kgen.cloud/blog/?cat=compare">So sánh AI</a>
+        <a href="https://kgen.cloud/blog/?cat=news">Tin tức AI</a>
+      </div>
+      <div class="footer-col">
+        <h5>KGen Platform</h5>
+        <a href="https://kgen.cloud/">KGen Gallery</a>
+        <a href="https://kgen.cloud/video">Video Studio</a>
+        <a href="https://kgen.cloud/chatbot_viral">Chatbot Viral</a>
+        <a href="https://kgen.cloud/model-comparison">So sánh Model</a>
+        <a href="https://kgen.cloud/info">Về KGen</a>
+      </div>
+      <div class="footer-col">
+        <h5>Liên kết</h5>
+        <a href="https://kgen.cloud/sitemap.xml">Sitemap</a>
+        <a href="https://kgen.cloud/robots.txt">Robots.txt</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 KGen Studio · hoaquocdang · <a href="https://kgen.cloud/">kgen.cloud</a></span>
+      <span>Tạo bởi ❤️ AI & vì cộng đồng AI Việt Nam</span>
+    </div>
+  </footer>
+
+  <script>
+    // ===== CATEGORY FILTER =====
+    const pills = document.querySelectorAll('.cat-pill');
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        // Future: filter posts by category
+      });
+    });
+
+    // ===== SEARCH (client-side) =====
+    const searchInput = document.getElementById('blog-search');
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.post-card').forEach(card => {
+        const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+        const desc = card.querySelector('p')?.textContent.toLowerCase() || '';
+        card.style.display = (!q || title.includes(q) || desc.includes(q)) ? '' : 'none';
+      });
+    });
+
+    // ===== NEWSLETTER =====
+    function handleNewsletter(e) {
+      e.preventDefault();
+      const email = document.getElementById('newsletter-email').value;
+      const btn = e.target.querySelector('button');
+      btn.textContent = '✅ Đã đăng ký!';
+      btn.disabled = true;
+      // TODO: integrate with Supabase or email API
+      fetch('https://n8n-1adi.srv1465145.hstgr.cloud/webhook/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'blog-index' })
+      }).catch(() => {});
+    }
+
+    // ===== LOAD MORE (placeholder) =====
+    document.getElementById('load-more-btn').addEventListener('click', function() {
+      this.textContent = 'Đang tải...';
+      setTimeout(() => {
+        this.textContent = 'Đã hiển thị tất cả bài viết';
+        this.disabled = true;
+      }, 800);
+    });
+  </script>
+
+</body>
+</html>
