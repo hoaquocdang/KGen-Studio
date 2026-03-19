@@ -3968,28 +3968,9 @@ async function setupPricing() {
 
     const currentTier = APP_STATE.currentUser?.tier || 'free';
 
-    // Load dynamic prices from Supabase api_config (synced with Admin Panel)
-    if (typeof window.loadCentralConfig === 'function') {
-        try {
-            const config = await window.loadCentralConfig();
-            if (config.plan_prices) {
-                tiers.forEach(tier => {
-                    const planData = config.plan_prices[tier.id];
-                    if (planData && planData.price) {
-                        tier.price = planData.price.toLocaleString('vi') + 'đ';
-                    }
-                    if (planData && planData.tokens_limit) {
-                        if (tier.id === 'premium') {
-                            tier.features[0] = `KGen Gallery · VEO 3.1 Video Studio — ${planData.tokens_limit.toLocaleString()} Credits/năm`;
-                        } else if (tier.id === 'free') {
-                            tier.features[0] = `Tặng kèm ${planData.tokens_limit} Credits ban đầu`;
-                        }
-                    }
-                });
-                console.log('💰 Pricing synced from Supabase');
-            }
-        } catch (e) { console.warn('Pricing sync fallback:', e.message); }
-    }
+
+    // NOTE: Giá được hardcode trong supabase.js (499.000đ/năm cho Premium)
+    // Không sync giá từ Supabase để tránh bị override sai
 
     container.innerHTML = `
         <div style="margin-bottom: 32px;">
