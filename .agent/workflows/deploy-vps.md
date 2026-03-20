@@ -17,10 +17,10 @@ git push origin master
 ## Bước 2: SSH vào VPS và chạy deploy
 
 ```bash
-cd /opt/kgen-gallery && git pull origin master && docker compose -f deploy/docker-compose.yml up -d --build
+cd /opt/kgen-gallery && git pull origin master && docker compose -f deploy/docker-compose.yml up -d --build --force-recreate
 ```
 
-> **Lưu ý:** `docker-compose.yml` nằm trong thư mục `deploy/`, không phải root.
+> **Lưu ý:** `--force-recreate` bắt buộc tạo lại container mới, tránh lỗi "container name already in use".
 > Nếu VPS dùng `docker-compose` (chữ thường có dấu gạch ngang), dùng:
 > ```bash
 > cd /opt/kgen-gallery && git pull origin master && docker-compose -f deploy/docker-compose.yml up -d --build
