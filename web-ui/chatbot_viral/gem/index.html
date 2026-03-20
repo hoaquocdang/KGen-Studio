@@ -702,15 +702,8 @@
     </div>
 </div>
 
+<script src="/site-config.js?v=2026"></script>
 <script>
-    window.SITE_CONFIG = {
-        payment: {
-            bankId: 'TPB',
-            accountNo: '00002035456',
-            accountName: 'TRAN DANG QUOC HOA',
-            webhookBase: 'https://n8n-1adi.srv1465145.hstgr.cloud'
-        }
-    };
     window.APP_STATE = { currentUser: null };
 
     // ---- PRODUCT DATA ----
@@ -1061,6 +1054,30 @@
                 const user = JSON.parse(stored);
                 window.APP_STATE.currentUser = user;
                 document.getElementById('auth-status').textContent = user.email;
+            }
+        } catch(e) {}
+        
+        // Fetch Chatbot Discount from Supabase API Config
+        try {
+            const url = window.SITE_CONFIG?.supabase?.url;
+            const key = window.SITE_CONFIG?.supabase?.anonKey;
+            if (url && key) {
+                fetch(`${url}/rest/v1/api_config?select=plan_prices&id=eq.00000000-0000-0000-0000-000000000001`, {
+                    headers: {'apikey':key, 'Authorization':`Bearer ${key}`}
+                }).then(r=>r.json()).then(rows => {
+                    if (rows && rows[0]?.plan_prices?.chatbot?.discount) {
+                        const d = parseInt(rows[0].plan_prices.chatbot.discount);
+                        if (d > 0 && d < 100) {
+                            PRODUCTS.forEach(p => {
+                                p.priceOld = p.priceDisplay;
+                                p.price = Math.floor(p.price * (100 - d) / 100);
+                                p.priceDisplay = p.price.toLocaleString('vi') + 'đ';
+                                if (!p.tags.includes('SALE')) p.tags.push('SALE');
+                            });
+                            renderCards(); 
+                        }
+                    }
+                }).catch(e=>console.log(e));
             }
         } catch(e) {}
     });

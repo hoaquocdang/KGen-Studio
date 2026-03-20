@@ -344,6 +344,22 @@
                             </div>
                         </div>
 
+                        <!-- CHATBOT PRICING ADJUSTMENT -->
+                        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+                            <div class="card-header" style="padding:0 0 14px 0">
+                                <h2>🛍️ Khuyến mãi Cửa hàng Chatbot</h2>
+                                <span class="badge badge-purple" id="cb-badge">Chiến dịch ưu đãi</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Giảm giá % đồng loạt</label>
+                                <p class="form-hint">Nhập % giảm giá cho tất cả sản phẩm chatbot để chốt sale (Ví dụ: 20%). Nhập 0 sẽ quay về giá gốc.</p>
+                                <div style="display:flex;align-items:center;gap:8px;max-width:200px">
+                                    <input type="number" class="form-input" id="pl-cb-discount" value="0" min="0" max="100" style="width:120px" oninput="updatePriceDisplay()">
+                                    <span style="font-weight:700;color:var(--text-muted)">%</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <p class="form-hint" style="margin-top:14px">User thêm API key riêng → không giới hạn quota hệ
                             thống. Giá hiển thị tự động chuyển đổi theo ngôn ngữ user chọn.</p>
                         <button class="btn btn-primary" style="margin-top:18px" onclick="savePlansAndPricing()">💾 Lưu
@@ -713,10 +729,15 @@
             // Pricing
             const proPx = planPrices.pro?.price || 49000;
             const premPx = planPrices.premium?.price || 199000;
+            const cbDiscount = planPrices.chatbot?.discount || 0;
+            
             const elPro = document.getElementById('pl-price-pro');
             const elPrem = document.getElementById('pl-price-prem');
+            const elCbDis = document.getElementById('pl-cb-discount');
             if (elPro) elPro.value = proPx;
             if (elPrem) elPrem.value = premPx;
+            if (elCbDis) elCbDis.value = cbDiscount;
+            
             updatePriceDisplay();
 
             // Model costs
@@ -796,11 +817,12 @@
             const premLimit = +(document.getElementById('pl-prem').value) || 2500;
             const proPrice = +(document.getElementById('pl-price-pro').value) || 49000;
             const premPrice = +(document.getElementById('pl-price-prem').value) || 199000;
+            const gemDiscount = +(document.getElementById('pl-cb-discount')?.value) || 0;
 
             // Save to localStorage backup
             const c = gc();
             c.plans = { freeLimit, proLimit, premLimit };
-            c.pricing = { pro: proPrice, premium: premPrice };
+            c.pricing = { pro: proPrice, premium: premPrice, chatbotDiscount: gemDiscount };
             sc(c);
 
             // Save to Supabase
@@ -810,6 +832,7 @@
                         free: { tokens_limit: freeLimit, price: 0, name: 'Free' },
                         pro: { tokens_limit: proLimit, price: proPrice, name: 'Pro' },
                         premium: { tokens_limit: premLimit, price: premPrice, name: 'Premium' },
+                        chatbot: { discount: gemDiscount, name: 'Chatbot' }
                     };
                     await sb.from('api_config').update({
                         plan_prices: planPrices,
