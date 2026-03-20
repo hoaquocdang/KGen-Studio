@@ -143,5 +143,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.72</priority>
   </url>
+  <url>
+    <loc>https://kgen.cloud/blog/nguoi-que-ke-truyen-chatbot-video-ai/</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://kgen.cloud/chatbot_viral/chatbot-banner.webp</image:loc>
+      <image:title>Người Que Kể Truyện Chatbot KGen</image:title>
+      <image:caption>Tự tạo host dẫn chuyện cá nhân người que và kịch bản chuẩn SEO tự động</image:caption>
+    </image:image>
+  </url>
 
 </urlset>
